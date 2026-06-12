@@ -1,0 +1,64 @@
+name: warraich_petroleum
+description: "Warraich Petroleum - Petrol Pump Management App"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.12.1
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+
+  # Database
+  drift: ^2.22.1
+  sqlite3_flutter_libs: ^0.5.28
+  path_provider: ^2.1.4
+  path: ^1.9.0
+
+  # State Management
+  flutter_riverpod: ^2.6.1
+  riverpod_annotation: ^2.6.1
+
+  # UI
+  google_fonts: ^6.2.1
+  flutter_animate: ^4.5.2
+  fl_chart: ^0.70.2
+  dynamic_color: ^1.7.0
+
+  # Security
+  local_auth: ^2.3.0
+  flutter_secure_storage: ^9.2.4
+
+  # Cloud/Backup
+  google_sign_in: ^6.2.2
+  http: ^1.2.2
+  http_parser: ^4.1.2
+
+  # PDF & Reports
+  pdf: ^3.11.1
+  printing: ^5.13.4
+
+  # Utilities
+  intl: ^0.20.2
+  uuid: ^4.5.1
+  timezone: ^0.9.4
+  share_plus: ^10.1.4
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  drift_dev: ^2.22.1
+  build_runner: ^2.4.13
+  riverpod_generator: ^2.6.2
+  freezed_annotation: ^2.4.4
+  json_serializable: ^6.8.0
+  freezed: ^2.5.7
+
+flutter:
+  uses-material-design: true

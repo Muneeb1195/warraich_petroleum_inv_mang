@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "199407683103",
+    "project_id": "com-warraich-petroleum",
+    "storage_bucket": "com-warraich-petroleum.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:199407683103:android:1de5d55a6512f6155f772a",
+        "android_client_info": {
+          "package_name": "com.warraich.petroleum"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "199407683103-h409shrde932ugigr5bngt95bc8552ei.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC7yYz4RPqnEVLSEfr83VchZRUtbSKgyRU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "199407683103-h409shrde932ugigr5bngt95bc8552ei.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
