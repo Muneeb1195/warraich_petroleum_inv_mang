@@ -72,31 +72,29 @@ class DashboardScreen extends ConsumerWidget {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(flex: 3, child: _buildTodaySummary(context, todaySummary, colorScheme)),
+                  Expanded(child: _buildTodaySummary(context, todaySummary, colorScheme)),
                   const SizedBox(width: 16),
-                  Expanded(flex: 2, child: _buildActiveShiftCard(context, ref, activeShift, colorScheme)),
-                  const SizedBox(width: 16),
-                  Expanded(flex: 2, child: _buildMonthlySummary(context, monthlySummary, colorScheme)),
+                  Expanded(child: _buildMonthlySummary(context, monthlySummary, colorScheme)),
                 ],
               ),
               const SizedBox(height: 16),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(flex: 2, child: _buildQuickActions(context, ref, colorScheme)),
+                  Expanded(child: _buildActiveShiftCard(context, ref, activeShift, colorScheme)),
                   const SizedBox(width: 16),
-                  Expanded(flex: 4, child: _buildSalesChart(context, weeklySales, colorScheme)),
+                  Expanded(child: _buildQuickActions(context, ref, colorScheme)),
                   const SizedBox(width: 16),
-                  Expanded(flex: 2, child: _buildEmployeeCount(context, employeeCount, colorScheme)),
+                  Expanded(child: _buildEmployeeCount(context, employeeCount, colorScheme)),
                 ],
               ),
               const SizedBox(height: 16),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(flex: 2, child: _buildInventoryAlerts(context, ref, allInventory, colorScheme)),
+                  Expanded(child: _buildSalesChart(context, weeklySales, colorScheme)),
                   const SizedBox(width: 16),
-                  Expanded(flex: 1, child: _buildExpensePie(context, monthlySummary, colorScheme)),
+                  Expanded(child: _buildInventoryAlerts(context, ref, allInventory, colorScheme)),
                 ],
               ),
             ],
@@ -338,62 +336,6 @@ class DashboardScreen extends ConsumerWidget {
           ),
         ),
       ),
-      loading: () => const Card(child: Padding(padding: EdgeInsets.all(32), child: Center(child: CircularProgressIndicator()))),
-      error: (e, _) => Card(child: Padding(padding: const EdgeInsets.all(16), child: Text('Error: $e'))),
-    );
-  }
-
-  Widget _buildExpensePie(BuildContext context, AsyncValue<Map<String, double>> monthlySummary, ColorScheme colorScheme) {
-    return monthlySummary.when(
-      data: (summary) {
-        final expenses = summary['expenses'] ?? 0;
-        if (expenses == 0) {
-          return Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Expense Split', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 32),
-                  Center(child: Text('No expenses yet', style: TextStyle(color: colorScheme.onSurfaceVariant))),
-                  const SizedBox(height: 32),
-                ],
-              ),
-            ),
-          );
-        }
-
-        final sections = [
-          PieChartSectionData(value: 40, color: colorScheme.primary, title: 'Supplier', radius: 50),
-          PieChartSectionData(value: 25, color: colorScheme.error, title: 'Wages', radius: 50),
-          PieChartSectionData(value: 20, color: Colors.orange, title: 'Utilities', radius: 50),
-          PieChartSectionData(value: 15, color: Colors.green, title: 'Other', radius: 50),
-        ];
-
-        return Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Expense Split', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                const SizedBox(height: 16),
-                SizedBox(
-                  height: 150,
-                  child: PieChart(
-                    PieChartData(
-                      sections: sections,
-                      centerSpaceRadius: 30,
-                      sectionsSpace: 2,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
       loading: () => const Card(child: Padding(padding: EdgeInsets.all(32), child: Center(child: CircularProgressIndicator()))),
       error: (e, _) => Card(child: Padding(padding: const EdgeInsets.all(16), child: Text('Error: $e'))),
     );
