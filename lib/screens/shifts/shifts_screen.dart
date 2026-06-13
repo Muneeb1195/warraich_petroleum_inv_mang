@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
+import '../../database/app_database.dart';
 import '../../providers/shift_provider.dart';
 import 'new_shift_screen.dart';
 import 'shift_detail_screen.dart';
@@ -30,7 +32,7 @@ class ShiftsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildBody(BuildContext context, WidgetRef ref, AsyncValue activeShift, AsyncValue allShifts, ColorScheme colorScheme) {
+  Widget _buildBody(BuildContext context, WidgetRef ref, AsyncValue<dynamic> activeShift, AsyncValue<List<Shift>> allShifts, ColorScheme colorScheme) {
     final content = ListView(
       padding: const EdgeInsets.all(16),
       children: [
@@ -42,7 +44,7 @@ class ShiftsScreen extends ConsumerWidget {
               child: ListTile(
                 leading: const CircleAvatar(child: Icon(Icons.play_arrow)),
                 title: Text('${shift.type.toUpperCase()} Shift - ACTIVE'),
-                subtitle: Text('Started: ${shift.startDate.formattedDateTime}'),
+                subtitle: Text('Started: ${DateFormat('dd MMM yyyy, hh:mm a').format(shift.startDate)}'),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => Navigator.push(
                   context,
@@ -71,9 +73,10 @@ class ShiftsScreen extends ConsumerWidget {
               );
             }
             return Column(
-              children: shifts.map((shift) {
-                final isActive = shift.status == 'active';
-                final profit = shift.totalSales - shift.totalExpenses;
+              children: shifts.map<Widget>((shift) {
+                final typedShift = shift as Shift;
+                final isActive = typedShift.status == 'active';
+                final profit = typedShift.totalSales - typedShift.totalExpenses;
                 return Card(
                   child: ListTile(
                     leading: CircleAvatar(
@@ -88,20 +91,20 @@ class ShiftsScreen extends ConsumerWidget {
                       ),
                     ),
                     title: Text(
-                      '${shift.type.toUpperCase()} Shift',
+                      '${typedShift.type.toUpperCase()} Shift',
                       style: TextStyle(fontWeight: isActive ? FontWeight.bold : FontWeight.normal),
                     ),
                     subtitle: Text(
                       isActive
-                          ? shift.startDate.formattedDay
-                          : '${shift.startDate.formattedDay} | Exp: Rs. ${shift.totalExpenses.toStringAsFixed(0)}',
+                          ? DateFormat('EEEE, dd MMM yyyy').format(typedShift.startDate)
+                          : '${DateFormat('EEEE, dd MMM yyyy').format(typedShift.startDate)} | Exp: Rs. ${typedShift.totalExpenses.toStringAsFixed(0)}',
                     ),
                     trailing: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Text(
-                          'Rs. ${shift.totalSales.toStringAsFixed(0)}',
+                          'Rs. ${typedShift.totalSales.toStringAsFixed(0)}',
                           style: TextStyle(
                             color: Theme.of(context).colorScheme.primary,
                             fontWeight: FontWeight.bold,
@@ -120,7 +123,7 @@ class ShiftsScreen extends ConsumerWidget {
                     ),
                     onTap: () => Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => ShiftDetailScreen(shiftId: shift.id)),
+                      MaterialPageRoute(builder: (_) => ShiftDetailScreen(shiftId: typedShift.id)),
                     ),
                   ),
                 );
