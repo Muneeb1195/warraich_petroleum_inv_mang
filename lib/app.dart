@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'theme/app_theme.dart';
 import 'providers/auth_provider.dart';
+import 'providers/theme_provider.dart';
 import 'screens/lock_screen.dart';
 import 'screens/home_shell.dart';
 
@@ -25,6 +26,7 @@ class _WarraichPetroleumAppState extends ConsumerState<WarraichPetroleumApp> {
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authStateProvider);
+    final themeMode = ref.watch(themeModeProvider);
 
     return DynamicColorBuilder(
       builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) {
@@ -33,7 +35,7 @@ class _WarraichPetroleumAppState extends ConsumerState<WarraichPetroleumApp> {
           debugShowCheckedModeBanner: false,
           theme: AppTheme.light(lightDynamic),
           darkTheme: AppTheme.dark(darkDynamic),
-          themeMode: ThemeMode.system,
+          themeMode: themeMode,
           home: authState.isLocked ? const LockScreen() : const HomeShell(),
         );
       },

@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../providers/theme_provider.dart';
 import '../employees/employees_screen.dart';
 import '../payroll/payroll_screen.dart';
 import '../history/sales_history_screen.dart';
@@ -14,6 +15,49 @@ class SettingsScreen extends ConsumerWidget {
 
   bool get _isDesktop => Platform.isWindows || Platform.isLinux || Platform.isMacOS;
 
+  void _showThemeDialog(BuildContext context, WidgetRef ref) {
+    final currentMode = ref.read(themeModeProvider);
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Theme'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            RadioListTile<ThemeMode>(
+              title: const Text('System Default'),
+              value: ThemeMode.system,
+              groupValue: currentMode,
+              onChanged: (value) {
+                ref.read(themeModeProvider.notifier).setThemeMode(value!);
+                Navigator.pop(context);
+              },
+            ),
+            RadioListTile<ThemeMode>(
+              title: const Text('Light'),
+              value: ThemeMode.light,
+              groupValue: currentMode,
+              onChanged: (value) {
+                ref.read(themeModeProvider.notifier).setThemeMode(value!);
+                Navigator.pop(context);
+              },
+            ),
+            RadioListTile<ThemeMode>(
+              title: const Text('Dark'),
+              value: ThemeMode.dark,
+              groupValue: currentMode,
+              onChanged: (value) {
+                ref.read(themeModeProvider.notifier).setThemeMode(value!);
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -21,29 +65,29 @@ class SettingsScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('More')),
       body: _isDesktop
-          ? _buildDesktopLayout(context, colorScheme)
-          : _buildMobileLayout(context, colorScheme),
+          ? _buildDesktopLayout(context, ref, colorScheme)
+          : _buildMobileLayout(context, ref, colorScheme),
     );
   }
 
-  Widget _buildMobileLayout(BuildContext context, ColorScheme colorScheme) {
+  Widget _buildMobileLayout(BuildContext context, WidgetRef ref, ColorScheme colorScheme) {
     return ListView(
       padding: const EdgeInsets.all(16),
-      children: _buildMenuSections(context, colorScheme),
+      children: _buildMenuSections(context, ref, colorScheme),
     );
   }
 
-  Widget _buildDesktopLayout(BuildContext context, ColorScheme colorScheme) {
+  Widget _buildDesktopLayout(BuildContext context, WidgetRef ref, ColorScheme colorScheme) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: _buildMenuSections(context, colorScheme),
+        children: _buildMenuSections(context, ref, colorScheme),
       ),
     );
   }
 
-  List<Widget> _buildMenuSections(BuildContext context, ColorScheme colorScheme) {
+  List<Widget> _buildMenuSections(BuildContext context, WidgetRef ref, ColorScheme colorScheme) {
     return [
       _MenuSection(
         title: 'Management',
@@ -95,6 +139,12 @@ class SettingsScreen extends ConsumerWidget {
             title: 'Backup & Restore',
             subtitle: 'Backup management',
             onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const BackupScreen())),
+          ),
+          _MenuItem(
+            icon: Icons.dark_mode,
+            title: 'Theme',
+            subtitle: 'Switch between light and dark mode',
+            onTap: () => _showThemeDialog(context, ref),
           ),
           if (Platform.isAndroid || Platform.isIOS)
             _MenuItem(
