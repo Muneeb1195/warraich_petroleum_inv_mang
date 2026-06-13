@@ -101,6 +101,7 @@ class InventoryScreen extends ConsumerWidget {
 
   void _showTransactionHistory(BuildContext context, WidgetRef ref, dynamic item) {
     final database = ref.read(databaseProvider);
+    final transactionsFuture = database.productDao.getTransactions(item.product.id);
 
     showModalBottomSheet(
       context: context,
@@ -112,7 +113,7 @@ class InventoryScreen extends ConsumerWidget {
         expand: false,
         builder: (context, scrollController) {
           return FutureBuilder(
-            future: database.productDao.getTransactions(item.product.id),
+            future: transactionsFuture,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());

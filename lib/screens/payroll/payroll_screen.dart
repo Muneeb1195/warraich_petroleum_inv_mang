@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/payroll_provider.dart';
 import '../../providers/employee_provider.dart';
+import '../../providers/expense_provider.dart';
+import '../../providers/shift_provider.dart';
 import '../../utils/extensions.dart';
 
 class PayrollScreen extends ConsumerWidget {
@@ -92,6 +94,13 @@ class PayrollScreen extends ConsumerWidget {
                                 TextButton(
                                   onPressed: () async {
                                     await ref.read(payrollNotifierProvider.notifier).markAsPaid(row.payrollEntry.id);
+                                    await ref.read(expenseNotifierProvider.notifier).addExpense(
+                                      category: 'Misc',
+                                      amount: row.payrollEntry.netPay,
+                                      description: 'Wages - ${row.employee.name} (${row.payrollEntry.month}/${row.payrollEntry.year})',
+                                      date: DateTime.now(),
+                                    );
+                                    ref.invalidate(todaySummaryProvider);
                                     if (context.mounted) {
                                       ScaffoldMessenger.of(context).showSnackBar(
                                         SnackBar(content: Text('${row.employee.name} marked as paid')),

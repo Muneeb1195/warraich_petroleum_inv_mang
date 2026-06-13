@@ -34,12 +34,12 @@ class ShiftNotifier extends StateNotifier<AsyncValue<void>> {
 
   ShiftNotifier(this._dao, this._db) : super(const AsyncValue.data(null));
 
-  Future<void> startShift(String type) async {
+  Future<void> startShift(String type, {DateTime? dateTime}) async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
       await _dao.createShift(ShiftsCompanion.insert(
         type: type,
-        startDate: DateTime.now(),
+        startDate: dateTime ?? DateTime.now(),
       ));
     });
   }
@@ -68,6 +68,40 @@ class ShiftNotifier extends StateNotifier<AsyncValue<void>> {
         cardCollected: Value(card),
         creditCollected: Value(credit),
       ));
+    });
+  }
+
+  Future<void> updateSaleInShift(
+    int saleId,
+    int shiftId,
+    int productId,
+    double openingReading,
+    double closingReading,
+    double pricePerUnit,
+    double cash,
+    double card,
+    double credit,
+  ) async {
+    final quantity = closingReading - openingReading;
+    final totalAmount = quantity * pricePerUnit;
+    state = await AsyncValue.guard(() async {
+      await _dao.updateSaleInShift(saleId, ShiftSalesCompanion(
+        shiftId: Value(shiftId),
+        productId: Value(productId),
+        openingReading: Value(openingReading),
+        closingReading: Value(closingReading),
+        quantitySold: Value(quantity),
+        totalAmount: Value(totalAmount),
+        cashCollected: Value(cash),
+        cardCollected: Value(card),
+        creditCollected: Value(credit),
+      ));
+    });
+  }
+
+  Future<void> deleteSaleFromShift(int saleId) async {
+    state = await AsyncValue.guard(() async {
+      await _dao.deleteSaleFromShift(saleId);
     });
   }
 

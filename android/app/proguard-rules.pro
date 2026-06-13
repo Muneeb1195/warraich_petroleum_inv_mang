@@ -1,13 +1,23 @@
--keep class com.warraich.petroleum.** { *; }
+# Flutter
 -keep class io.flutter.** { *; }
 -dontwarn io.flutter.embedding.**
 
-# local_auth
--keep class io.flutter.plugins.localauth.** { *; }
+# Drift
+-keep class drift.** { *; }
+-keep class * extends drift.GeneratedDatabase { *; }
 
-# google_sign_in
+# Google Sign-In
 -keep class com.google.android.gms.auth.** { *; }
+-keep class com.google.android.gms.common.** { *; }
 
-# shared_preferences / flutter_secure_storage
--keep class io.flutter.plugins.sharedpreferences.** { *; }
+# Flutter Secure Storage
 -keep class com.it_nomads.fluttersecurestorage.** { *; }
+
+# PDF
+-keep class com.itextpdf.** { *; }
+
+# Biometric
+-keep class androidx.biometric.** { *; }
+
+# App
+-keep class com.warraich.petroleum.** { *; }

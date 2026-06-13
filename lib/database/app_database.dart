@@ -35,13 +35,22 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
         onCreate: (m) async {
           await m.createAll();
           await _seedProducts();
+        },
+        onUpgrade: (m, from, to) async {
+          if (from < 2) {
+            await m.deleteTable('products');
+            await m.deleteTable('inventory');
+            await m.createTable(products);
+            await m.createTable(inventory);
+            await _seedProducts();
+          }
         },
       );
 
@@ -68,23 +77,23 @@ class AppDatabase extends _$AppDatabase {
       costPerUnit: const Value(0),
     ));
     await into(products).insert(ProductsCompanion.insert(
-      name: 'Engine Oil',
+      name: 'Engine Oil 4L',
       category: 'lube',
       unit: 'pieces',
       pricePerUnit: const Value(0),
       costPerUnit: const Value(0),
     ));
     await into(products).insert(ProductsCompanion.insert(
-      name: 'Gear Oil',
+      name: 'Engine Oil 3L',
       category: 'lube',
       unit: 'pieces',
       pricePerUnit: const Value(0),
       costPerUnit: const Value(0),
     ));
     await into(products).insert(ProductsCompanion.insert(
-      name: 'Brake Fluid',
+      name: 'Engine Oil (Liters)',
       category: 'lube',
-      unit: 'pieces',
+      unit: 'liters',
       pricePerUnit: const Value(0),
       costPerUnit: const Value(0),
     ));

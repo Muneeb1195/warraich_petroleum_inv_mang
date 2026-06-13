@@ -43,6 +43,14 @@ class ShiftDao extends DatabaseAccessor<AppDatabase> with _$ShiftDaoMixin {
 
   Future<void> addSaleToShift(ShiftSalesCompanion sale) => into(shiftSales).insert(sale);
 
+  Future<void> updateSaleInShift(int saleId, ShiftSalesCompanion sale) async {
+    await (update(shiftSales)..where((s) => s.id.equals(saleId))).write(sale);
+  }
+
+  Future<void> deleteSaleFromShift(int saleId) async {
+    await (delete(shiftSales)..where((s) => s.id.equals(saleId))).go();
+  }
+
   Future<void> closeShift(int shiftId, int closedBy, double totalSales, double totalExpenses) async {
     await (update(shifts)..where((s) => s.id.equals(shiftId))).write(ShiftsCompanion(
       status: const Value('closed'),

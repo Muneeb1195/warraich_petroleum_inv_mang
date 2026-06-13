@@ -2,68 +2,85 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
-import 'package:google_sign_in/google_sign_in.dart';
+import 'package:google_sign_in_all_platforms/google_sign_in_all_platforms.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
+import '../config/app_config.dart';
 
 class BackupService {
   static const _maxBackups = 5;
   static const _folderName = 'WarraichPetroleum';
 
   final GoogleSignIn _googleSignIn = GoogleSignIn(
-    scopes: [
-      'https://www.googleapis.com/auth/drive.file',
-      'https://www.googleapis.com/auth/drive.appdata',
-    ],
+    params: const GoogleSignInParams(
+      clientId: AppConfig.googleClientId,
+      clientSecret: AppConfig.googleClientSecret,
+      scopes: [
+        'https://www.googleapis.com/auth/drive.file',
+        'https://www.googleapis.com/auth/drive.appdata',
+      ],
+    ),
   );
 
-  GoogleSignInAccount? _account;
+  GoogleSignInCredentials? _credentials;
 
   Future<Map<String, String>> _getHeaders() async {
-    _account ??= await _googleSignIn.signIn();
-    if (_account == null) return {};
-    final auth = await _account!.authentication;
+    try {
+      _credentials ??= await _googleSignIn.silentSignIn();
+      _credentials ??= await _googleSignIn.signIn();
+    } catch (e) {
+      return {};
+    }
+    if (_credentials == null) return {};
     return {
-      'Authorization': 'Bearer ${auth.accessToken}',
+      'Authorization': 'Bearer ${_credentials!.accessToken}',
       'Content-Type': 'application/json',
     };
   }
 
   Future<String?> _getFolderId() async {
-    final headers = await _getHeaders();
-    if (headers.isEmpty) return null;
+    try {
+      final headers = await _getHeaders();
+      if (headers.isEmpty) return null;
 
-    final response = await http.get(
-      Uri.parse('https://www.googleapis.com/drive/v3/files?q=name%3D%27$_folderName%27%20and%20mimeType%3D%27application%2Fvnd.google-apps.folder%27%20and%20trashed%3Dfalse'),
-      headers: headers,
-    );
+      final response = await http.get(
+        Uri.parse('https://www.googleapis.com/drive/v3/files?q=name%3D%27$_folderName%27%20and%20mimeType%3D%27application%2Fvnd.google-apps.folder%27%20and%20trashed%3Dfalse'),
+        headers: headers,
+      );
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      final files = data['files'] as List? ?? [];
-      if (files.isNotEmpty) return files[0]['id'];
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final files = data['files'] as List? ?? [];
+        if (files.isNotEmpty) return files[0]['id'];
+      }
+
+      return await _createFolder(headers);
+    } catch (e) {
+      return null;
     }
-
-    return await _createFolder(headers);
   }
 
   Future<String?> _createFolder(Map<String, String> headers) async {
-    final metadata = jsonEncode({
-      'name': _folderName,
-      'mimeType': 'application/vnd.google-apps.folder',
-    });
+    try {
+      final metadata = jsonEncode({
+        'name': _folderName,
+        'mimeType': 'application/vnd.google-apps.folder',
+      });
 
-    final response = await http.post(
-      Uri.parse('https://www.googleapis.com/drive/v3/files'),
-      headers: headers,
-      body: metadata,
-    );
+      final response = await http.post(
+        Uri.parse('https://www.googleapis.com/drive/v3/files'),
+        headers: headers,
+        body: metadata,
+      );
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      return data['id'];
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['id'];
+      }
+      return null;
+    } catch (e) {
+      return null;
     }
-    return null;
   }
 
   Future<bool> backupDatabase(File dbFile) async {
@@ -113,22 +130,26 @@ class BackupService {
   }
 
   Future<void> _enforceMaxBackups(String folderId, Map<String, String> headers) async {
-    final response = await http.get(
-      Uri.parse('https://www.googleapis.com/drive/v3/files?q=%27$folderId%27%20in%20parents%20and%20name%20contains%20%27warraich_backup_%27%20and%20trashed%3Dfalse&orderBy=createdTime%20desc'),
-      headers: headers,
-    );
+    try {
+      final response = await http.get(
+        Uri.parse('https://www.googleapis.com/drive/v3/files?q=%27$folderId%27%20in%20parents%20and%20name%20contains%20%27warraich_backup_%27%20and%20trashed%3Dfalse&orderBy=createdTime%20desc'),
+        headers: headers,
+      );
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      final files = data['files'] as List? ?? [];
-      if (files.length > _maxBackups) {
-        for (final file in files.sublist(_maxBackups)) {
-          await http.delete(
-            Uri.parse('https://www.googleapis.com/drive/v3/files/${file['id']}'),
-            headers: headers,
-          );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final files = data['files'] as List? ?? [];
+        if (files.length > _maxBackups) {
+          for (final file in files.sublist(_maxBackups)) {
+            await http.delete(
+              Uri.parse('https://www.googleapis.com/drive/v3/files/${file['id']}'),
+              headers: headers,
+            );
+          }
         }
       }
+    } catch (e) {
+      // Ignore cleanup errors
     }
   }
 
@@ -170,7 +191,20 @@ class BackupService {
   }
 
   Future<void> signOut() async {
-    await _googleSignIn.signOut();
-    _account = null;
+    try {
+      await _googleSignIn.signOut();
+      _credentials = null;
+    } catch (e) {
+      _credentials = null;
+    }
+  }
+
+  Future<bool> signIn() async {
+    try {
+      _credentials = await _googleSignIn.signIn();
+      return _credentials != null;
+    } catch (e) {
+      return false;
+    }
   }
 }

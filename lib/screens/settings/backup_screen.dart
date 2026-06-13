@@ -15,24 +15,67 @@ class BackupScreen extends ConsumerStatefulWidget {
 
 class _BackupScreenState extends ConsumerState<BackupScreen> {
   static const _autoBackupKey = 'auto_backup_enabled';
+  static const _signedInKey = 'google_signed_in';
   bool _autoBackup = true;
+  bool _isSignedIn = false;
 
   @override
   void initState() {
     super.initState();
-    _loadAutoBackupSetting();
+    _loadSettings();
   }
 
-  Future<void> _loadAutoBackupSetting() async {
+  Future<void> _loadSettings() async {
     const storage = FlutterSecureStorage();
-    final value = await storage.read(key: _autoBackupKey);
-    setState(() => _autoBackup = value != 'false');
+    final autoBackup = await storage.read(key: _autoBackupKey);
+    final signedIn = await storage.read(key: _signedInKey);
+    setState(() {
+      _autoBackup = autoBackup != 'false';
+      _isSignedIn = signedIn == 'true';
+    });
   }
 
   Future<void> _saveAutoBackupSetting(bool value) async {
     const storage = FlutterSecureStorage();
     await storage.write(key: _autoBackupKey, value: value.toString());
     setState(() => _autoBackup = value);
+  }
+
+  Future<void> _toggleSignIn() async {
+    const storage = FlutterSecureStorage();
+    if (_isSignedIn) {
+      await ref.read(backupNotifierProvider.notifier).signOut();
+      await storage.write(key: _signedInKey, value: 'false');
+      setState(() => _isSignedIn = false);
+    } else {
+      try {
+        final success = await ref.read(backupNotifierProvider.notifier).signIn();
+        print('Sign in result: $success');
+        if (!mounted) return;
+        if (success) {
+          await storage.write(key: _signedInKey, value: 'true');
+          setState(() => _isSignedIn = true);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Sign in failed. Make sure a browser is available.')),
+          );
+        }
+      } catch (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Sign in error: $e')),
+        );
+      }
+    }
+  }
+
+  Future<Directory> get _backupDir async {
+    final dir = await getApplicationDocumentsDirectory();
+    final backupDir = Directory(p.join(dir.path, 'backups'));
+    if (!await backupDir.exists()) {
+      await backupDir.create(recursive: true);
+    }
+    return backupDir;
   }
 
   @override
@@ -46,28 +89,102 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
         padding: const EdgeInsets.all(16),
         children: [
           Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(Icons.cloud, color: colorScheme.primary),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Google Drive Backup',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            child: Column(
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.backup),
+                  title: const Text('Local Backup'),
+                  subtitle: const Text('Save database to app storage'),
+                  trailing: backupState.isLoading
+                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                      : const Icon(Icons.chevron_right),
+                  onTap: backupState.isLoading
+                      ? null
+                      : () async {
+                          final dbDir = await getApplicationDocumentsDirectory();
+                          final dbFile = File(p.join(dbDir.path, 'warraich_petroleum.db'));
+                          final backupDir = await _backupDir;
+                          final timestamp = DateTime.now().toIso8601String().replaceAll(':', '-').substring(0, 19);
+                          final backupFile = File(p.join(backupDir.path, 'backup_$timestamp.db'));
+                          await dbFile.copy(backupFile.path);
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Backup saved: backup_$timestamp.db')),
+                            );
+                          }
+                        },
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.restore),
+                  title: const Text('Local Restore'),
+                  subtitle: const Text('Restore from a backup file'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () async {
+                    final backupDir = await _backupDir;
+                    final files = backupDir
+                        .listSync()
+                        .whereType<File>()
+                        .where((f) => f.path.endsWith('.db'))
+                        .toList()
+                      ..sort((a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()));
+
+                    if (files.isEmpty) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('No backup files found')),
+                        );
+                      }
+                      return;
+                    }
+
+                    if (!context.mounted) return;
+                    final selected = await showDialog<File>(
+                      context: context,
+                      builder: (ctx) => SimpleDialog(
+                        title: const Text('Select Backup'),
+                        children: files.map((file) {
+                          final name = p.basename(file.path);
+                          final date = file.lastModifiedSync().toString().substring(0, 16);
+                          return SimpleDialogOption(
+                            onPressed: () => Navigator.pop(ctx, file),
+                            child: ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              leading: const Icon(Icons.storage),
+                              title: Text(name),
+                              subtitle: Text(date),
+                            ),
+                          );
+                        }).toList(),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Your data is backed up to Google Drive. Maximum 5 backups are retained.',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
-                  ),
-                ],
-              ),
+                    );
+
+                    if (selected != null) {
+                      final dbDir = await getApplicationDocumentsDirectory();
+                      final dbFile = File(p.join(dbDir.path, 'warraich_petroleum.db'));
+                      await selected.copy(dbFile.path);
+                      if (context.mounted) {
+                        showDialog(
+                          context: context,
+                          builder: (ctx) => AlertDialog(
+                            title: const Text('Restore Complete'),
+                            content: const Text('Database restored. Please restart the app.'),
+                            actions: [
+                              FilledButton(
+                                onPressed: () {
+                                  Navigator.pop(ctx);
+                                  Navigator.pop(context);
+                                },
+                                child: const Text('OK'),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+                    }
+                  },
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 16),
@@ -75,71 +192,96 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
             child: Column(
               children: [
                 ListTile(
-                  leading: const Icon(Icons.backup),
-                  title: const Text('Manual Backup'),
-                  subtitle: const Text('Backup now to Google Drive'),
-                  trailing: backupState.isLoading
-                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                      : const Icon(Icons.chevron_right),
-                  onTap: backupState.isLoading
-                      ? null
-                      : () async {
-                          final dir = await getApplicationDocumentsDirectory();
-                          final dbFile = File(p.join(dir.path, 'warraich_petroleum.db'));
-                          final success = await ref.read(backupNotifierProvider.notifier).backupDatabase(dbFile);
-                          if (!context.mounted) return;
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(success ? 'Backup completed' : 'Backup failed')),
-                          );
-                        },
+                  leading: Icon(Icons.cloud, color: _isSignedIn ? colorScheme.primary : colorScheme.onSurfaceVariant),
+                  title: Text(_isSignedIn ? 'Signed in to Google' : 'Google Drive'),
+                  subtitle: Text(_isSignedIn ? 'Connected to Google Drive' : 'Sign in to enable cloud backup'),
+                  trailing: Switch(value: _isSignedIn, onChanged: (_) => _toggleSignIn()),
                 ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.restore),
-                  title: const Text('Restore from Backup'),
-                  subtitle: const Text('Restore database from Google Drive'),
-                  trailing: backupState.isLoading
-                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                      : const Icon(Icons.chevron_right),
-                  onTap: backupState.isLoading
-                      ? null
-                      : () async {
-                          final dir = await getApplicationDocumentsDirectory();
-                          final dbFile = File(p.join(dir.path, 'warraich_petroleum.db'));
-                          final restored = await ref.read(backupNotifierProvider.notifier).restoreFromDrive(dbFile);
-                          if (!context.mounted) return;
-                          if (restored) {
-                            showDialog(
-                              context: context,
-                              builder: (ctx) => AlertDialog(
-                                title: const Text('Restore Complete'),
-                                content: const Text('Database restored. Please restart the app for changes to take effect.'),
-                                actions: [
-                                  FilledButton(
-                                    onPressed: () {
-                                      Navigator.pop(ctx);
-                                      Navigator.pop(context);
-                                    },
-                                    child: const Text('OK'),
+                if (_isSignedIn) ...[
+                  const Divider(height: 1),
+                  ListTile(
+                    leading: const Icon(Icons.cloud_upload),
+                    title: const Text('Cloud Backup'),
+                    subtitle: const Text('Backup to Google Drive'),
+                    trailing: backupState.isLoading
+                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                        : const Icon(Icons.chevron_right),
+                    onTap: backupState.isLoading
+                        ? null
+                        : () async {
+                            try {
+                              final dir = await getApplicationDocumentsDirectory();
+                              final dbFile = File(p.join(dir.path, 'warraich_petroleum.db'));
+                              final success = await ref.read(backupNotifierProvider.notifier).backupDatabase(dbFile);
+                              if (!context.mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text(success ? 'Backup completed' : 'Backup failed')),
+                              );
+                            } catch (e) {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Backup error: $e')),
+                                );
+                              }
+                            }
+                          },
+                  ),
+                  const Divider(height: 1),
+                  ListTile(
+                    leading: const Icon(Icons.cloud_download),
+                    title: const Text('Cloud Restore'),
+                    subtitle: const Text('Restore from Google Drive'),
+                    trailing: backupState.isLoading
+                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                        : const Icon(Icons.chevron_right),
+                    onTap: backupState.isLoading
+                        ? null
+                        : () async {
+                            try {
+                              final dir = await getApplicationDocumentsDirectory();
+                              final dbFile = File(p.join(dir.path, 'warraich_petroleum.db'));
+                              final restored = await ref.read(backupNotifierProvider.notifier).restoreFromDrive(dbFile);
+                              if (!context.mounted) return;
+                              if (restored) {
+                                showDialog(
+                                  context: context,
+                                  builder: (ctx) => AlertDialog(
+                                    title: const Text('Restore Complete'),
+                                    content: const Text('Database restored. Please restart the app.'),
+                                    actions: [
+                                      FilledButton(
+                                        onPressed: () {
+                                          Navigator.pop(ctx);
+                                          Navigator.pop(context);
+                                        },
+                                        child: const Text('OK'),
+                                      ),
+                                    ],
                                   ),
-                                ],
-                              ),
-                            );
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('No backup found or restore failed')),
-                            );
-                          }
-                        },
-                ),
-                const Divider(height: 1),
-                SwitchListTile(
-                  secondary: const Icon(Icons.sync),
-                  title: const Text('Auto Backup'),
-                  subtitle: const Text('Daily automatic backup to Google Drive'),
-                  value: _autoBackup,
-                  onChanged: (value) => _saveAutoBackupSetting(value),
-                ),
+                                );
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('No backup found or restore failed')),
+                                );
+                              }
+                            } catch (e) {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Restore error: $e')),
+                                );
+                              }
+                            }
+                          },
+                  ),
+                  const Divider(height: 1),
+                  SwitchListTile(
+                    secondary: const Icon(Icons.sync),
+                    title: const Text('Auto Backup'),
+                    subtitle: const Text('Daily automatic backup'),
+                    value: _autoBackup,
+                    onChanged: (value) => _saveAutoBackupSetting(value),
+                  ),
+                ],
               ],
             ),
           ),
