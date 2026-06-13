@@ -32,6 +32,10 @@ class BackupNotifier extends StateNotifier<AsyncValue<void>> {
   Future<void> signOut() async {
     await _service.signOut();
   }
+
+  Future<bool> signIn() async {
+    return await _service.signIn();
+  }
 }
 
 final backupNotifierProvider = StateNotifierProvider<BackupNotifier, AsyncValue<void>>((ref) {

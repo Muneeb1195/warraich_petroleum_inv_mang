@@ -173,4 +173,13 @@ class BackupService {
     await _googleSignIn.signOut();
     _account = null;
   }
+
+  Future<bool> signIn() async {
+    try {
+      _account = await _googleSignIn.signIn();
+      return _account != null;
+    } catch (e) {
+      return false;
+    }
+  }
 }

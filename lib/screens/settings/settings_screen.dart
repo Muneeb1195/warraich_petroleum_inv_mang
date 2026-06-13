@@ -24,31 +24,28 @@ class SettingsScreen extends ConsumerWidget {
             title: 'Management',
             items: [
               _MenuItem(
+                icon: Icons.local_gas_station,
+                title: 'Fuel Prices',
+                subtitle: 'Manage product prices',
+                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FuelPricesScreen())),
+              ),
+              _MenuItem(
                 icon: Icons.people,
                 title: 'Employees',
                 subtitle: 'Manage staff and attendance',
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const EmployeesScreen()),
-                ),
+                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EmployeesScreen())),
               ),
               _MenuItem(
                 icon: Icons.payments,
                 title: 'Payroll',
                 subtitle: 'Generate and manage payroll',
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const PayrollScreen()),
-                ),
+                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PayrollScreen())),
               ),
               _MenuItem(
                 icon: Icons.history,
                 title: 'Sales History',
                 subtitle: 'View all past shifts',
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const SalesHistoryScreen()),
-                ),
+                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SalesHistoryScreen())),
               ),
             ],
           ),
@@ -60,43 +57,25 @@ class SettingsScreen extends ConsumerWidget {
                 icon: Icons.picture_as_pdf,
                 title: 'Generate Report',
                 subtitle: 'Create PDF reports',
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const PdfReportScreen()),
-                ),
+                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PdfReportScreen())),
               ),
             ],
           ),
           const SizedBox(height: 16),
           _MenuSection(
-            title: 'Backup & Settings',
+            title: 'Settings',
             items: [
               _MenuItem(
                 icon: Icons.cloud_upload,
                 title: 'Backup & Restore',
-                subtitle: 'Google Drive backup management',
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const BackupScreen()),
-                ),
+                subtitle: 'Backup management',
+                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const BackupScreen())),
               ),
               _MenuItem(
                 icon: Icons.lock,
                 title: 'App Lock',
                 subtitle: 'Configure biometric lock',
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const AppLockScreen()),
-                ),
-              ),
-              _MenuItem(
-                icon: Icons.local_gas_station,
-                title: 'Fuel Prices',
-                subtitle: 'Manage product prices',
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const FuelPricesScreen()),
-                ),
+                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AppLockScreen())),
               ),
             ],
           ),
@@ -106,25 +85,11 @@ class SettingsScreen extends ConsumerWidget {
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  Icon(
-                    Icons.local_gas_station,
-                    size: 48,
-                    color: colorScheme.primary,
-                  ),
+                  Icon(Icons.local_gas_station, size: 48, color: colorScheme.primary),
                   const SizedBox(height: 8),
-                  Text(
-                    'Warraich Petroleum',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                  ),
+                  Text('Warraich Petroleum', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
                   const SizedBox(height: 4),
-                  Text(
-                    'Version 1.0.0',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                  ),
+                  Text('Version 1.0.0', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant)),
                 ],
               ),
             ),
@@ -146,26 +111,18 @@ class _MenuSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          title,
-          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                color: Theme.of(context).colorScheme.primary,
-                fontWeight: FontWeight.bold,
-              ),
-        ),
+        Text(title, style: Theme.of(context).textTheme.titleSmall?.copyWith(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.bold)),
         const SizedBox(height: 8),
         Card(
-          child: Column(
-            children: items.map((item) {
-              return ListTile(
-                leading: Icon(item.icon),
-                title: Text(item.title),
-                subtitle: Text(item.subtitle),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: item.onTap,
-              );
-            }).toList(),
-          ),
+          child: Column(children: items.map((item) {
+            return ListTile(
+              leading: Icon(item.icon),
+              title: Text(item.title),
+              subtitle: Text(item.subtitle),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: item.onTap,
+            );
+          }).toList()),
         ),
       ],
     );
@@ -178,10 +135,5 @@ class _MenuItem {
   final String subtitle;
   final VoidCallback onTap;
 
-  const _MenuItem({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.onTap,
-  });
+  const _MenuItem({required this.icon, required this.title, required this.subtitle, required this.onTap});
 }
