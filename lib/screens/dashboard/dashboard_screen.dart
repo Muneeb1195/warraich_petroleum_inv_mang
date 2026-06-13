@@ -191,10 +191,10 @@ class DashboardScreen extends ConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text('Petroleum Status', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                IconButton(
-                  icon: const Icon(Icons.edit, size: 18),
+                TextButton.icon(
                   onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FuelPricesScreen())),
-                  tooltip: 'Manage fuel prices',
+                  icon: const Icon(Icons.edit, size: 16),
+                  label: const Text('Prices', style: TextStyle(fontSize: 12)),
                 ),
               ],
             ),

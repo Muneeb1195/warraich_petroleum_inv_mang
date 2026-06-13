@@ -56,6 +56,15 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
     }
   }
 
+  Future<Directory> get _backupDir async {
+    final dir = await getApplicationDocumentsDirectory();
+    final backupDir = Directory(p.join(dir.path, 'backups'));
+    if (!await backupDir.exists()) {
+      await backupDir.create(recursive: true);
+    }
+    return backupDir;
+  }
+
   @override
   Widget build(BuildContext context) {
     final backupState = ref.watch(backupNotifierProvider);
@@ -70,37 +79,77 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
             child: Column(
               children: [
                 ListTile(
-                  leading: const Icon(Icons.phone_android),
+                  leading: const Icon(Icons.backup),
                   title: const Text('Local Backup'),
-                  subtitle: const Text('Save database to Downloads'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () async {
-                    final dir = await getApplicationDocumentsDirectory();
-                    final dbFile = File(p.join(dir.path, 'warraich_petroleum.db'));
-                    final downloadsDir = Directory('/storage/emulated/0/Download');
-                    if (await downloadsDir.exists()) {
-                      final backupFile = File(p.join(downloadsDir.path, 'warraich_petroleum_backup.db'));
-                      await dbFile.copy(backupFile.path);
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Backup saved to Downloads')),
-                        );
-                      }
-                    }
-                  },
+                  subtitle: const Text('Save database to app storage'),
+                  trailing: backupState.isLoading
+                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                      : const Icon(Icons.chevron_right),
+                  onTap: backupState.isLoading
+                      ? null
+                      : () async {
+                          final dbDir = await getApplicationDocumentsDirectory();
+                          final dbFile = File(p.join(dbDir.path, 'warraich_petroleum.db'));
+                          final backupDir = await _backupDir;
+                          final timestamp = DateTime.now().toIso8601String().replaceAll(':', '-').substring(0, 19);
+                          final backupFile = File(p.join(backupDir.path, 'backup_$timestamp.db'));
+                          await dbFile.copy(backupFile.path);
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Backup saved: backup_$timestamp.db')),
+                            );
+                          }
+                        },
                 ),
                 const Divider(height: 1),
                 ListTile(
                   leading: const Icon(Icons.restore),
                   title: const Text('Local Restore'),
-                  subtitle: const Text('Restore from Downloads folder'),
+                  subtitle: const Text('Restore from a backup file'),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () async {
-                    final backupFile = File('/storage/emulated/0/Download/warraich_petroleum_backup.db');
-                    if (await backupFile.exists()) {
-                      final dir = await getApplicationDocumentsDirectory();
-                      final dbFile = File(p.join(dir.path, 'warraich_petroleum.db'));
-                      await backupFile.copy(dbFile.path);
+                    final backupDir = await _backupDir;
+                    final files = backupDir
+                        .listSync()
+                        .whereType<File>()
+                        .where((f) => f.path.endsWith('.db'))
+                        .toList()
+                      ..sort((a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()));
+
+                    if (files.isEmpty) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('No backup files found')),
+                        );
+                      }
+                      return;
+                    }
+
+                    if (!context.mounted) return;
+                    final selected = await showDialog<File>(
+                      context: context,
+                      builder: (ctx) => SimpleDialog(
+                        title: const Text('Select Backup'),
+                        children: files.map((file) {
+                          final name = p.basename(file.path);
+                          final date = file.lastModifiedSync().toString().substring(0, 16);
+                          return SimpleDialogOption(
+                            onPressed: () => Navigator.pop(ctx, file),
+                            child: ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              leading: const Icon(Icons.storage),
+                              title: Text(name),
+                              subtitle: Text(date),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    );
+
+                    if (selected != null) {
+                      final dbDir = await getApplicationDocumentsDirectory();
+                      final dbFile = File(p.join(dbDir.path, 'warraich_petroleum.db'));
+                      await selected.copy(dbFile.path);
                       if (context.mounted) {
                         showDialog(
                           context: context,
@@ -117,12 +166,6 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
                               ),
                             ],
                           ),
-                        );
-                      }
-                    } else {
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('No backup file found in Downloads')),
                         );
                       }
                     }
@@ -144,7 +187,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
                 if (_isSignedIn) ...[
                   const Divider(height: 1),
                   ListTile(
-                    leading: const Icon(Icons.backup),
+                    leading: const Icon(Icons.cloud_upload),
                     title: const Text('Cloud Backup'),
                     subtitle: const Text('Backup to Google Drive'),
                     trailing: backupState.isLoading
@@ -164,7 +207,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
                   ),
                   const Divider(height: 1),
                   ListTile(
-                    leading: const Icon(Icons.restore),
+                    leading: const Icon(Icons.cloud_download),
                     title: const Text('Cloud Restore'),
                     subtitle: const Text('Restore from Google Drive'),
                     trailing: backupState.isLoading

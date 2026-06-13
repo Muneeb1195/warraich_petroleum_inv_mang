@@ -35,13 +35,22 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
         onCreate: (m) async {
           await m.createAll();
           await _seedProducts();
+        },
+        onUpgrade: (m, from, to) async {
+          if (from < 2) {
+            await m.deleteTable('products');
+            await m.deleteTable('inventory');
+            await m.createTable(products);
+            await m.createTable(inventory);
+            await _seedProducts();
+          }
         },
       );
 

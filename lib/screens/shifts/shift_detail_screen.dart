@@ -17,7 +17,12 @@ class _ShiftDetailScreenState extends ConsumerState<ShiftDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final shiftSales = ref.watch(shiftSalesProvider(widget.shiftId));
+    final activeShift = ref.watch(activeShiftProvider);
     final colorScheme = Theme.of(context).colorScheme;
+
+    final isShiftActive = activeShift.hasValue && 
+        activeShift.value != null && 
+        activeShift.value!.id == widget.shiftId;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Shift Details')),
@@ -35,7 +40,7 @@ class _ShiftDetailScreenState extends ConsumerState<ShiftDetailScreen> {
                 children: [
                   _buildSummaryCard(context, colorScheme, totalSales, totalCash, totalCard, totalCredit),
                   const SizedBox(height: 16),
-                  _buildSalesList(context, colorScheme, sales),
+                  _buildSalesList(context, colorScheme, sales, isShiftActive),
                 ],
               );
             },
@@ -44,36 +49,38 @@ class _ShiftDetailScreenState extends ConsumerState<ShiftDetailScreen> {
           ),
         ],
       ),
-      bottomNavigationBar: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () => _confirmCloseShift(context),
-                  icon: const Icon(Icons.stop_circle),
-                  label: const Text('Close Shift'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: colorScheme.error,
-                    side: BorderSide(color: colorScheme.error),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                  ),
+      bottomNavigationBar: isShiftActive
+          ? SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () => _confirmCloseShift(context),
+                        icon: const Icon(Icons.stop_circle),
+                        label: const Text('Close Shift'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: colorScheme.error,
+                          side: BorderSide(color: colorScheme.error),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: FilledButton.icon(
+                        onPressed: () => _showAddFuelDialog(context),
+                        icon: const Icon(Icons.add),
+                        label: const Text('Add Entry'),
+                        style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14)),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: FilledButton.icon(
-                  onPressed: () => _showAddFuelDialog(context),
-                  icon: const Icon(Icons.add),
-                  label: const Text('Add Entry'),
-                  style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14)),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+            )
+          : null,
     );
   }
 
@@ -107,7 +114,7 @@ class _ShiftDetailScreenState extends ConsumerState<ShiftDetailScreen> {
     );
   }
 
-  Widget _buildSalesList(BuildContext context, ColorScheme colorScheme, List<ShiftSalesRow> sales) {
+  Widget _buildSalesList(BuildContext context, ColorScheme colorScheme, List<ShiftSalesRow> sales, bool isShiftActive) {
     if (sales.isEmpty) {
       return Card(
         child: Padding(
@@ -136,13 +143,13 @@ class _ShiftDetailScreenState extends ConsumerState<ShiftDetailScreen> {
             child: Text('Entries (${sales.length})', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
           ),
           const Divider(height: 1),
-          ...sales.map((row) => _buildSaleTile(context, colorScheme, row)),
+          ...sales.map((row) => _buildSaleTile(context, colorScheme, row, isShiftActive)),
         ],
       ),
     );
   }
 
-  Widget _buildSaleTile(BuildContext context, ColorScheme colorScheme, ShiftSalesRow row) {
+  Widget _buildSaleTile(BuildContext context, ColorScheme colorScheme, ShiftSalesRow row, bool isShiftActive) {
     final sale = row.sale;
     final product = row.product;
 
@@ -191,20 +198,22 @@ class _ShiftDetailScreenState extends ConsumerState<ShiftDetailScreen> {
             formatMoney(sale.totalAmount),
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: colorScheme.primary),
           ),
-          const SizedBox(width: 4),
-          PopupMenuButton<String>(
-            itemBuilder: (context) => [
-              const PopupMenuItem(value: 'edit', child: ListTile(leading: Icon(Icons.edit), title: Text('Edit'))),
-              const PopupMenuItem(value: 'delete', child: ListTile(leading: Icon(Icons.delete, color: Colors.red), title: Text('Delete'))),
-            ],
-            onSelected: (value) {
-              if (value == 'edit') {
-                _showEditFuelDialog(context, row);
-              } else if (value == 'delete') {
-                _confirmDeleteSale(context, sale.id);
-              }
-            },
-          ),
+          if (isShiftActive) ...[
+            const SizedBox(width: 4),
+            PopupMenuButton<String>(
+              itemBuilder: (context) => [
+                const PopupMenuItem(value: 'edit', child: ListTile(leading: Icon(Icons.edit), title: Text('Edit'))),
+                const PopupMenuItem(value: 'delete', child: ListTile(leading: Icon(Icons.delete, color: Colors.red), title: Text('Delete'))),
+              ],
+              onSelected: (value) {
+                if (value == 'edit') {
+                  _showEditFuelDialog(context, row);
+                } else if (value == 'delete') {
+                  _confirmDeleteSale(context, sale.id);
+                }
+              },
+            ),
+          ],
         ],
       ),
     );
