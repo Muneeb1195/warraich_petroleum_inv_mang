@@ -12,93 +12,115 @@ import 'fuel_prices_screen.dart';
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
+  bool get _isDesktop => Platform.isWindows || Platform.isLinux || Platform.isMacOS;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       appBar: AppBar(title: const Text('More')),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          _MenuSection(
-            title: 'Management',
-            items: [
-              _MenuItem(
-                icon: Icons.local_gas_station,
-                title: 'Fuel Prices',
-                subtitle: 'Manage product prices',
-                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FuelPricesScreen())),
-              ),
-              _MenuItem(
-                icon: Icons.people,
-                title: 'Employees',
-                subtitle: 'Manage staff and attendance',
-                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EmployeesScreen())),
-              ),
-              _MenuItem(
-                icon: Icons.payments,
-                title: 'Payroll',
-                subtitle: 'Generate and manage payroll',
-                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PayrollScreen())),
-              ),
-              _MenuItem(
-                icon: Icons.history,
-                title: 'Sales History',
-                subtitle: 'View all past shifts',
-                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SalesHistoryScreen())),
-              ),
-            ],
+      body: _isDesktop
+          ? _buildDesktopLayout(context, colorScheme)
+          : _buildMobileLayout(context, colorScheme),
+    );
+  }
+
+  Widget _buildMobileLayout(BuildContext context, ColorScheme colorScheme) {
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: _buildMenuSections(context, colorScheme),
+    );
+  }
+
+  Widget _buildDesktopLayout(BuildContext context, ColorScheme colorScheme) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: _buildMenuSections(context, colorScheme),
+      ),
+    );
+  }
+
+  List<Widget> _buildMenuSections(BuildContext context, ColorScheme colorScheme) {
+    return [
+      _MenuSection(
+        title: 'Management',
+        items: [
+          _MenuItem(
+            icon: Icons.local_gas_station,
+            title: 'Fuel Prices',
+            subtitle: 'Manage product prices',
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FuelPricesScreen())),
           ),
-          const SizedBox(height: 16),
-          _MenuSection(
-            title: 'Reports',
-            items: [
-              _MenuItem(
-                icon: Icons.picture_as_pdf,
-                title: 'Generate Report',
-                subtitle: 'Create PDF reports',
-                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PdfReportScreen())),
-              ),
-            ],
+          _MenuItem(
+            icon: Icons.people,
+            title: 'Employees',
+            subtitle: 'Manage staff and attendance',
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EmployeesScreen())),
           ),
-          const SizedBox(height: 16),
-          _MenuSection(
-            title: 'Settings',
-            items: [
-              _MenuItem(
-                icon: Icons.cloud_upload,
-                title: 'Backup & Restore',
-                subtitle: 'Backup management',
-                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const BackupScreen())),
-              ),
-              if (Platform.isAndroid || Platform.isIOS)
-                _MenuItem(
-                  icon: Icons.lock,
-                  title: 'App Lock',
-                  subtitle: 'Configure biometric lock',
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AppLockScreen())),
-                ),
-            ],
+          _MenuItem(
+            icon: Icons.payments,
+            title: 'Payroll',
+            subtitle: 'Generate and manage payroll',
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PayrollScreen())),
           ),
-          const SizedBox(height: 16),
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  Icon(Icons.local_gas_station, size: 48, color: colorScheme.primary),
-                  const SizedBox(height: 8),
-                  Text('Warraich Petroleum', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 4),
-                  Text('Version 1.0.0', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant)),
-                ],
-              ),
-            ),
+          _MenuItem(
+            icon: Icons.history,
+            title: 'Sales History',
+            subtitle: 'View all past shifts',
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SalesHistoryScreen())),
           ),
         ],
       ),
-    );
+      const SizedBox(height: 16),
+      _MenuSection(
+        title: 'Reports',
+        items: [
+          _MenuItem(
+            icon: Icons.picture_as_pdf,
+            title: 'Generate Report',
+            subtitle: 'Create PDF reports',
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PdfReportScreen())),
+          ),
+        ],
+      ),
+      const SizedBox(height: 16),
+      _MenuSection(
+        title: 'Settings',
+        items: [
+          _MenuItem(
+            icon: Icons.cloud_upload,
+            title: 'Backup & Restore',
+            subtitle: 'Backup management',
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const BackupScreen())),
+          ),
+          if (Platform.isAndroid || Platform.isIOS)
+            _MenuItem(
+              icon: Icons.lock,
+              title: 'App Lock',
+              subtitle: 'Configure biometric lock',
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AppLockScreen())),
+            ),
+        ],
+      ),
+      const SizedBox(height: 16),
+      Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              Icon(Icons.local_gas_station, size: 48, color: colorScheme.primary),
+              const SizedBox(height: 8),
+              Text('Warraich Petroleum', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 4),
+              Text('Version 1.0.0', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant)),
+            ],
+          ),
+        ),
+      ),
+    ];
   }
 }
 

@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -12,6 +13,8 @@ import '../../screens/settings/fuel_prices_screen.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
+
+  bool get _isDesktop => Platform.isWindows || Platform.isLinux || Platform.isMacOS;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -29,18 +32,52 @@ class DashboardScreen extends ConsumerWidget {
           ref.invalidate(weeklySalesProvider);
           ref.invalidate(allInventoryProvider);
         },
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            _buildTodaySummary(context, todaySummary, colorScheme),
-            const SizedBox(height: 16),
-            _buildActiveShiftCard(context, ref, activeShift, colorScheme),
-            const SizedBox(height: 16),
-            _buildSalesChart(context, weeklySales, colorScheme),
-            const SizedBox(height: 16),
-            _buildInventoryAlerts(context, ref, allInventory, colorScheme),
-          ],
-        ),
+        child: _isDesktop
+            ? _buildDesktopLayout(context, ref, todaySummary, weeklySales, activeShift, allInventory, colorScheme)
+            : _buildMobileLayout(context, ref, todaySummary, weeklySales, activeShift, allInventory, colorScheme),
+      ),
+    );
+  }
+
+  Widget _buildMobileLayout(BuildContext context, WidgetRef ref, AsyncValue<Map<String, double>> todaySummary, AsyncValue<List<MapEntry<DateTime, double>>> weeklySales, AsyncValue<Shift?> activeShift, AsyncValue<List<dynamic>> allInventory, ColorScheme colorScheme) {
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        _buildTodaySummary(context, todaySummary, colorScheme),
+        const SizedBox(height: 16),
+        _buildActiveShiftCard(context, ref, activeShift, colorScheme),
+        const SizedBox(height: 16),
+        _buildSalesChart(context, weeklySales, colorScheme),
+        const SizedBox(height: 16),
+        _buildInventoryAlerts(context, ref, allInventory, colorScheme),
+      ],
+    );
+  }
+
+  Widget _buildDesktopLayout(BuildContext context, WidgetRef ref, AsyncValue<Map<String, double>> todaySummary, AsyncValue<List<MapEntry<DateTime, double>>> weeklySales, AsyncValue<Shift?> activeShift, AsyncValue<List<dynamic>> allInventory, ColorScheme colorScheme) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(flex: 2, child: _buildTodaySummary(context, todaySummary, colorScheme)),
+              const SizedBox(width: 16),
+              Expanded(flex: 1, child: _buildActiveShiftCard(context, ref, activeShift, colorScheme)),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(flex: 3, child: _buildSalesChart(context, weeklySales, colorScheme)),
+              const SizedBox(width: 16),
+              Expanded(flex: 2, child: _buildInventoryAlerts(context, ref, allInventory, colorScheme)),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -81,16 +118,10 @@ class DashboardScreen extends ConsumerWidget {
           backgroundColor: isActive ? colorScheme.primaryContainer : colorScheme.surfaceContainerHighest,
           child: Icon(Icons.schedule, color: isActive ? colorScheme.onPrimaryContainer : colorScheme.onSurfaceVariant),
         ),
-        title: Text(
-          isActive && activeShift.value != null
-              ? 'Active: ${activeShift.value!.type.toUpperCase()} Shift'
-              : 'No Active Shift',
-        ),
-        subtitle: Text(
-          isActive ? 'Tap to manage shift sales' : 'Start a shift to begin recording sales',
-        ),
+        title: Text(isActive ? 'Active: ${activeShift.value!.type.toUpperCase()} Shift' : 'No Active Shift'),
+        subtitle: Text(isActive ? 'Tap to manage shift sales' : 'Start a shift to begin recording sales'),
         trailing: const Icon(Icons.chevron_right),
-        onTap: isActive && activeShift.value != null
+        onTap: isActive
             ? () => Navigator.push(context, MaterialPageRoute(builder: (_) => ShiftDetailScreen(shiftId: activeShift.value!.id)))
             : () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NewShiftScreen())),
       ),
@@ -132,7 +163,7 @@ class DashboardScreen extends ConsumerWidget {
                 Text('Sales Trends (7 days)', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 16),
                 SizedBox(
-                  height: 200,
+                  height: _isDesktop ? 250 : 200,
                   child: LineChart(
                     LineChartData(
                       gridData: const FlGridData(show: true),
@@ -220,7 +251,10 @@ class DashboardScreen extends ConsumerWidget {
                       title: Text(item.product.name),
                       trailing: Text(
                         '${item.inventoryEntry.currentStock.toStringAsFixed(1)} ${item.product.unit}',
-                        style: TextStyle(color: isLow ? colorScheme.error : colorScheme.onSurface, fontWeight: isLow ? FontWeight.bold : FontWeight.normal),
+                        style: TextStyle(
+                          color: isLow ? colorScheme.error : colorScheme.onSurface,
+                          fontWeight: isLow ? FontWeight.bold : FontWeight.normal,
+                        ),
                       ),
                     );
                   }).toList(),

@@ -24,8 +24,11 @@ dependencies:
   flutter_riverpod: ^2.6.1
 
   # UI
+  google_fonts: ^6.2.1
+  flutter_animate: ^4.5.2
   fl_chart: ^0.70.2
   dynamic_color: ^1.7.0
+  window_manager: ^0.4.3
 
   # Security
   flutter_secure_storage: ^10.3.1

@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../screens/dashboard/dashboard_screen.dart';
@@ -25,9 +26,92 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     SettingsScreen(),
   ];
 
+  bool get _isDesktop => Platform.isWindows || Platform.isLinux || Platform.isMacOS;
+
   @override
   Widget build(BuildContext context) {
     final activeShift = ref.watch(activeShiftProvider);
+
+    if (_isDesktop) {
+      return Scaffold(
+        body: Row(
+          children: [
+            NavigationRail(
+              selectedIndex: _currentIndex,
+              onDestinationSelected: (index) => setState(() => _currentIndex = index),
+              labelType: NavigationRailLabelType.all,
+              leading: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                child: Column(
+                  children: [
+                    CircleAvatar(
+                      radius: 20,
+                      backgroundColor: colorScheme.primaryContainer,
+                      child: Icon(Icons.local_gas_station, color: colorScheme.onPrimaryContainer),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'WP',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.primary,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              destinations: [
+                NavigationRailDestination(
+                  icon: Badge(
+                    isLabelVisible: activeShift.hasValue && activeShift.value != null,
+                    child: const Icon(Icons.dashboard_outlined),
+                  ),
+                  selectedIcon: Badge(
+                    isLabelVisible: activeShift.hasValue && activeShift.value != null,
+                    child: const Icon(Icons.dashboard),
+                  ),
+                  label: const Text('Dashboard'),
+                ),
+                NavigationRailDestination(
+                  icon: Badge(
+                    isLabelVisible: activeShift.hasValue && activeShift.value != null,
+                    child: const Icon(Icons.schedule_outlined),
+                  ),
+                  selectedIcon: Badge(
+                    isLabelVisible: activeShift.hasValue && activeShift.value != null,
+                    child: const Icon(Icons.schedule),
+                  ),
+                  label: const Text('Shifts'),
+                ),
+                const NavigationRailDestination(
+                  icon: Icon(Icons.inventory_2_outlined),
+                  selectedIcon: Icon(Icons.inventory_2),
+                  label: Text('Inventory'),
+                ),
+                const NavigationRailDestination(
+                  icon: Icon(Icons.receipt_long_outlined),
+                  selectedIcon: Icon(Icons.receipt_long),
+                  label: Text('Expenses'),
+                ),
+                const NavigationRailDestination(
+                  icon: Icon(Icons.more_horiz_outlined),
+                  selectedIcon: Icon(Icons.more_horiz),
+                  label: Text('More'),
+                ),
+              ],
+            ),
+            const VerticalDivider(width: 1),
+            Expanded(
+              child: IndexedStack(
+                index: _currentIndex,
+                children: _screens,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
 
     return Scaffold(
       body: IndexedStack(
@@ -73,4 +157,6 @@ class _HomeShellState extends ConsumerState<HomeShell> {
       ),
     );
   }
+
+  ColorScheme get colorScheme => Theme.of(context).colorScheme;
 }

@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/shift_provider.dart';
@@ -14,6 +15,8 @@ class ShiftDetailScreen extends ConsumerStatefulWidget {
 }
 
 class _ShiftDetailScreenState extends ConsumerState<ShiftDetailScreen> {
+  bool get _isDesktop => Platform.isWindows || Platform.isLinux || Platform.isMacOS;
+
   @override
   Widget build(BuildContext context) {
     final shiftSales = ref.watch(shiftSalesProvider(widget.shiftId));
@@ -26,28 +29,38 @@ class _ShiftDetailScreenState extends ConsumerState<ShiftDetailScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Shift Details')),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          shiftSales.when(
-            data: (sales) {
-              final totalSales = sales.fold<double>(0, (sum, row) => sum + row.sale.totalAmount);
-              final totalCash = sales.fold<double>(0, (sum, row) => sum + row.sale.cashCollected);
-              final totalCard = sales.fold<double>(0, (sum, row) => sum + row.sale.cardCollected);
-              final totalCredit = sales.fold<double>(0, (sum, row) => sum + row.sale.creditCollected);
+      body: shiftSales.when(
+        data: (sales) {
+          final totalSales = sales.fold<double>(0, (sum, row) => sum + row.sale.totalAmount);
+          final totalCash = sales.fold<double>(0, (sum, row) => sum + row.sale.cashCollected);
+          final totalCard = sales.fold<double>(0, (sum, row) => sum + row.sale.cardCollected);
+          final totalCredit = sales.fold<double>(0, (sum, row) => sum + row.sale.creditCollected);
 
-              return Column(
+          if (_isDesktop) {
+            return SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildSummaryCard(context, colorScheme, totalSales, totalCash, totalCard, totalCredit),
                   const SizedBox(height: 16),
                   _buildSalesList(context, colorScheme, sales, isShiftActive),
                 ],
-              );
-            },
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (e, _) => Center(child: Text('Error: $e')),
-          ),
-        ],
+              ),
+            );
+          }
+
+          return ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              _buildSummaryCard(context, colorScheme, totalSales, totalCash, totalCard, totalCredit),
+              const SizedBox(height: 16),
+              _buildSalesList(context, colorScheme, sales, isShiftActive),
+            ],
+          );
+        },
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, _) => Center(child: Text('Error: $e')),
       ),
       bottomNavigationBar: isShiftActive
           ? SafeArea(
