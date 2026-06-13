@@ -61,45 +61,47 @@ class DashboardScreen extends ConsumerWidget {
     final monthlySummary = ref.watch(monthlySummaryProvider);
     final employeeCount = ref.watch(employeeCountProvider);
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Row 1: Today's Summary + Active Shift
-          Row(
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 1400),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(flex: 3, child: _buildTodaySummary(context, todaySummary, colorScheme)),
-              const SizedBox(width: 16),
-              Expanded(flex: 2, child: _buildActiveShiftCard(context, ref, activeShift, colorScheme)),
-              const SizedBox(width: 16),
-              Expanded(flex: 2, child: _buildMonthlySummary(context, monthlySummary, colorScheme)),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(flex: 3, child: _buildTodaySummary(context, todaySummary, colorScheme)),
+                  const SizedBox(width: 16),
+                  Expanded(flex: 2, child: _buildActiveShiftCard(context, ref, activeShift, colorScheme)),
+                  const SizedBox(width: 16),
+                  Expanded(flex: 2, child: _buildMonthlySummary(context, monthlySummary, colorScheme)),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(flex: 2, child: _buildQuickActions(context, ref, colorScheme)),
+                  const SizedBox(width: 16),
+                  Expanded(flex: 4, child: _buildSalesChart(context, weeklySales, colorScheme)),
+                  const SizedBox(width: 16),
+                  Expanded(flex: 2, child: _buildEmployeeCount(context, employeeCount, colorScheme)),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(flex: 2, child: _buildInventoryAlerts(context, ref, allInventory, colorScheme)),
+                  const SizedBox(width: 16),
+                  Expanded(flex: 1, child: _buildExpensePie(context, monthlySummary, colorScheme)),
+                ],
+              ),
             ],
           ),
-          const SizedBox(height: 16),
-          // Row 2: Quick Actions + Sales Chart + Employee Count
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(flex: 2, child: _buildQuickActions(context, ref, colorScheme)),
-              const SizedBox(width: 16),
-              Expanded(flex: 4, child: _buildSalesChart(context, weeklySales, colorScheme)),
-              const SizedBox(width: 16),
-              Expanded(flex: 2, child: _buildEmployeeCount(context, employeeCount, colorScheme)),
-            ],
-          ),
-          const SizedBox(height: 16),
-          // Row 3: Inventory + Expense Breakdown
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(flex: 2, child: _buildInventoryAlerts(context, ref, allInventory, colorScheme)),
-              const SizedBox(width: 16),
-              Expanded(flex: 1, child: _buildExpensePie(context, monthlySummary, colorScheme)),
-            ],
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -141,16 +143,15 @@ class DashboardScreen extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text('Monthly Summary', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-              const SizedBox(height: 12),
-              _SummaryRow(label: 'Total Sales', value: formatMoney(summary['sales']!), color: colorScheme.primary),
-              const Divider(),
-              _SummaryRow(label: 'Total Expenses', value: formatMoney(summary['expenses']!), color: colorScheme.error),
-              const Divider(),
-              _SummaryRow(
-                label: 'Net Profit',
-                value: formatMoney(summary['profit']!),
-                color: summary['profit']! >= 0 ? Colors.green : colorScheme.error,
-                bold: true,
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(child: _StatCard(title: 'Sales', value: formatMoney(summary['sales']!), icon: Icons.trending_up, color: colorScheme.primary)),
+                  const SizedBox(width: 8),
+                  Expanded(child: _StatCard(title: 'Expenses', value: formatMoney(summary['expenses']!), icon: Icons.trending_down, color: colorScheme.error)),
+                  const SizedBox(width: 8),
+                  Expanded(child: _StatCard(title: 'Profit', value: formatMoney(summary['profit']!), icon: Icons.account_balance_wallet, color: summary['profit']! >= 0 ? Colors.green : colorScheme.error)),
+                ],
               ),
             ],
           ),
@@ -211,13 +212,6 @@ class DashboardScreen extends ConsumerWidget {
               label: 'Add Expense',
               color: colorScheme.error,
               onTap: () => Navigator.pushNamed(context, '/expenses'),
-            ),
-            const SizedBox(height: 8),
-            _ActionButton(
-              icon: Icons.local_gas_station,
-              label: 'Fuel Prices',
-              color: Colors.orange,
-              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FuelPricesScreen())),
             ),
           ],
         ),
@@ -505,29 +499,6 @@ class _StatCard extends StatelessWidget {
           Text(title, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: color)),
           const SizedBox(height: 2),
           Text(value, style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold, color: color)),
-        ],
-      ),
-    );
-  }
-}
-
-class _SummaryRow extends StatelessWidget {
-  final String label;
-  final String value;
-  final Color color;
-  final bool bold;
-
-  const _SummaryRow({required this.label, required this.value, required this.color, this.bold = false});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: TextStyle(color: bold ? color : null, fontWeight: bold ? FontWeight.bold : FontWeight.normal)),
-          Text(value, style: TextStyle(fontWeight: bold ? FontWeight.bold : FontWeight.w600, color: color)),
         ],
       ),
     );
