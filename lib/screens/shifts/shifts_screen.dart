@@ -1,17 +1,20 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/shift_provider.dart';
-import '../../utils/extensions.dart';
 import 'new_shift_screen.dart';
 import 'shift_detail_screen.dart';
 
 class ShiftsScreen extends ConsumerWidget {
   const ShiftsScreen({super.key});
 
+  bool get _isDesktop => Platform.isWindows || Platform.isLinux || Platform.isMacOS;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final activeShift = ref.watch(activeShiftProvider);
     final allShifts = ref.watch(allShiftsProvider);
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Shifts')),
@@ -23,119 +26,121 @@ class ShiftsScreen extends ConsumerWidget {
         icon: const Icon(Icons.add),
         label: const Text('New Shift'),
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          activeShift.when(
-            data: (shift) {
-              if (shift == null) return const SizedBox.shrink();
-              return Card(
-                color: Theme.of(context).colorScheme.primaryContainer,
-                child: ListTile(
-                  leading: const CircleAvatar(
-                    child: Icon(Icons.play_arrow),
-                  ),
-                  title: Text('${shift.type.toUpperCase()} Shift - ACTIVE'),
-                  subtitle: Text('Started: ${shift.startDate.formattedDateTime}'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => ShiftDetailScreen(shiftId: shift.id),
-                    ),
-                  ),
+      body: _buildBody(context, ref, activeShift, allShifts, colorScheme),
+    );
+  }
+
+  Widget _buildBody(BuildContext context, WidgetRef ref, AsyncValue activeShift, AsyncValue allShifts, ColorScheme colorScheme) {
+    final content = ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        activeShift.when(
+          data: (shift) {
+            if (shift == null) return const SizedBox.shrink();
+            return Card(
+              color: Theme.of(context).colorScheme.primaryContainer,
+              child: ListTile(
+                leading: const CircleAvatar(child: Icon(Icons.play_arrow)),
+                title: Text('${shift.type.toUpperCase()} Shift - ACTIVE'),
+                subtitle: Text('Started: ${shift.startDate.formattedDateTime}'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => ShiftDetailScreen(shiftId: shift.id)),
+                ),
+              ),
+            );
+          },
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (e, _) => Center(child: Text('Error: $e')),
+        ),
+        const SizedBox(height: 16),
+        Text(
+          'History',
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 8),
+        allShifts.when(
+          data: (shifts) {
+            if (shifts.isEmpty) {
+              return const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(32),
+                  child: Text('No shifts recorded yet'),
                 ),
               );
-            },
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (e, _) => Center(child: Text('Error: $e')),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'History',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-          ),
-          const SizedBox(height: 8),
-          allShifts.when(
-            data: (shifts) {
-              if (shifts.isEmpty) {
-                return const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(32),
-                    child: Text('No shifts recorded yet'),
-                  ),
-                );
-              }
-              return Column(
-                children: shifts.map((shift) {
-                  final isActive = shift.status == 'active';
-                  final profit = shift.totalSales - shift.totalExpenses;
-                  return Card(
-                    child: ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: isActive
-                            ? Theme.of(context).colorScheme.primaryContainer
-                            : Theme.of(context).colorScheme.surfaceContainerHighest,
-                        child: Icon(
-                          isActive ? Icons.schedule : Icons.check_circle,
-                          color: isActive
-                              ? Theme.of(context).colorScheme.onPrimaryContainer
-                              : Theme.of(context).colorScheme.onSurfaceVariant,
+            }
+            return Column(
+              children: shifts.map((shift) {
+                final isActive = shift.status == 'active';
+                final profit = shift.totalSales - shift.totalExpenses;
+                return Card(
+                  child: ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor: isActive
+                          ? Theme.of(context).colorScheme.primaryContainer
+                          : Theme.of(context).colorScheme.surfaceContainerHighest,
+                      child: Icon(
+                        isActive ? Icons.schedule : Icons.check_circle,
+                        color: isActive
+                            ? Theme.of(context).colorScheme.onPrimaryContainer
+                            : Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    title: Text(
+                      '${shift.type.toUpperCase()} Shift',
+                      style: TextStyle(fontWeight: isActive ? FontWeight.bold : FontWeight.normal),
+                    ),
+                    subtitle: Text(
+                      isActive
+                          ? shift.startDate.formattedDay
+                          : '${shift.startDate.formattedDay} | Exp: Rs. ${shift.totalExpenses.toStringAsFixed(0)}',
+                    ),
+                    trailing: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          'Rs. ${shift.totalSales.toStringAsFixed(0)}',
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
-                      title: Text(
-                        '${shift.type.toUpperCase()} Shift',
-                        style: TextStyle(
-                          fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-                        ),
-                      ),
-                      subtitle: Text(
-                        isActive
-                            ? shift.startDate.formattedDay
-                            : '${shift.startDate.formattedDay} | Exp: Rs. ${shift.totalExpenses.toStringAsFixed(0)}',
-                      ),
-                      trailing: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
+                        if (!isActive)
                           Text(
-                            'Rs. ${shift.totalSales.toStringAsFixed(0)}',
+                            profit >= 0 ? '+${profit.toStringAsFixed(0)}' : profit.toStringAsFixed(0),
                             style: TextStyle(
-                              color: Theme.of(context).colorScheme.primary,
-                              fontWeight: FontWeight.bold,
+                              fontSize: 11,
+                              color: profit >= 0 ? Colors.green : Colors.red,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
-                          if (!isActive)
-                            Text(
-                              profit >= 0
-                                  ? '+${profit.toStringAsFixed(0)}'
-                                  : profit.toStringAsFixed(0),
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: profit >= 0 ? Colors.green : Colors.red,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                        ],
-                      ),
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => ShiftDetailScreen(shiftId: shift.id),
-                        ),
-                      ),
+                      ],
                     ),
-                  );
-                }).toList(),
-              );
-            },
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (e, _) => Center(child: Text('Error: $e')),
-          ),
-        ],
-      ),
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => ShiftDetailScreen(shiftId: shift.id)),
+                    ),
+                  ),
+                );
+              }).toList(),
+            );
+          },
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (e, _) => Center(child: Text('Error: $e')),
+        ),
+      ],
     );
+
+    if (_isDesktop) {
+      return Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1000),
+          child: content,
+        ),
+      );
+    }
+    return content;
   }
 }

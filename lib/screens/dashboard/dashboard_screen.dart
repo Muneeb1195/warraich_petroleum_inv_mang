@@ -63,7 +63,7 @@ class DashboardScreen extends ConsumerWidget {
 
     return Center(
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 1400),
+        constraints: const BoxConstraints(maxWidth: 1000),
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: Column(

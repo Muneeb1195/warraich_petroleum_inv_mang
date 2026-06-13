@@ -29,7 +29,7 @@ class _FuelPricesScreenState extends ConsumerState<FuelPricesScreen> {
           if (_isDesktop) {
             return Center(
               child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 800),
+                constraints: const BoxConstraints(maxWidth: 1000),
                 child: ListView.builder(
                   padding: const EdgeInsets.all(24),
                   itemCount: products.length,

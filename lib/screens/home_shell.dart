@@ -18,12 +18,12 @@ class HomeShell extends ConsumerStatefulWidget {
 class _HomeShellState extends ConsumerState<HomeShell> {
   int _currentIndex = 0;
 
-  final _screens = const [
-    DashboardScreen(),
-    ShiftsScreen(),
-    InventoryScreen(),
-    ExpensesScreen(),
-    SettingsScreen(),
+  final _screens = [
+    const DashboardScreen(),
+    const ShiftsScreen(),
+    const InventoryScreen(),
+    const ExpensesScreen(),
+    const SettingsScreen(),
   ];
 
   bool get _isDesktop => Platform.isWindows || Platform.isLinux || Platform.isMacOS;

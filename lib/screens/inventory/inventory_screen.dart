@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift/drift.dart' show Value;
@@ -8,6 +9,8 @@ import 'add_stock_screen.dart';
 
 class InventoryScreen extends ConsumerWidget {
   const InventoryScreen({super.key});
+
+  bool get _isDesktop => Platform.isWindows || Platform.isLinux || Platform.isMacOS;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -24,37 +27,51 @@ class InventoryScreen extends ConsumerWidget {
         icon: const Icon(Icons.add),
         label: const Text('Add Stock'),
       ),
-      body: allInventory.when(
-        data: (items) {
-          if (items.isEmpty) {
-            return const Center(child: Text('No inventory data'));
-          }
-          final fuelItems = items.where((i) => i.product.category == 'fuel').toList();
-          final lubeItems = items.where((i) => i.product.category == 'lube').toList();
-
-          return ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              Text(
-                'Fuel Products',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              ...fuelItems.map((item) => _buildInventoryCard(context, ref, item, colorScheme)),
-              const SizedBox(height: 16),
-              Text(
-                'Lube Products',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              ...lubeItems.map((item) => _buildInventoryCard(context, ref, item, colorScheme)),
-            ],
-          );
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Error: $e')),
-      ),
+      body: _buildBody(context, ref, allInventory, colorScheme),
     );
+  }
+
+  Widget _buildBody(BuildContext context, WidgetRef ref, AsyncValue allInventory, ColorScheme colorScheme) {
+    final content = allInventory.when(
+      data: (items) {
+        if (items.isEmpty) {
+          return const Center(child: Text('No inventory data'));
+        }
+        final fuelItems = items.where((i) => i.product.category == 'fuel').toList();
+        final lubeItems = items.where((i) => i.product.category == 'lube').toList();
+
+        return ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            Text(
+              'Fuel Products',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            ...fuelItems.map((item) => _buildInventoryCard(context, ref, item, colorScheme)),
+            const SizedBox(height: 16),
+            Text(
+              'Lube Products',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            ...lubeItems.map((item) => _buildInventoryCard(context, ref, item, colorScheme)),
+          ],
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, _) => Center(child: Text('Error: $e')),
+    );
+
+    if (_isDesktop) {
+      return Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1000),
+          child: content,
+        ),
+      );
+    }
+    return content;
   }
 
   Widget _buildInventoryCard(BuildContext context, WidgetRef ref, dynamic item, ColorScheme colorScheme) {

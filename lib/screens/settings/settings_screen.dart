@@ -78,11 +78,13 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   Widget _buildDesktopLayout(BuildContext context, WidgetRef ref, ColorScheme colorScheme) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: _buildMenuSections(context, ref, colorScheme),
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 1000),
+        child: ListView(
+          padding: const EdgeInsets.all(24),
+          children: _buildMenuSections(context, ref, colorScheme),
+        ),
       ),
     );
   }

@@ -37,15 +37,20 @@ class _ShiftDetailScreenState extends ConsumerState<ShiftDetailScreen> {
           final totalCredit = sales.fold<double>(0, (sum, row) => sum + row.sale.creditCollected);
 
           if (_isDesktop) {
-            return SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildSummaryCard(context, colorScheme, totalSales, totalCash, totalCard, totalCredit),
-                  const SizedBox(height: 16),
-                  _buildSalesList(context, colorScheme, sales, isShiftActive),
-                ],
+            return Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 1000),
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildSummaryCard(context, colorScheme, totalSales, totalCash, totalCard, totalCredit),
+                      const SizedBox(height: 16),
+                      _buildSalesList(context, colorScheme, sales, isShiftActive),
+                    ],
+                  ),
+                ),
               ),
             );
           }
