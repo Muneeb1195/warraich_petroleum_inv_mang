@@ -130,6 +130,40 @@ class ShiftDao extends DatabaseAccessor<AppDatabase> with _$ShiftDaoMixin {
 
     return results;
   }
+
+  Future<Map<String, double>> getMonthlySummary(int month, int year) async {
+    final start = DateTime(year, month);
+    final end = DateTime(year, month + 1);
+
+    final monthShifts = await (select(shifts)
+          ..where((s) => s.startDate.isBetweenValues(start, end) & s.status.equals('closed')))
+        .get();
+
+    final monthExpenses = await (select(db.expenses)
+          ..where((e) => e.date.isBetweenValues(start, end)))
+        .get();
+
+    final totalSales = monthShifts.fold<double>(0.0, (sum, s) => sum + s.totalSales);
+    final totalExpenses = monthExpenses.fold<double>(0.0, (sum, e) => sum + e.amount);
+
+    return {
+      'sales': totalSales,
+      'expenses': totalExpenses,
+      'profit': totalSales - totalExpenses,
+    };
+  }
+
+  Future<int> getActiveEmployeeCount() async {
+    final result = await (select(db.employees)..where((e) => e.isActive.equals(true))).get();
+    return result.length;
+  }
+
+  Future<List<Expense>> getRecentExpenses({int limit = 5}) async {
+    return (select(db.expenses)
+          ..orderBy([(e) => OrderingTerm.desc(e.date)])
+          ..limit(limit))
+        .get();
+  }
 }
 
 class ShiftSalesRow {

@@ -28,6 +28,19 @@ final weeklySalesProvider = FutureProvider<List<MapEntry<DateTime, double>>>((re
   return ref.watch(shiftDaoProvider).getWeeklySalesData();
 });
 
+final monthlySummaryProvider = FutureProvider<Map<String, double>>((ref) {
+  final now = DateTime.now();
+  return ref.watch(shiftDaoProvider).getMonthlySummary(now.month, now.year);
+});
+
+final recentExpensesProvider = FutureProvider<List<Expense>>((ref) {
+  return ref.watch(shiftDaoProvider).getRecentExpenses(limit: 5);
+});
+
+final employeeCountProvider = FutureProvider<int>((ref) {
+  return ref.watch(shiftDaoProvider).getActiveEmployeeCount();
+});
+
 class ShiftNotifier extends StateNotifier<AsyncValue<void>> {
   final ShiftDao _dao;
   final AppDatabase _db;

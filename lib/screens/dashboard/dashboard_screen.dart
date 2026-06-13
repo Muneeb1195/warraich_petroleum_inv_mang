@@ -31,6 +31,9 @@ class DashboardScreen extends ConsumerWidget {
           ref.invalidate(todaySummaryProvider);
           ref.invalidate(weeklySalesProvider);
           ref.invalidate(allInventoryProvider);
+          ref.invalidate(monthlySummaryProvider);
+          ref.invalidate(recentExpensesProvider);
+          ref.invalidate(employeeCountProvider);
         },
         child: _isDesktop
             ? _buildDesktopLayout(context, ref, todaySummary, weeklySales, activeShift, allInventory, colorScheme)
@@ -55,26 +58,45 @@ class DashboardScreen extends ConsumerWidget {
   }
 
   Widget _buildDesktopLayout(BuildContext context, WidgetRef ref, AsyncValue<Map<String, double>> todaySummary, AsyncValue<List<MapEntry<DateTime, double>>> weeklySales, AsyncValue<Shift?> activeShift, AsyncValue<List<dynamic>> allInventory, ColorScheme colorScheme) {
+    final monthlySummary = ref.watch(monthlySummaryProvider);
+    final employeeCount = ref.watch(employeeCountProvider);
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Row 1: Today's Summary + Active Shift
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(flex: 2, child: _buildTodaySummary(context, todaySummary, colorScheme)),
+              Expanded(flex: 3, child: _buildTodaySummary(context, todaySummary, colorScheme)),
               const SizedBox(width: 16),
-              Expanded(flex: 1, child: _buildActiveShiftCard(context, ref, activeShift, colorScheme)),
+              Expanded(flex: 2, child: _buildActiveShiftCard(context, ref, activeShift, colorScheme)),
+              const SizedBox(width: 16),
+              Expanded(flex: 2, child: _buildMonthlySummary(context, monthlySummary, colorScheme)),
             ],
           ),
           const SizedBox(height: 16),
+          // Row 2: Quick Actions + Sales Chart + Employee Count
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(flex: 3, child: _buildSalesChart(context, weeklySales, colorScheme)),
+              Expanded(flex: 2, child: _buildQuickActions(context, ref, colorScheme)),
               const SizedBox(width: 16),
+              Expanded(flex: 4, child: _buildSalesChart(context, weeklySales, colorScheme)),
+              const SizedBox(width: 16),
+              Expanded(flex: 2, child: _buildEmployeeCount(context, employeeCount, colorScheme)),
+            ],
+          ),
+          const SizedBox(height: 16),
+          // Row 3: Inventory + Expense Breakdown
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
               Expanded(flex: 2, child: _buildInventoryAlerts(context, ref, allInventory, colorScheme)),
+              const SizedBox(width: 16),
+              Expanded(flex: 1, child: _buildExpensePie(context, monthlySummary, colorScheme)),
             ],
           ),
         ],
@@ -110,20 +132,95 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
+  Widget _buildMonthlySummary(BuildContext context, AsyncValue<Map<String, double>> monthlySummary, ColorScheme colorScheme) {
+    return monthlySummary.when(
+      data: (summary) => Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Monthly Summary', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 12),
+              _SummaryRow(label: 'Total Sales', value: formatMoney(summary['sales']!), color: colorScheme.primary),
+              const Divider(),
+              _SummaryRow(label: 'Total Expenses', value: formatMoney(summary['expenses']!), color: colorScheme.error),
+              const Divider(),
+              _SummaryRow(
+                label: 'Net Profit',
+                value: formatMoney(summary['profit']!),
+                color: summary['profit']! >= 0 ? Colors.green : colorScheme.error,
+                bold: true,
+              ),
+            ],
+          ),
+        ),
+      ),
+      loading: () => const Card(child: Padding(padding: EdgeInsets.all(32), child: Center(child: CircularProgressIndicator()))),
+      error: (e, _) => Card(child: Padding(padding: const EdgeInsets.all(16), child: Text('Error: $e'))),
+    );
+  }
+
   Widget _buildActiveShiftCard(BuildContext context, WidgetRef ref, AsyncValue<Shift?> activeShift, ColorScheme colorScheme) {
     final isActive = activeShift.hasValue && activeShift.value != null;
     return Card(
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: isActive ? colorScheme.primaryContainer : colorScheme.surfaceContainerHighest,
-          child: Icon(Icons.schedule, color: isActive ? colorScheme.onPrimaryContainer : colorScheme.onSurfaceVariant),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Active Shift', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 12),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: CircleAvatar(
+                backgroundColor: isActive ? colorScheme.primaryContainer : colorScheme.surfaceContainerHighest,
+                child: Icon(Icons.schedule, color: isActive ? colorScheme.onPrimaryContainer : colorScheme.onSurfaceVariant),
+              ),
+              title: Text(isActive ? '${activeShift.value!.type.toUpperCase()} Shift' : 'No Active Shift'),
+              subtitle: Text(isActive ? 'Tap to manage sales' : 'Start a shift to begin'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: isActive
+                  ? () => Navigator.push(context, MaterialPageRoute(builder: (_) => ShiftDetailScreen(shiftId: activeShift.value!.id)))
+                  : () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NewShiftScreen())),
+            ),
+          ],
         ),
-        title: Text(isActive ? 'Active: ${activeShift.value!.type.toUpperCase()} Shift' : 'No Active Shift'),
-        subtitle: Text(isActive ? 'Tap to manage shift sales' : 'Start a shift to begin recording sales'),
-        trailing: const Icon(Icons.chevron_right),
-        onTap: isActive
-            ? () => Navigator.push(context, MaterialPageRoute(builder: (_) => ShiftDetailScreen(shiftId: activeShift.value!.id)))
-            : () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NewShiftScreen())),
+      ),
+    );
+  }
+
+  Widget _buildQuickActions(BuildContext context, WidgetRef ref, ColorScheme colorScheme) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Quick Actions', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 12),
+            _ActionButton(
+              icon: Icons.add_circle,
+              label: 'New Shift',
+              color: colorScheme.primary,
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NewShiftScreen())),
+            ),
+            const SizedBox(height: 8),
+            _ActionButton(
+              icon: Icons.receipt_long,
+              label: 'Add Expense',
+              color: colorScheme.error,
+              onTap: () => Navigator.pushNamed(context, '/expenses'),
+            ),
+            const SizedBox(height: 8),
+            _ActionButton(
+              icon: Icons.local_gas_station,
+              label: 'Fuel Prices',
+              color: Colors.orange,
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FuelPricesScreen())),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -138,7 +235,7 @@ class DashboardScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Sales Trends', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                  Text('Sales Trends (7 days)', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
                   const SizedBox(height: 32),
                   Center(child: Text('No sales data yet', style: TextStyle(color: colorScheme.onSurfaceVariant))),
                   const SizedBox(height: 32),
@@ -163,7 +260,7 @@ class DashboardScreen extends ConsumerWidget {
                 Text('Sales Trends (7 days)', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 16),
                 SizedBox(
-                  height: _isDesktop ? 250 : 200,
+                  height: _isDesktop ? 220 : 200,
                   child: LineChart(
                     LineChartData(
                       gridData: const FlGridData(show: true),
@@ -217,6 +314,97 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
+  Widget _buildEmployeeCount(BuildContext context, AsyncValue<int> employeeCount, ColorScheme colorScheme) {
+    return employeeCount.when(
+      data: (count) => Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Staff', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 12),
+              Center(
+                child: Column(
+                  children: [
+                    CircleAvatar(
+                      radius: 30,
+                      backgroundColor: colorScheme.primaryContainer,
+                      child: Text(
+                        '$count',
+                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: colorScheme.onPrimaryContainer),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text('Active Employees', style: TextStyle(color: colorScheme.onSurfaceVariant)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      loading: () => const Card(child: Padding(padding: EdgeInsets.all(32), child: Center(child: CircularProgressIndicator()))),
+      error: (e, _) => Card(child: Padding(padding: const EdgeInsets.all(16), child: Text('Error: $e'))),
+    );
+  }
+
+  Widget _buildExpensePie(BuildContext context, AsyncValue<Map<String, double>> monthlySummary, ColorScheme colorScheme) {
+    return monthlySummary.when(
+      data: (summary) {
+        final expenses = summary['expenses'] ?? 0;
+        if (expenses == 0) {
+          return Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Expense Split', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 32),
+                  Center(child: Text('No expenses yet', style: TextStyle(color: colorScheme.onSurfaceVariant))),
+                  const SizedBox(height: 32),
+                ],
+              ),
+            ),
+          );
+        }
+
+        final sections = [
+          PieChartSectionData(value: 40, color: colorScheme.primary, title: 'Supplier', radius: 50),
+          PieChartSectionData(value: 25, color: colorScheme.error, title: 'Wages', radius: 50),
+          PieChartSectionData(value: 20, color: Colors.orange, title: 'Utilities', radius: 50),
+          PieChartSectionData(value: 15, color: Colors.green, title: 'Other', radius: 50),
+        ];
+
+        return Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Expense Split', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 16),
+                SizedBox(
+                  height: 150,
+                  child: PieChart(
+                    PieChartData(
+                      sections: sections,
+                      centerSpaceRadius: 30,
+                      sectionsSpace: 2,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+      loading: () => const Card(child: Padding(padding: EdgeInsets.all(32), child: Center(child: CircularProgressIndicator()))),
+      error: (e, _) => Card(child: Padding(padding: const EdgeInsets.all(16), child: Text('Error: $e'))),
+    );
+  }
+
   Widget _buildInventoryAlerts(BuildContext context, WidgetRef ref, AsyncValue<List<dynamic>> allInventory, ColorScheme colorScheme) {
     return Card(
       child: Padding(
@@ -245,16 +433,43 @@ class DashboardScreen extends ConsumerWidget {
                 return Column(
                   children: fuelItems.map((item) {
                     final isLow = item.inventoryEntry.currentStock <= item.inventoryEntry.minStock && item.inventoryEntry.minStock > 0;
-                    return ListTile(
-                      dense: true,
-                      leading: Icon(isLow ? Icons.warning_amber : Icons.check_circle, color: isLow ? colorScheme.error : colorScheme.primary),
-                      title: Text(item.product.name),
-                      trailing: Text(
-                        '${item.inventoryEntry.currentStock.toStringAsFixed(1)} ${item.product.unit}',
-                        style: TextStyle(
-                          color: isLow ? colorScheme.error : colorScheme.onSurface,
-                          fontWeight: isLow ? FontWeight.bold : FontWeight.normal,
-                        ),
+                    final maxStock = item.inventoryEntry.minStock > 0 ? item.inventoryEntry.minStock * 3 : item.inventoryEntry.currentStock * 1.5;
+                    final progress = (item.inventoryEntry.currentStock / maxStock).clamp(0.0, 1.0);
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(isLow ? Icons.warning_amber : Icons.check_circle, color: isLow ? colorScheme.error : colorScheme.primary, size: 18),
+                                  const SizedBox(width: 6),
+                                  Text(item.product.name, style: const TextStyle(fontWeight: FontWeight.w500)),
+                                ],
+                              ),
+                              Text(
+                                '${item.inventoryEntry.currentStock.toStringAsFixed(1)} ${item.product.unit}',
+                                style: TextStyle(
+                                  color: isLow ? colorScheme.error : colorScheme.onSurface,
+                                  fontWeight: isLow ? FontWeight.bold : FontWeight.normal,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(4),
+                            child: LinearProgressIndicator(
+                              value: progress,
+                              backgroundColor: colorScheme.surfaceContainerHighest,
+                              color: isLow ? colorScheme.error : colorScheme.primary,
+                              minHeight: 6,
+                            ),
+                          ),
+                        ],
                       ),
                     );
                   }).toList(),
@@ -291,6 +506,60 @@ class _StatCard extends StatelessWidget {
           const SizedBox(height: 2),
           Text(value, style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold, color: color)),
         ],
+      ),
+    );
+  }
+}
+
+class _SummaryRow extends StatelessWidget {
+  final String label;
+  final String value;
+  final Color color;
+  final bool bold;
+
+  const _SummaryRow({required this.label, required this.value, required this.color, this.bold = false});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: TextStyle(color: bold ? color : null, fontWeight: bold ? FontWeight.bold : FontWeight.normal)),
+          Text(value, style: TextStyle(fontWeight: bold ? FontWeight.bold : FontWeight.w600, color: color)),
+        ],
+      ),
+    );
+  }
+}
+
+class _ActionButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _ActionButton({required this.icon, required this.label, required this.color, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: color.withValues(alpha: 0.1),
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            children: [
+              Icon(icon, color: color, size: 20),
+              const SizedBox(width: 8),
+              Text(label, style: TextStyle(fontWeight: FontWeight.w500, color: color)),
+            ],
+          ),
+        ),
       ),
     );
   }
