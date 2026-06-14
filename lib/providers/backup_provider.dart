@@ -15,6 +15,10 @@ class BackupNotifier extends StateNotifier<AsyncValue<void>> {
 
   Future<bool> backupDatabase(File dbFile) async {
     state = const AsyncValue.loading();
+    try {
+      final db = _ref.read(databaseProvider);
+      await db.customStatement('PRAGMA wal_checkpoint(TRUNCATE)');
+    } catch (_) {}
     final result = await _service.backupDatabase(dbFile);
     state = result
         ? const AsyncValue.data(null)
@@ -79,6 +83,10 @@ class BackupNotifier extends StateNotifier<AsyncValue<void>> {
 
   Future<bool> localBackup(File dbFile) async {
     state = const AsyncValue.loading();
+    try {
+      final db = _ref.read(databaseProvider);
+      await db.customStatement('PRAGMA wal_checkpoint(TRUNCATE)');
+    } catch (_) {}
     final result = await _service.localBackup(dbFile);
     state = result
         ? const AsyncValue.data(null)
