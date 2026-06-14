@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/product_provider.dart';
@@ -10,7 +11,9 @@ class AddStockScreen extends ConsumerStatefulWidget {
   ConsumerState<AddStockScreen> createState() => _AddStockScreenState();
 }
 
-class _AddStockScreenState extends ConsumerState<AddStockScreen> {
+bool get _isDesktop => Platform.isWindows || Platform.isLinux || Platform.isMacOS;
+
+  class _AddStockScreenState extends ConsumerState<AddStockScreen> {
   int? _selectedProductId;
   final _quantityController = TextEditingController();
   final _costController = TextEditingController();

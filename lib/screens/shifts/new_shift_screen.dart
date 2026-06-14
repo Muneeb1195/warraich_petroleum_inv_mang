@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -10,7 +11,9 @@ class NewShiftScreen extends ConsumerStatefulWidget {
   ConsumerState<NewShiftScreen> createState() => _NewShiftScreenState();
 }
 
-class _NewShiftScreenState extends ConsumerState<NewShiftScreen> {
+bool get _isDesktop => Platform.isWindows || Platform.isLinux || Platform.isMacOS;
+
+  class _NewShiftScreenState extends ConsumerState<NewShiftScreen> {
   String _selectedType = 'morning';
   DateTime _selectedDate = DateTime.now();
   TimeOfDay _selectedTime = TimeOfDay.now();

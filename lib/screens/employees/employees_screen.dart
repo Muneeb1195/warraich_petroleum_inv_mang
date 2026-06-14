@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/employee_provider.dart';
@@ -107,7 +108,9 @@ class AddEmployeeScreen extends ConsumerStatefulWidget {
   ConsumerState<AddEmployeeScreen> createState() => _AddEmployeeScreenState();
 }
 
-class _AddEmployeeScreenState extends ConsumerState<AddEmployeeScreen> {
+bool get _isDesktop => Platform.isWindows || Platform.isLinux || Platform.isMacOS;
+
+  class _AddEmployeeScreenState extends ConsumerState<AddEmployeeScreen> {
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _salaryController = TextEditingController();

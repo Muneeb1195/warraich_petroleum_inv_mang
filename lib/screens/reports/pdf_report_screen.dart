@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -12,7 +13,9 @@ class PdfReportScreen extends ConsumerStatefulWidget {
   ConsumerState<PdfReportScreen> createState() => _PdfReportScreenState();
 }
 
-class _PdfReportScreenState extends ConsumerState<PdfReportScreen> {
+bool get _isDesktop => Platform.isWindows || Platform.isLinux || Platform.isMacOS;
+
+  class _PdfReportScreenState extends ConsumerState<PdfReportScreen> {
   int? _selectedShiftId;
   DateTime _selectedMonth = DateTime.now();
 

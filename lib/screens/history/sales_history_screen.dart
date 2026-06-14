@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/shift_provider.dart';
@@ -11,7 +12,9 @@ class SalesHistoryScreen extends ConsumerStatefulWidget {
   ConsumerState<SalesHistoryScreen> createState() => _SalesHistoryScreenState();
 }
 
-class _SalesHistoryScreenState extends ConsumerState<SalesHistoryScreen> {
+bool get _isDesktop => Platform.isWindows || Platform.isLinux || Platform.isMacOS;
+
+  class _SalesHistoryScreenState extends ConsumerState<SalesHistoryScreen> {
   String _filterType = 'all';
 
   @override

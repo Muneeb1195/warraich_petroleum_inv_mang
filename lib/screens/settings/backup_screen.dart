@@ -13,7 +13,9 @@ class BackupScreen extends ConsumerStatefulWidget {
   ConsumerState<BackupScreen> createState() => _BackupScreenState();
 }
 
-class _BackupScreenState extends ConsumerState<BackupScreen> {
+bool get _isDesktop => Platform.isWindows || Platform.isLinux || Platform.isMacOS;
+
+  class _BackupScreenState extends ConsumerState<BackupScreen> {
   static const _autoBackupKey = 'auto_backup_enabled';
   static const _signedInKey = 'google_signed_in';
   bool _autoBackup = true;
