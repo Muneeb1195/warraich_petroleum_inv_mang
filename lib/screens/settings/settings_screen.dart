@@ -101,12 +101,6 @@ class SettingsScreen extends ConsumerWidget {
         title: 'Settings',
         items: [
           _MenuItem(
-            icon: Icons.local_gas_station,
-            title: 'Fuel Prices',
-            subtitle: 'Manage product prices',
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FuelPricesScreen())),
-          ),
-          _MenuItem(
             icon: Icons.cloud_upload,
             title: 'Backup & Restore',
             subtitle: 'Backup management',
