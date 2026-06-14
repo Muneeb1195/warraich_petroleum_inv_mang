@@ -5,5 +5,12 @@ part of 'employee_dao.dart';
 // ignore_for_file: type=lint
 mixin _$EmployeeDaoMixin on DatabaseAccessor<AppDatabase> {
   $EmployeesTable get employees => attachedDatabase.employees;
-  $AttendanceTable get attendance => attachedDatabase.attendance;
+  EmployeeDaoManager get managers => EmployeeDaoManager(this);
+}
+
+class EmployeeDaoManager {
+  final _$EmployeeDaoMixin _db;
+  EmployeeDaoManager(this._db);
+  $$EmployeesTableTableManager get employees =>
+      $$EmployeesTableTableManager(_db.attachedDatabase, _db.employees);
 }

@@ -103,7 +103,7 @@ class SettingsScreen extends ConsumerWidget {
           _MenuItem(
             icon: Icons.people,
             title: 'Employees',
-            subtitle: 'Manage staff and attendance',
+                subtitle: 'Manage staff',
             onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EmployeesScreen())),
           ),
           _MenuItem(

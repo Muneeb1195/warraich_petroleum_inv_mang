@@ -46,23 +46,6 @@ class EmployeeNotifier extends StateNotifier<AsyncValue<void>> {
       await _dao.deactivateEmployee(id);
     });
   }
-
-  Future<void> recordAttendance({
-    required int employeeId,
-    required DateTime date,
-    required String shift,
-    String status = 'present',
-  }) async {
-    state = await AsyncValue.guard(() async {
-      await _dao.recordAttendance(AttendanceCompanion.insert(
-        employeeId: employeeId,
-        date: date,
-        shift: shift,
-        status: Value(status),
-        checkInTime: Value(DateTime.now()),
-      ));
-    });
-  }
 }
 
 final employeeNotifierProvider = StateNotifierProvider<EmployeeNotifier, AsyncValue<void>>((ref) {

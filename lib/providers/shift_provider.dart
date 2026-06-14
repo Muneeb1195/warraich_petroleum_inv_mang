@@ -121,18 +121,20 @@ class ShiftNotifier extends StateNotifier<AsyncValue<void>> {
   Future<void> closeShift(int shiftId, int closedBy) async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
-      final sales = await _dao.getShiftSales(shiftId);
-      final totalSales = sales.fold<double>(0.0, (sum, row) => sum + row.sale.totalAmount);
-      final totalExpenses = await _dao.getShiftExpenses(shiftId);
+      await _db.transaction(() async {
+        final sales = await _dao.getShiftSales(shiftId);
+        final totalSales = sales.fold<double>(0.0, (sum, row) => sum + row.sale.totalAmount);
+        final totalExpenses = await _dao.getShiftExpenses(shiftId);
 
-      for (final row in sales) {
-        final inventoryItem = await _db.productDao.getInventory(row.product.id);
-        if (inventoryItem != null && row.sale.quantitySold > 0) {
-          await _db.productDao.deductStock(row.product.id, row.sale.quantitySold, shiftId);
+        for (final row in sales) {
+          final inventoryItem = await _db.productDao.getInventory(row.product.id);
+          if (inventoryItem != null && row.sale.quantitySold > 0) {
+            await _db.productDao.deductStock(row.product.id, row.sale.quantitySold, shiftId);
+          }
         }
-      }
 
-      await _dao.closeShift(shiftId, closedBy, totalSales, totalExpenses);
+        await _dao.closeShift(shiftId, closedBy, totalSales, totalExpenses);
+      });
     });
   }
 }

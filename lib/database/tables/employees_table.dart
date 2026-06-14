@@ -11,16 +11,6 @@ class Employees extends Table {
   BoolColumn get isActive => boolean().withDefault(const Constant(true))();
 }
 
-class Attendance extends Table {
-  IntColumn get id => integer().autoIncrement()();
-  IntColumn get employeeId => integer().references(Employees, #id)();
-  DateTimeColumn get date => dateTime()();
-  TextColumn get shift => text()(); // morning/evening
-  TextColumn get status => text().withDefault(const Constant('present'))(); // present/absent/late
-  DateTimeColumn get checkInTime => dateTime().nullable()();
-  DateTimeColumn get checkOutTime => dateTime().nullable()();
-}
-
 class Payroll extends Table {
   IntColumn get id => integer().autoIncrement()();
   IntColumn get employeeId => integer().references(Employees, #id)();

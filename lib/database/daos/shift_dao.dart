@@ -112,17 +112,26 @@ class ShiftDao extends DatabaseAccessor<AppDatabase> with _$ShiftDaoMixin {
 
   Future<List<MapEntry<DateTime, double>>> getWeeklySalesData() async {
     final now = DateTime.now();
+    final sevenDaysAgo = DateTime(now.year, now.month, now.day - 6);
+    final endOfToday = DateTime(now.year, now.month, now.day + 1);
+
+    // Fetch all closed shifts in the entire week in a single query
+    final allShifts = await (select(shifts)
+          ..where((s) =>
+              s.startDate.isBetweenValues(sevenDaysAgo, endOfToday) &
+              s.status.equals('closed')))
+        .get();
+
     final results = <MapEntry<DateTime, double>>[];
 
     for (int i = 6; i >= 0; i--) {
       final day = DateTime(now.year, now.month, now.day - i);
       final nextDay = day.add(const Duration(days: 1));
 
-      final dayShifts = await (select(shifts)
-            ..where((s) =>
-                s.startDate.isBetweenValues(day, nextDay) &
-                s.status.equals('closed')))
-          .get();
+      // Filter shifts for this day in-memory
+      final dayShifts = allShifts.where((s) =>
+          s.startDate.isAfter(day.subtract(const Duration(microseconds: 1))) &&
+          s.startDate.isBefore(nextDay));
 
       final totalSales = dayShifts.fold<double>(0.0, (sum, s) => sum + s.totalSales);
       results.add(MapEntry(day, totalSales));

@@ -1,16 +1,13 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/payroll_provider.dart';
 import '../../providers/employee_provider.dart';
-import '../../providers/expense_provider.dart';
-import '../../providers/shift_provider.dart';
 import '../../utils/extensions.dart';
 
 class PayrollScreen extends ConsumerWidget {
   const PayrollScreen({super.key});
 
-  bool get _isDesktop => Platform.isWindows || Platform.isLinux || Platform.isMacOS;
+  bool _isWide(BuildContext context) => MediaQuery.sizeOf(context).width > 800;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -51,7 +48,7 @@ class PayrollScreen extends ConsumerWidget {
                       child: Icon(row.payrollEntry.isPaid ? Icons.check_circle : Icons.pending, color: row.payrollEntry.isPaid ? colorScheme.onPrimaryContainer : colorScheme.onErrorContainer),
                     ),
                     title: Text(row.employee.name),
-                    subtitle: Text('Base: Rs. ${row.payrollEntry.baseSalary.toStringAsFixed(0)} | Deductions: Rs. ${row.payrollEntry.deductions.toStringAsFixed(0)}'),
+                    subtitle: Text('Monthly Salary: Rs. ${row.payrollEntry.baseSalary.toStringAsFixed(0)}'),
                     trailing: row.payrollEntry.isPaid
                         ? Column(mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.end, children: [
                             const Icon(Icons.check_circle, color: Colors.green, size: 20),
@@ -87,7 +84,7 @@ class PayrollScreen extends ConsumerWidget {
         icon: const Icon(Icons.calculate),
         label: const Text('Generate Payroll'),
       ),
-      body: _isDesktop
+      body: _isWide(context)
           ? Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 1000), child: body))
           : body,
     );

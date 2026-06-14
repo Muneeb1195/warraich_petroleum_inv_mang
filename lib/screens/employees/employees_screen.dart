@@ -1,12 +1,10 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../database/app_database.dart';
 import '../../providers/employee_provider.dart';
 
 class EmployeesScreen extends ConsumerWidget {
   const EmployeesScreen({super.key});
-  bool get _isDesktop => Platform.isWindows || Platform.isLinux || Platform.isMacOS;
+  bool _isWide(BuildContext context) => MediaQuery.sizeOf(context).width > 800;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -43,7 +41,7 @@ class EmployeesScreen extends ConsumerWidget {
         icon: const Icon(Icons.person_add),
         label: const Text('Add Employee'),
       ),
-      body: _isDesktop ? Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 1000), child: body)) : body,
+      body: _isWide(context) ? Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 1000), child: body)) : body,
     );
   }
 }
@@ -60,7 +58,7 @@ class _AddEmployeeScreenState extends ConsumerState<AddEmployeeScreen> {
   final _salaryController = TextEditingController();
   String _selectedRole = 'Operator';
   String _selectedShift = 'both';
-  bool get _isDesktop => Platform.isWindows || Platform.isLinux || Platform.isMacOS;
+  bool _isWide(BuildContext context) => MediaQuery.sizeOf(context).width > 800;
 
   @override
   Widget build(BuildContext context) {
@@ -129,7 +127,7 @@ class _AddEmployeeScreenState extends ConsumerState<AddEmployeeScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Add Employee')),
-      body: _isDesktop ? Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 1000), child: body)) : body,
+      body: _isWide(context) ? Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 1000), child: body)) : body,
     );
   }
 }

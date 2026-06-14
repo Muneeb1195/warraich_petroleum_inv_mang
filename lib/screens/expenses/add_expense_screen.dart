@@ -1,4 +1,4 @@
-import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/expense_provider.dart';
@@ -18,7 +18,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
   final _amountController = TextEditingController();
   final _descriptionController = TextEditingController();
   DateTime _selectedDate = DateTime.now();
-  bool get _isDesktop => Platform.isWindows || Platform.isLinux || Platform.isMacOS;
+  bool _isWide(BuildContext context) => MediaQuery.sizeOf(context).width > 800;
 
   @override
   Widget build(BuildContext context) {
@@ -146,7 +146,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
       ),
     );
 
-    if (_isDesktop) {
+    if (_isWide(context)) {
       return Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 1000), child: content));
     }
     return content;

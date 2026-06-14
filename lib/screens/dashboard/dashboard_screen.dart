@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -15,7 +14,7 @@ import '../../screens/settings/fuel_prices_screen.dart';
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
 
-  bool get _isDesktop => Platform.isWindows || Platform.isLinux || Platform.isMacOS;
+  bool _isWide(BuildContext context) => MediaQuery.of(context).size.width > 900;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -36,7 +35,7 @@ class DashboardScreen extends ConsumerWidget {
           ref.invalidate(recentExpensesProvider);
           ref.invalidate(employeeCountProvider);
         },
-        child: _isDesktop
+        child: _isWide(context)
             ? _buildDesktopLayout(context, ref, todaySummary, weeklySales, activeShift, allInventory, colorScheme)
             : _buildMobileLayout(context, ref, todaySummary, weeklySales, activeShift, allInventory, colorScheme),
       ),
@@ -253,7 +252,7 @@ class DashboardScreen extends ConsumerWidget {
                 Text('Sales Trends (7 days)', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 16),
                 SizedBox(
-                  height: _isDesktop ? 220 : 200,
+                  height: _isWide(context) ? 220 : 200,
                   child: LineChart(
                     LineChartData(
                       gridData: const FlGridData(show: true),

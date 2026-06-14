@@ -367,8 +367,8 @@ class _AddFuelSheetState extends ConsumerState<_AddFuelSheet> {
 
   bool get _isEditing => widget.existingSale != null;
 
-  List<dynamic> get _products => ref.watch(allProductsProvider).valueOrNull ?? [];
-  List<dynamic> get _inventory => ref.watch(allInventoryProvider).valueOrNull ?? [];
+  List<dynamic> get _products => ref.read(allProductsProvider).valueOrNull ?? [];
+  List<dynamic> get _inventory => ref.read(allInventoryProvider).valueOrNull ?? [];
 
   double get _availableStock {
     if (_selectedProductId == null) return 0;
@@ -435,6 +435,9 @@ class _AddFuelSheetState extends ConsumerState<_AddFuelSheet> {
 
   @override
   Widget build(BuildContext context) {
+    // Watch providers here to ensure UI rebuilds upon changes
+    ref.watch(allProductsProvider);
+    ref.watch(allInventoryProvider);
     final colorScheme = Theme.of(context).colorScheme;
 
     return Padding(

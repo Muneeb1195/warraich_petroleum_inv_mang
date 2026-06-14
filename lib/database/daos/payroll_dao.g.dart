@@ -6,5 +6,14 @@ part of 'payroll_dao.dart';
 mixin _$PayrollDaoMixin on DatabaseAccessor<AppDatabase> {
   $EmployeesTable get employees => attachedDatabase.employees;
   $PayrollTable get payroll => attachedDatabase.payroll;
-  $AttendanceTable get attendance => attachedDatabase.attendance;
+  PayrollDaoManager get managers => PayrollDaoManager(this);
+}
+
+class PayrollDaoManager {
+  final _$PayrollDaoMixin _db;
+  PayrollDaoManager(this._db);
+  $$EmployeesTableTableManager get employees =>
+      $$EmployeesTableTableManager(_db.attachedDatabase, _db.employees);
+  $$PayrollTableTableManager get payroll =>
+      $$PayrollTableTableManager(_db.attachedDatabase, _db.payroll);
 }

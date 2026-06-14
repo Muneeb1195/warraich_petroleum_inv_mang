@@ -4,7 +4,7 @@ import '../tables/tables.dart';
 
 part 'employee_dao.g.dart';
 
-@DriftAccessor(tables: [Employees, Attendance])
+@DriftAccessor(tables: [Employees])
 class EmployeeDao extends DatabaseAccessor<AppDatabase> with _$EmployeeDaoMixin {
   EmployeeDao(super.db);
 
@@ -26,29 +26,6 @@ class EmployeeDao extends DatabaseAccessor<AppDatabase> with _$EmployeeDaoMixin 
     await (update(employees)..where((e) => e.id.equals(id))).write(
       EmployeesCompanion(isActive: const Value(false)),
     );
-  }
-
-  Future<void> recordAttendance(AttendanceCompanion attendance) =>
-      into(this.attendance).insert(attendance);
-
-  Future<List<AttendanceData>> getAttendance(int employeeId, DateTime date) async {
-    final startOfDay = DateTime(date.year, date.month, date.day);
-    final endOfDay = DateTime(date.year, date.month, date.day + 1);
-    return (select(attendance)
-          ..where((a) =>
-              a.employeeId.equals(employeeId) &
-              a.date.isBetweenValues(startOfDay, endOfDay)))
-        .get();
-  }
-
-  Future<List<AttendanceData>> getMonthlyAttendance(int employeeId, int month, int year) async {
-    final start = DateTime(year, month);
-    final end = DateTime(year, month + 1);
-    return (select(attendance)
-          ..where((a) =>
-              a.employeeId.equals(employeeId) &
-              a.date.isBetweenValues(start, end)))
-        .get();
   }
 
   Stream<List<Employee>> watchEmployeesByShift(String shift) {

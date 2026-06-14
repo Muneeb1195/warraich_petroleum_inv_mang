@@ -1,4 +1,4 @@
-import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -10,7 +10,7 @@ import 'add_expense_screen.dart';
 class ExpensesScreen extends ConsumerWidget {
   const ExpensesScreen({super.key});
 
-  bool get _isDesktop => Platform.isWindows || Platform.isLinux || Platform.isMacOS;
+  bool _isWide(BuildContext context) => MediaQuery.sizeOf(context).width > 800;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -105,7 +105,7 @@ class ExpensesScreen extends ConsumerWidget {
       error: (e, _) => Center(child: Text('Error: $e')),
     );
 
-    if (_isDesktop) {
+    if (_isWide(context)) {
       return Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 1000),

@@ -14,10 +14,15 @@ const kEmployeeRoles = ['Operator', 'Manager', 'Cleaner', 'Supervisor', 'Other']
 const kDefaultShifts = ['morning', 'evening', 'both'];
 
 String formatMoney(double value) {
-  if (value >= 1000000) {
-    return 'Rs. ${(value / 1000000).toStringAsFixed(1)}M';
-  } else if (value >= 1000) {
-    return 'Rs. ${(value / 1000).toStringAsFixed(1)}k';
+  final isNegative = value < 0;
+  final absVal = value.abs();
+  String formatted;
+  if (absVal >= 1000000) {
+    formatted = 'Rs. ${(absVal / 1000000).toStringAsFixed(1)}M';
+  } else if (absVal >= 1000) {
+    formatted = 'Rs. ${(absVal / 1000).toStringAsFixed(1)}k';
+  } else {
+    formatted = 'Rs. ${absVal.toStringAsFixed(0)}';
   }
-  return 'Rs. ${value.toStringAsFixed(0)}';
+  return isNegative ? '-$formatted' : formatted;
 }

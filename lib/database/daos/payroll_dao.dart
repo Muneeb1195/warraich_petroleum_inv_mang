@@ -4,7 +4,7 @@ import '../tables/tables.dart';
 
 part 'payroll_dao.g.dart';
 
-@DriftAccessor(tables: [Payroll, Employees, Attendance])
+@DriftAccessor(tables: [Payroll, Employees])
 class PayrollDao extends DatabaseAccessor<AppDatabase> with _$PayrollDaoMixin {
   PayrollDao(super.db);
 
@@ -12,28 +12,30 @@ class PayrollDao extends DatabaseAccessor<AppDatabase> with _$PayrollDaoMixin {
     final employee = await (select(employees)..where((e) => e.id.equals(employeeId))).getSingleOrNull();
     if (employee == null) throw Exception('Employee not found');
 
-    final start = DateTime(year, month);
-    final end = DateTime(year, month + 1);
-    final attendanceList = await (select(attendance)
-          ..where((a) =>
-              a.employeeId.equals(employeeId) &
-              a.date.isBetweenValues(start, end)))
-        .get();
+    // Check if payroll already exists for this month and year
+    final existing = await (select(payroll)
+          ..where((p) =>
+              p.employeeId.equals(employeeId) &
+              p.month.equals(month) &
+              p.year.equals(year)))
+        .getSingleOrNull();
 
-    final daysLate = attendanceList.where((a) => a.status == 'late').length;
-    final workingDaysInMonth = 30;
-    final dailyRate = employee.salary / workingDaysInMonth;
-    final deductions = daysLate * (dailyRate * 0.1);
-
-    final netPay = employee.salary - deductions;
+    if (existing != null) {
+      if (existing.isPaid) {
+        // If already paid, do not overwrite or duplicate
+        return existing.id;
+      }
+      // If not paid, delete the existing one and regenerate
+      await (delete(payroll)..where((p) => p.id.equals(existing.id))).go();
+    }
 
     return into(payroll).insert(PayrollCompanion.insert(
       employeeId: employeeId,
       month: month,
       year: year,
       baseSalary: employee.salary,
-      deductions: Value(deductions),
-      netPay: netPay,
+      deductions: const Value(0.0),
+      netPay: employee.salary,
     ));
   }
 

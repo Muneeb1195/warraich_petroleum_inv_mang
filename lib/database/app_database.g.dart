@@ -3517,469 +3517,6 @@ class ExpensesCompanion extends UpdateCompanion<Expense> {
   }
 }
 
-class $AttendanceTable extends Attendance
-    with TableInfo<$AttendanceTable, AttendanceData> {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  $AttendanceTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _idMeta = const VerificationMeta('id');
-  @override
-  late final GeneratedColumn<int> id = GeneratedColumn<int>(
-    'id',
-    aliasedName,
-    false,
-    hasAutoIncrement: true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'PRIMARY KEY AUTOINCREMENT',
-    ),
-  );
-  static const VerificationMeta _employeeIdMeta = const VerificationMeta(
-    'employeeId',
-  );
-  @override
-  late final GeneratedColumn<int> employeeId = GeneratedColumn<int>(
-    'employee_id',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES employees (id)',
-    ),
-  );
-  static const VerificationMeta _dateMeta = const VerificationMeta('date');
-  @override
-  late final GeneratedColumn<DateTime> date = GeneratedColumn<DateTime>(
-    'date',
-    aliasedName,
-    false,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _shiftMeta = const VerificationMeta('shift');
-  @override
-  late final GeneratedColumn<String> shift = GeneratedColumn<String>(
-    'shift',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _statusMeta = const VerificationMeta('status');
-  @override
-  late final GeneratedColumn<String> status = GeneratedColumn<String>(
-    'status',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    defaultValue: const Constant('present'),
-  );
-  static const VerificationMeta _checkInTimeMeta = const VerificationMeta(
-    'checkInTime',
-  );
-  @override
-  late final GeneratedColumn<DateTime> checkInTime = GeneratedColumn<DateTime>(
-    'check_in_time',
-    aliasedName,
-    true,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _checkOutTimeMeta = const VerificationMeta(
-    'checkOutTime',
-  );
-  @override
-  late final GeneratedColumn<DateTime> checkOutTime = GeneratedColumn<DateTime>(
-    'check_out_time',
-    aliasedName,
-    true,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: false,
-  );
-  @override
-  List<GeneratedColumn> get $columns => [
-    id,
-    employeeId,
-    date,
-    shift,
-    status,
-    checkInTime,
-    checkOutTime,
-  ];
-  @override
-  String get aliasedName => _alias ?? actualTableName;
-  @override
-  String get actualTableName => $name;
-  static const String $name = 'attendance';
-  @override
-  VerificationContext validateIntegrity(
-    Insertable<AttendanceData> instance, {
-    bool isInserting = false,
-  }) {
-    final context = VerificationContext();
-    final data = instance.toColumns(true);
-    if (data.containsKey('id')) {
-      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    }
-    if (data.containsKey('employee_id')) {
-      context.handle(
-        _employeeIdMeta,
-        employeeId.isAcceptableOrUnknown(data['employee_id']!, _employeeIdMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_employeeIdMeta);
-    }
-    if (data.containsKey('date')) {
-      context.handle(
-        _dateMeta,
-        date.isAcceptableOrUnknown(data['date']!, _dateMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_dateMeta);
-    }
-    if (data.containsKey('shift')) {
-      context.handle(
-        _shiftMeta,
-        shift.isAcceptableOrUnknown(data['shift']!, _shiftMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_shiftMeta);
-    }
-    if (data.containsKey('status')) {
-      context.handle(
-        _statusMeta,
-        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
-      );
-    }
-    if (data.containsKey('check_in_time')) {
-      context.handle(
-        _checkInTimeMeta,
-        checkInTime.isAcceptableOrUnknown(
-          data['check_in_time']!,
-          _checkInTimeMeta,
-        ),
-      );
-    }
-    if (data.containsKey('check_out_time')) {
-      context.handle(
-        _checkOutTimeMeta,
-        checkOutTime.isAcceptableOrUnknown(
-          data['check_out_time']!,
-          _checkOutTimeMeta,
-        ),
-      );
-    }
-    return context;
-  }
-
-  @override
-  Set<GeneratedColumn> get $primaryKey => {id};
-  @override
-  AttendanceData map(Map<String, dynamic> data, {String? tablePrefix}) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return AttendanceData(
-      id: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}id'],
-      )!,
-      employeeId: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}employee_id'],
-      )!,
-      date: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}date'],
-      )!,
-      shift: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}shift'],
-      )!,
-      status: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}status'],
-      )!,
-      checkInTime: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}check_in_time'],
-      ),
-      checkOutTime: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}check_out_time'],
-      ),
-    );
-  }
-
-  @override
-  $AttendanceTable createAlias(String alias) {
-    return $AttendanceTable(attachedDatabase, alias);
-  }
-}
-
-class AttendanceData extends DataClass implements Insertable<AttendanceData> {
-  final int id;
-  final int employeeId;
-  final DateTime date;
-  final String shift;
-  final String status;
-  final DateTime? checkInTime;
-  final DateTime? checkOutTime;
-  const AttendanceData({
-    required this.id,
-    required this.employeeId,
-    required this.date,
-    required this.shift,
-    required this.status,
-    this.checkInTime,
-    this.checkOutTime,
-  });
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    map['id'] = Variable<int>(id);
-    map['employee_id'] = Variable<int>(employeeId);
-    map['date'] = Variable<DateTime>(date);
-    map['shift'] = Variable<String>(shift);
-    map['status'] = Variable<String>(status);
-    if (!nullToAbsent || checkInTime != null) {
-      map['check_in_time'] = Variable<DateTime>(checkInTime);
-    }
-    if (!nullToAbsent || checkOutTime != null) {
-      map['check_out_time'] = Variable<DateTime>(checkOutTime);
-    }
-    return map;
-  }
-
-  AttendanceCompanion toCompanion(bool nullToAbsent) {
-    return AttendanceCompanion(
-      id: Value(id),
-      employeeId: Value(employeeId),
-      date: Value(date),
-      shift: Value(shift),
-      status: Value(status),
-      checkInTime: checkInTime == null && nullToAbsent
-          ? const Value.absent()
-          : Value(checkInTime),
-      checkOutTime: checkOutTime == null && nullToAbsent
-          ? const Value.absent()
-          : Value(checkOutTime),
-    );
-  }
-
-  factory AttendanceData.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return AttendanceData(
-      id: serializer.fromJson<int>(json['id']),
-      employeeId: serializer.fromJson<int>(json['employeeId']),
-      date: serializer.fromJson<DateTime>(json['date']),
-      shift: serializer.fromJson<String>(json['shift']),
-      status: serializer.fromJson<String>(json['status']),
-      checkInTime: serializer.fromJson<DateTime?>(json['checkInTime']),
-      checkOutTime: serializer.fromJson<DateTime?>(json['checkOutTime']),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'id': serializer.toJson<int>(id),
-      'employeeId': serializer.toJson<int>(employeeId),
-      'date': serializer.toJson<DateTime>(date),
-      'shift': serializer.toJson<String>(shift),
-      'status': serializer.toJson<String>(status),
-      'checkInTime': serializer.toJson<DateTime?>(checkInTime),
-      'checkOutTime': serializer.toJson<DateTime?>(checkOutTime),
-    };
-  }
-
-  AttendanceData copyWith({
-    int? id,
-    int? employeeId,
-    DateTime? date,
-    String? shift,
-    String? status,
-    Value<DateTime?> checkInTime = const Value.absent(),
-    Value<DateTime?> checkOutTime = const Value.absent(),
-  }) => AttendanceData(
-    id: id ?? this.id,
-    employeeId: employeeId ?? this.employeeId,
-    date: date ?? this.date,
-    shift: shift ?? this.shift,
-    status: status ?? this.status,
-    checkInTime: checkInTime.present ? checkInTime.value : this.checkInTime,
-    checkOutTime: checkOutTime.present ? checkOutTime.value : this.checkOutTime,
-  );
-  AttendanceData copyWithCompanion(AttendanceCompanion data) {
-    return AttendanceData(
-      id: data.id.present ? data.id.value : this.id,
-      employeeId: data.employeeId.present
-          ? data.employeeId.value
-          : this.employeeId,
-      date: data.date.present ? data.date.value : this.date,
-      shift: data.shift.present ? data.shift.value : this.shift,
-      status: data.status.present ? data.status.value : this.status,
-      checkInTime: data.checkInTime.present
-          ? data.checkInTime.value
-          : this.checkInTime,
-      checkOutTime: data.checkOutTime.present
-          ? data.checkOutTime.value
-          : this.checkOutTime,
-    );
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('AttendanceData(')
-          ..write('id: $id, ')
-          ..write('employeeId: $employeeId, ')
-          ..write('date: $date, ')
-          ..write('shift: $shift, ')
-          ..write('status: $status, ')
-          ..write('checkInTime: $checkInTime, ')
-          ..write('checkOutTime: $checkOutTime')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode => Object.hash(
-    id,
-    employeeId,
-    date,
-    shift,
-    status,
-    checkInTime,
-    checkOutTime,
-  );
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is AttendanceData &&
-          other.id == this.id &&
-          other.employeeId == this.employeeId &&
-          other.date == this.date &&
-          other.shift == this.shift &&
-          other.status == this.status &&
-          other.checkInTime == this.checkInTime &&
-          other.checkOutTime == this.checkOutTime);
-}
-
-class AttendanceCompanion extends UpdateCompanion<AttendanceData> {
-  final Value<int> id;
-  final Value<int> employeeId;
-  final Value<DateTime> date;
-  final Value<String> shift;
-  final Value<String> status;
-  final Value<DateTime?> checkInTime;
-  final Value<DateTime?> checkOutTime;
-  const AttendanceCompanion({
-    this.id = const Value.absent(),
-    this.employeeId = const Value.absent(),
-    this.date = const Value.absent(),
-    this.shift = const Value.absent(),
-    this.status = const Value.absent(),
-    this.checkInTime = const Value.absent(),
-    this.checkOutTime = const Value.absent(),
-  });
-  AttendanceCompanion.insert({
-    this.id = const Value.absent(),
-    required int employeeId,
-    required DateTime date,
-    required String shift,
-    this.status = const Value.absent(),
-    this.checkInTime = const Value.absent(),
-    this.checkOutTime = const Value.absent(),
-  }) : employeeId = Value(employeeId),
-       date = Value(date),
-       shift = Value(shift);
-  static Insertable<AttendanceData> custom({
-    Expression<int>? id,
-    Expression<int>? employeeId,
-    Expression<DateTime>? date,
-    Expression<String>? shift,
-    Expression<String>? status,
-    Expression<DateTime>? checkInTime,
-    Expression<DateTime>? checkOutTime,
-  }) {
-    return RawValuesInsertable({
-      if (id != null) 'id': id,
-      if (employeeId != null) 'employee_id': employeeId,
-      if (date != null) 'date': date,
-      if (shift != null) 'shift': shift,
-      if (status != null) 'status': status,
-      if (checkInTime != null) 'check_in_time': checkInTime,
-      if (checkOutTime != null) 'check_out_time': checkOutTime,
-    });
-  }
-
-  AttendanceCompanion copyWith({
-    Value<int>? id,
-    Value<int>? employeeId,
-    Value<DateTime>? date,
-    Value<String>? shift,
-    Value<String>? status,
-    Value<DateTime?>? checkInTime,
-    Value<DateTime?>? checkOutTime,
-  }) {
-    return AttendanceCompanion(
-      id: id ?? this.id,
-      employeeId: employeeId ?? this.employeeId,
-      date: date ?? this.date,
-      shift: shift ?? this.shift,
-      status: status ?? this.status,
-      checkInTime: checkInTime ?? this.checkInTime,
-      checkOutTime: checkOutTime ?? this.checkOutTime,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (id.present) {
-      map['id'] = Variable<int>(id.value);
-    }
-    if (employeeId.present) {
-      map['employee_id'] = Variable<int>(employeeId.value);
-    }
-    if (date.present) {
-      map['date'] = Variable<DateTime>(date.value);
-    }
-    if (shift.present) {
-      map['shift'] = Variable<String>(shift.value);
-    }
-    if (status.present) {
-      map['status'] = Variable<String>(status.value);
-    }
-    if (checkInTime.present) {
-      map['check_in_time'] = Variable<DateTime>(checkInTime.value);
-    }
-    if (checkOutTime.present) {
-      map['check_out_time'] = Variable<DateTime>(checkOutTime.value);
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('AttendanceCompanion(')
-          ..write('id: $id, ')
-          ..write('employeeId: $employeeId, ')
-          ..write('date: $date, ')
-          ..write('shift: $shift, ')
-          ..write('status: $status, ')
-          ..write('checkInTime: $checkInTime, ')
-          ..write('checkOutTime: $checkOutTime')
-          ..write(')'))
-        .toString();
-  }
-}
-
 class $PayrollTable extends Payroll with TableInfo<$PayrollTable, PayrollData> {
   @override
   final GeneratedDatabase attachedDatabase;
@@ -4888,7 +4425,6 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $ShiftsTable shifts = $ShiftsTable(this);
   late final $ShiftSalesTable shiftSales = $ShiftSalesTable(this);
   late final $ExpensesTable expenses = $ExpensesTable(this);
-  late final $AttendanceTable attendance = $AttendanceTable(this);
   late final $PayrollTable payroll = $PayrollTable(this);
   late final $AppSettingsTable appSettings = $AppSettingsTable(this);
   late final ShiftDao shiftDao = ShiftDao(this as AppDatabase);
@@ -4908,7 +4444,6 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     shifts,
     shiftSales,
     expenses,
-    attendance,
     payroll,
     appSettings,
   ];
@@ -4942,7 +4477,7 @@ final class $$ProductsTableReferences
   static MultiTypedResultKey<$InventoryTable, List<InventoryData>>
   _inventoryRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
     db.inventory,
-    aliasName: $_aliasNameGenerator(db.products.id, db.inventory.productId),
+    aliasName: 'products__id__inventory__product_id',
   );
 
   $$InventoryTableProcessedTableManager get inventoryRefs {
@@ -4964,10 +4499,7 @@ final class $$ProductsTableReferences
   _inventoryTransactionsRefsTable(_$AppDatabase db) =>
       MultiTypedResultKey.fromTable(
         db.inventoryTransactions,
-        aliasName: $_aliasNameGenerator(
-          db.products.id,
-          db.inventoryTransactions.productId,
-        ),
+        aliasName: 'products__id__inventory_transactions__product_id',
       );
 
   $$InventoryTransactionsTableProcessedTableManager
@@ -4988,7 +4520,7 @@ final class $$ProductsTableReferences
   static MultiTypedResultKey<$ShiftSalesTable, List<ShiftSale>>
   _shiftSalesRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
     db.shiftSales,
-    aliasName: $_aliasNameGenerator(db.products.id, db.shiftSales.productId),
+    aliasName: 'products__id__shift_sales__product_id',
   );
 
   $$ShiftSalesTableProcessedTableManager get shiftSalesRefs {
@@ -5482,9 +5014,7 @@ final class $$InventoryTableReferences
   $$InventoryTableReferences(super.$_db, super.$_table, super.$_typedResult);
 
   static $ProductsTable _productIdTable(_$AppDatabase db) =>
-      db.products.createAlias(
-        $_aliasNameGenerator(db.inventory.productId, db.products.id),
-      );
+      db.products.createAlias('inventory__product_id__products__id');
 
   $$ProductsTableProcessedTableManager get productId {
     final $_column = $_itemColumn<int>('product_id')!;
@@ -5813,13 +5343,8 @@ final class $$InventoryTransactionsTableReferences
     super.$_typedResult,
   );
 
-  static $ProductsTable _productIdTable(_$AppDatabase db) =>
-      db.products.createAlias(
-        $_aliasNameGenerator(
-          db.inventoryTransactions.productId,
-          db.products.id,
-        ),
-      );
+  static $ProductsTable _productIdTable(_$AppDatabase db) => db.products
+      .createAlias('inventory_transactions__product_id__products__id');
 
   $$ProductsTableProcessedTableManager get productId {
     final $_column = $_itemColumn<int>('product_id')!;
@@ -6205,7 +5730,7 @@ final class $$EmployeesTableReferences
     _$AppDatabase db,
   ) => MultiTypedResultKey.fromTable(
     db.shifts,
-    aliasName: $_aliasNameGenerator(db.employees.id, db.shifts.closedBy),
+    aliasName: 'employees__id__shifts__closed_by',
   );
 
   $$ShiftsTableProcessedTableManager get shiftsRefs {
@@ -6224,7 +5749,7 @@ final class $$EmployeesTableReferences
     _$AppDatabase db,
   ) => MultiTypedResultKey.fromTable(
     db.expenses,
-    aliasName: $_aliasNameGenerator(db.employees.id, db.expenses.createdBy),
+    aliasName: 'employees__id__expenses__created_by',
   );
 
   $$ExpensesTableProcessedTableManager get expensesRefs {
@@ -6239,28 +5764,10 @@ final class $$EmployeesTableReferences
     );
   }
 
-  static MultiTypedResultKey<$AttendanceTable, List<AttendanceData>>
-  _attendanceRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
-    db.attendance,
-    aliasName: $_aliasNameGenerator(db.employees.id, db.attendance.employeeId),
-  );
-
-  $$AttendanceTableProcessedTableManager get attendanceRefs {
-    final manager = $$AttendanceTableTableManager(
-      $_db,
-      $_db.attendance,
-    ).filter((f) => f.employeeId.id.sqlEquals($_itemColumn<int>('id')!));
-
-    final cache = $_typedResult.readTableOrNull(_attendanceRefsTable($_db));
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
-  }
-
   static MultiTypedResultKey<$PayrollTable, List<PayrollData>>
   _payrollRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
     db.payroll,
-    aliasName: $_aliasNameGenerator(db.employees.id, db.payroll.employeeId),
+    aliasName: 'employees__id__payroll__employee_id',
   );
 
   $$PayrollTableProcessedTableManager get payrollRefs {
@@ -6366,31 +5873,6 @@ class $$EmployeesTableFilterComposer
           }) => $$ExpensesTableFilterComposer(
             $db: $db,
             $table: $db.expenses,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
-
-  Expression<bool> attendanceRefs(
-    Expression<bool> Function($$AttendanceTableFilterComposer f) f,
-  ) {
-    final $$AttendanceTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.id,
-      referencedTable: $db.attendance,
-      getReferencedColumn: (t) => t.employeeId,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AttendanceTableFilterComposer(
-            $db: $db,
-            $table: $db.attendance,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -6563,31 +6045,6 @@ class $$EmployeesTableAnnotationComposer
     return f(composer);
   }
 
-  Expression<T> attendanceRefs<T extends Object>(
-    Expression<T> Function($$AttendanceTableAnnotationComposer a) f,
-  ) {
-    final $$AttendanceTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.id,
-      referencedTable: $db.attendance,
-      getReferencedColumn: (t) => t.employeeId,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AttendanceTableAnnotationComposer(
-            $db: $db,
-            $table: $db.attendance,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
-
   Expression<T> payrollRefs<T extends Object>(
     Expression<T> Function($$PayrollTableAnnotationComposer a) f,
   ) {
@@ -6630,7 +6087,6 @@ class $$EmployeesTableTableManager
           PrefetchHooks Function({
             bool shiftsRefs,
             bool expensesRefs,
-            bool attendanceRefs,
             bool payrollRefs,
           })
         > {
@@ -6697,7 +6153,6 @@ class $$EmployeesTableTableManager
               ({
                 shiftsRefs = false,
                 expensesRefs = false,
-                attendanceRefs = false,
                 payrollRefs = false,
               }) {
                 return PrefetchHooks(
@@ -6705,7 +6160,6 @@ class $$EmployeesTableTableManager
                   explicitlyWatchedTables: [
                     if (shiftsRefs) db.shifts,
                     if (expensesRefs) db.expenses,
-                    if (attendanceRefs) db.attendance,
                     if (payrollRefs) db.payroll,
                   ],
                   addJoins: null,
@@ -6753,27 +6207,6 @@ class $$EmployeesTableTableManager
                               ),
                           typedResults: items,
                         ),
-                      if (attendanceRefs)
-                        await $_getPrefetchedData<
-                          Employee,
-                          $EmployeesTable,
-                          AttendanceData
-                        >(
-                          currentTable: table,
-                          referencedTable: $$EmployeesTableReferences
-                              ._attendanceRefsTable(db),
-                          managerFromTypedResult: (p0) =>
-                              $$EmployeesTableReferences(
-                                db,
-                                table,
-                                p0,
-                              ).attendanceRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.employeeId == item.id,
-                              ),
-                          typedResults: items,
-                        ),
                       if (payrollRefs)
                         await $_getPrefetchedData<
                           Employee,
@@ -6818,7 +6251,6 @@ typedef $$EmployeesTableProcessedTableManager =
       PrefetchHooks Function({
         bool shiftsRefs,
         bool expensesRefs,
-        bool attendanceRefs,
         bool payrollRefs,
       })
     >;
@@ -6851,8 +6283,8 @@ final class $$ShiftsTableReferences
     extends BaseReferences<_$AppDatabase, $ShiftsTable, Shift> {
   $$ShiftsTableReferences(super.$_db, super.$_table, super.$_typedResult);
 
-  static $EmployeesTable _closedByTable(_$AppDatabase db) => db.employees
-      .createAlias($_aliasNameGenerator(db.shifts.closedBy, db.employees.id));
+  static $EmployeesTable _closedByTable(_$AppDatabase db) =>
+      db.employees.createAlias('shifts__closed_by__employees__id');
 
   $$EmployeesTableProcessedTableManager? get closedBy {
     final $_column = $_itemColumn<int>('closed_by');
@@ -6871,7 +6303,7 @@ final class $$ShiftsTableReferences
   static MultiTypedResultKey<$ShiftSalesTable, List<ShiftSale>>
   _shiftSalesRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
     db.shiftSales,
-    aliasName: $_aliasNameGenerator(db.shifts.id, db.shiftSales.shiftId),
+    aliasName: 'shifts__id__shift_sales__shift_id',
   );
 
   $$ShiftSalesTableProcessedTableManager get shiftSalesRefs {
@@ -6890,7 +6322,7 @@ final class $$ShiftsTableReferences
     _$AppDatabase db,
   ) => MultiTypedResultKey.fromTable(
     db.expenses,
-    aliasName: $_aliasNameGenerator(db.shifts.id, db.expenses.shiftId),
+    aliasName: 'shifts__id__expenses__shift_id',
   );
 
   $$ExpensesTableProcessedTableManager get expensesRefs {
@@ -7434,9 +6866,8 @@ final class $$ShiftSalesTableReferences
     extends BaseReferences<_$AppDatabase, $ShiftSalesTable, ShiftSale> {
   $$ShiftSalesTableReferences(super.$_db, super.$_table, super.$_typedResult);
 
-  static $ShiftsTable _shiftIdTable(_$AppDatabase db) => db.shifts.createAlias(
-    $_aliasNameGenerator(db.shiftSales.shiftId, db.shifts.id),
-  );
+  static $ShiftsTable _shiftIdTable(_$AppDatabase db) =>
+      db.shifts.createAlias('shift_sales__shift_id__shifts__id');
 
   $$ShiftsTableProcessedTableManager get shiftId {
     final $_column = $_itemColumn<int>('shift_id')!;
@@ -7453,9 +6884,7 @@ final class $$ShiftSalesTableReferences
   }
 
   static $ProductsTable _productIdTable(_$AppDatabase db) =>
-      db.products.createAlias(
-        $_aliasNameGenerator(db.shiftSales.productId, db.products.id),
-      );
+      db.products.createAlias('shift_sales__product_id__products__id');
 
   $$ProductsTableProcessedTableManager get productId {
     final $_column = $_itemColumn<int>('product_id')!;
@@ -7939,9 +7368,8 @@ final class $$ExpensesTableReferences
     extends BaseReferences<_$AppDatabase, $ExpensesTable, Expense> {
   $$ExpensesTableReferences(super.$_db, super.$_table, super.$_typedResult);
 
-  static $ShiftsTable _shiftIdTable(_$AppDatabase db) => db.shifts.createAlias(
-    $_aliasNameGenerator(db.expenses.shiftId, db.shifts.id),
-  );
+  static $ShiftsTable _shiftIdTable(_$AppDatabase db) =>
+      db.shifts.createAlias('expenses__shift_id__shifts__id');
 
   $$ShiftsTableProcessedTableManager? get shiftId {
     final $_column = $_itemColumn<int>('shift_id');
@@ -7958,9 +7386,7 @@ final class $$ExpensesTableReferences
   }
 
   static $EmployeesTable _createdByTable(_$AppDatabase db) =>
-      db.employees.createAlias(
-        $_aliasNameGenerator(db.expenses.createdBy, db.employees.id),
-      );
+      db.employees.createAlias('expenses__created_by__employees__id');
 
   $$EmployeesTableProcessedTableManager? get createdBy {
     final $_column = $_itemColumn<int>('created_by');
@@ -8371,361 +7797,6 @@ typedef $$ExpensesTableProcessedTableManager =
       Expense,
       PrefetchHooks Function({bool shiftId, bool createdBy})
     >;
-typedef $$AttendanceTableCreateCompanionBuilder =
-    AttendanceCompanion Function({
-      Value<int> id,
-      required int employeeId,
-      required DateTime date,
-      required String shift,
-      Value<String> status,
-      Value<DateTime?> checkInTime,
-      Value<DateTime?> checkOutTime,
-    });
-typedef $$AttendanceTableUpdateCompanionBuilder =
-    AttendanceCompanion Function({
-      Value<int> id,
-      Value<int> employeeId,
-      Value<DateTime> date,
-      Value<String> shift,
-      Value<String> status,
-      Value<DateTime?> checkInTime,
-      Value<DateTime?> checkOutTime,
-    });
-
-final class $$AttendanceTableReferences
-    extends BaseReferences<_$AppDatabase, $AttendanceTable, AttendanceData> {
-  $$AttendanceTableReferences(super.$_db, super.$_table, super.$_typedResult);
-
-  static $EmployeesTable _employeeIdTable(_$AppDatabase db) =>
-      db.employees.createAlias(
-        $_aliasNameGenerator(db.attendance.employeeId, db.employees.id),
-      );
-
-  $$EmployeesTableProcessedTableManager get employeeId {
-    final $_column = $_itemColumn<int>('employee_id')!;
-
-    final manager = $$EmployeesTableTableManager(
-      $_db,
-      $_db.employees,
-    ).filter((f) => f.id.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_employeeIdTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
-  }
-}
-
-class $$AttendanceTableFilterComposer
-    extends Composer<_$AppDatabase, $AttendanceTable> {
-  $$AttendanceTableFilterComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnFilters<int> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get date => $composableBuilder(
-    column: $table.date,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get shift => $composableBuilder(
-    column: $table.shift,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get status => $composableBuilder(
-    column: $table.status,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get checkInTime => $composableBuilder(
-    column: $table.checkInTime,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get checkOutTime => $composableBuilder(
-    column: $table.checkOutTime,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  $$EmployeesTableFilterComposer get employeeId {
-    final $$EmployeesTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.employeeId,
-      referencedTable: $db.employees,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$EmployeesTableFilterComposer(
-            $db: $db,
-            $table: $db.employees,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-}
-
-class $$AttendanceTableOrderingComposer
-    extends Composer<_$AppDatabase, $AttendanceTable> {
-  $$AttendanceTableOrderingComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnOrderings<int> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get date => $composableBuilder(
-    column: $table.date,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get shift => $composableBuilder(
-    column: $table.shift,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get status => $composableBuilder(
-    column: $table.status,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get checkInTime => $composableBuilder(
-    column: $table.checkInTime,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get checkOutTime => $composableBuilder(
-    column: $table.checkOutTime,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  $$EmployeesTableOrderingComposer get employeeId {
-    final $$EmployeesTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.employeeId,
-      referencedTable: $db.employees,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$EmployeesTableOrderingComposer(
-            $db: $db,
-            $table: $db.employees,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-}
-
-class $$AttendanceTableAnnotationComposer
-    extends Composer<_$AppDatabase, $AttendanceTable> {
-  $$AttendanceTableAnnotationComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  GeneratedColumn<int> get id =>
-      $composableBuilder(column: $table.id, builder: (column) => column);
-
-  GeneratedColumn<DateTime> get date =>
-      $composableBuilder(column: $table.date, builder: (column) => column);
-
-  GeneratedColumn<String> get shift =>
-      $composableBuilder(column: $table.shift, builder: (column) => column);
-
-  GeneratedColumn<String> get status =>
-      $composableBuilder(column: $table.status, builder: (column) => column);
-
-  GeneratedColumn<DateTime> get checkInTime => $composableBuilder(
-    column: $table.checkInTime,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<DateTime> get checkOutTime => $composableBuilder(
-    column: $table.checkOutTime,
-    builder: (column) => column,
-  );
-
-  $$EmployeesTableAnnotationComposer get employeeId {
-    final $$EmployeesTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.employeeId,
-      referencedTable: $db.employees,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$EmployeesTableAnnotationComposer(
-            $db: $db,
-            $table: $db.employees,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-}
-
-class $$AttendanceTableTableManager
-    extends
-        RootTableManager<
-          _$AppDatabase,
-          $AttendanceTable,
-          AttendanceData,
-          $$AttendanceTableFilterComposer,
-          $$AttendanceTableOrderingComposer,
-          $$AttendanceTableAnnotationComposer,
-          $$AttendanceTableCreateCompanionBuilder,
-          $$AttendanceTableUpdateCompanionBuilder,
-          (AttendanceData, $$AttendanceTableReferences),
-          AttendanceData,
-          PrefetchHooks Function({bool employeeId})
-        > {
-  $$AttendanceTableTableManager(_$AppDatabase db, $AttendanceTable table)
-    : super(
-        TableManagerState(
-          db: db,
-          table: table,
-          createFilteringComposer: () =>
-              $$AttendanceTableFilterComposer($db: db, $table: table),
-          createOrderingComposer: () =>
-              $$AttendanceTableOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer: () =>
-              $$AttendanceTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback:
-              ({
-                Value<int> id = const Value.absent(),
-                Value<int> employeeId = const Value.absent(),
-                Value<DateTime> date = const Value.absent(),
-                Value<String> shift = const Value.absent(),
-                Value<String> status = const Value.absent(),
-                Value<DateTime?> checkInTime = const Value.absent(),
-                Value<DateTime?> checkOutTime = const Value.absent(),
-              }) => AttendanceCompanion(
-                id: id,
-                employeeId: employeeId,
-                date: date,
-                shift: shift,
-                status: status,
-                checkInTime: checkInTime,
-                checkOutTime: checkOutTime,
-              ),
-          createCompanionCallback:
-              ({
-                Value<int> id = const Value.absent(),
-                required int employeeId,
-                required DateTime date,
-                required String shift,
-                Value<String> status = const Value.absent(),
-                Value<DateTime?> checkInTime = const Value.absent(),
-                Value<DateTime?> checkOutTime = const Value.absent(),
-              }) => AttendanceCompanion.insert(
-                id: id,
-                employeeId: employeeId,
-                date: date,
-                shift: shift,
-                status: status,
-                checkInTime: checkInTime,
-                checkOutTime: checkOutTime,
-              ),
-          withReferenceMapper: (p0) => p0
-              .map(
-                (e) => (
-                  e.readTable(table),
-                  $$AttendanceTableReferences(db, table, e),
-                ),
-              )
-              .toList(),
-          prefetchHooksCallback: ({employeeId = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [],
-              addJoins:
-                  <
-                    T extends TableManagerState<
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic
-                    >
-                  >(state) {
-                    if (employeeId) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.employeeId,
-                                referencedTable: $$AttendanceTableReferences
-                                    ._employeeIdTable(db),
-                                referencedColumn: $$AttendanceTableReferences
-                                    ._employeeIdTable(db)
-                                    .id,
-                              )
-                              as T;
-                    }
-
-                    return state;
-                  },
-              getPrefetchedDataCallback: (items) async {
-                return [];
-              },
-            );
-          },
-        ),
-      );
-}
-
-typedef $$AttendanceTableProcessedTableManager =
-    ProcessedTableManager<
-      _$AppDatabase,
-      $AttendanceTable,
-      AttendanceData,
-      $$AttendanceTableFilterComposer,
-      $$AttendanceTableOrderingComposer,
-      $$AttendanceTableAnnotationComposer,
-      $$AttendanceTableCreateCompanionBuilder,
-      $$AttendanceTableUpdateCompanionBuilder,
-      (AttendanceData, $$AttendanceTableReferences),
-      AttendanceData,
-      PrefetchHooks Function({bool employeeId})
-    >;
 typedef $$PayrollTableCreateCompanionBuilder =
     PayrollCompanion Function({
       Value<int> id,
@@ -8762,9 +7833,7 @@ final class $$PayrollTableReferences
   $$PayrollTableReferences(super.$_db, super.$_table, super.$_typedResult);
 
   static $EmployeesTable _employeeIdTable(_$AppDatabase db) =>
-      db.employees.createAlias(
-        $_aliasNameGenerator(db.payroll.employeeId, db.employees.id),
-      );
+      db.employees.createAlias('payroll__employee_id__employees__id');
 
   $$EmployeesTableProcessedTableManager get employeeId {
     final $_column = $_itemColumn<int>('employee_id')!;
@@ -9333,8 +8402,6 @@ class $AppDatabaseManager {
       $$ShiftSalesTableTableManager(_db, _db.shiftSales);
   $$ExpensesTableTableManager get expenses =>
       $$ExpensesTableTableManager(_db, _db.expenses);
-  $$AttendanceTableTableManager get attendance =>
-      $$AttendanceTableTableManager(_db, _db.attendance);
   $$PayrollTableTableManager get payroll =>
       $$PayrollTableTableManager(_db, _db.payroll);
   $$AppSettingsTableTableManager get appSettings =>

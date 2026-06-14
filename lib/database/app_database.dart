@@ -19,7 +19,6 @@ part 'app_database.g.dart';
     ShiftSales,
     Expenses,
     Employees,
-    Attendance,
     Payroll,
     AppSettings,
   ],

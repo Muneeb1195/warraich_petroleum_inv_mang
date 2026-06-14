@@ -1,3 +1,4 @@
+import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
@@ -86,7 +87,7 @@ class PdfService {
     required double totalExpenses,
   }) async {
     final pdf = pw.Document();
-    final monthName = DateTime(year, month).toString().substring(0, 7);
+    final monthName = DateFormat('MMMM yyyy').format(DateTime(year, month));
 
     pdf.addPage(
       pw.MultiPage(
