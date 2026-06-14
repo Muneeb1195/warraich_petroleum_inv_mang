@@ -4,6 +4,7 @@ import '../payroll/payroll_screen.dart';
 import '../history/sales_history_screen.dart';
 import '../reports/pdf_report_screen.dart';
 import '../settings/settings_screen.dart';
+import '../settings/fuel_prices_screen.dart';
 
 class MoreScreen extends StatelessWidget {
   const MoreScreen({super.key});
@@ -38,6 +39,12 @@ class MoreScreen extends StatelessWidget {
             title: 'Reports',
             subtitle: 'Generate PDF reports',
             onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PdfReportScreen())),
+          ),
+          _MoreItem(
+            icon: Icons.local_gas_station,
+            title: 'Fuel Prices',
+            subtitle: 'Manage product prices',
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FuelPricesScreen())),
           ),
           const Divider(),
           _MoreItem(

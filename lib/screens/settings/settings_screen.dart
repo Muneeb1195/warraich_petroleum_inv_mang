@@ -97,50 +97,6 @@ class SettingsScreen extends ConsumerWidget {
 
   List<Widget> _buildMenuSections(BuildContext context, WidgetRef ref, ColorScheme colorScheme) {
     return [
-      if (!_isDesktop) ...[
-        _MenuSection(
-          title: 'Management',
-          items: [
-            _MenuItem(
-              icon: Icons.local_gas_station,
-              title: 'Fuel Prices',
-              subtitle: 'Manage product prices',
-              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FuelPricesScreen())),
-            ),
-            _MenuItem(
-              icon: Icons.people,
-              title: 'Employees',
-                  subtitle: 'Manage staff',
-              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EmployeesScreen())),
-            ),
-            _MenuItem(
-              icon: Icons.payments,
-              title: 'Payroll',
-              subtitle: 'Generate and manage payroll',
-              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PayrollScreen())),
-            ),
-            _MenuItem(
-              icon: Icons.history,
-              title: 'Sales History',
-              subtitle: 'View all past shifts',
-              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SalesHistoryScreen())),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        _MenuSection(
-          title: 'Reports',
-          items: [
-            _MenuItem(
-              icon: Icons.picture_as_pdf,
-              title: 'Generate Report',
-              subtitle: 'Create PDF reports',
-              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PdfReportScreen())),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-      ],
       _MenuSection(
         title: 'Settings',
         items: [
