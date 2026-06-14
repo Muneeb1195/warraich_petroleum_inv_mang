@@ -139,10 +139,14 @@ jobs:
       - name: Build Windows Desktop
         run: flutter build windows --release
 
+      - name: Package Windows Build
+        shell: bash
+        run: 7z a windows-desktop.zip build/windows/x64/runner/Release/*
+
       - name: Upload Windows Build to Release
         uses: softprops/action-gh-release@v2
         with:
-          files: build/windows/x64/runner/Release/warraich_petroleum.exe
+          files: windows-desktop.zip
           tag_name: ${{ github.ref_name }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
