@@ -1,9 +1,0 @@
-{
-  "elements": {},
-  "imports": [
-    "package:intl/intl.dart",
-    "package:pdf/pdf.dart",
-    "package:pdf/widgets.dart",
-    "package:printing/printing.dart"
-  ]
-}

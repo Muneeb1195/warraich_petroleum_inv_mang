@@ -1,3 +1,0 @@
-/home/muneeb/Projects/com-warraich-petroleum/build/linux/x64/release/_deps/sqlite3-subbuild/CMakeFiles/sqlite3-populate.dir
-/home/muneeb/Projects/com-warraich-petroleum/build/linux/x64/release/_deps/sqlite3-subbuild/CMakeFiles/edit_cache.dir
-/home/muneeb/Projects/com-warraich-petroleum/build/linux/x64/release/_deps/sqlite3-subbuild/CMakeFiles/rebuild_cache.dir

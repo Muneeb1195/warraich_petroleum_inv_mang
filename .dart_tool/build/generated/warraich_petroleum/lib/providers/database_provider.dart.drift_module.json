@@ -1,7 +1,0 @@
-{
-  "elements": {},
-  "imports": [
-    "package:flutter_riverpod/flutter_riverpod.dart",
-    "package:warraich_petroleum/database/app_database.dart"
-  ]
-}

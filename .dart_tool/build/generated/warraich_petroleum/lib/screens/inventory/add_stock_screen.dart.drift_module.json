@@ -1,9 +1,0 @@
-{
-  "elements": {},
-  "imports": [
-    "package:flutter/material.dart",
-    "package:flutter_riverpod/flutter_riverpod.dart",
-    "package:warraich_petroleum/providers/product_provider.dart",
-    "package:warraich_petroleum/providers/shift_provider.dart"
-  ]
-}
