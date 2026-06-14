@@ -8,7 +8,7 @@ import '../../providers/product_provider.dart';
 import '../../utils/constants.dart';
 import '../../screens/shifts/shift_detail_screen.dart';
 import '../../screens/shifts/new_shift_screen.dart';
-import '../../screens/expenses/expenses_screen.dart';
+import '../../screens/expenses/add_expense_screen.dart';
 import '../../screens/settings/fuel_prices_screen.dart';
 
 class DashboardScreen extends ConsumerWidget {
@@ -22,6 +22,8 @@ class DashboardScreen extends ConsumerWidget {
     final allInventory = ref.watch(allInventoryProvider);
     final todaySummary = ref.watch(todaySummaryProvider);
     final weeklySales = ref.watch(weeklySalesProvider);
+    final weeklyExpenses = ref.watch(weeklyExpensesProvider);
+    final weeklyProfit = ref.watch(weeklyProfitProvider);
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
@@ -30,13 +32,15 @@ class DashboardScreen extends ConsumerWidget {
         onRefresh: () async {
           ref.invalidate(todaySummaryProvider);
           ref.invalidate(weeklySalesProvider);
+          ref.invalidate(weeklyExpensesProvider);
+          ref.invalidate(weeklyProfitProvider);
           ref.invalidate(allInventoryProvider);
           ref.invalidate(monthlySummaryProvider);
           ref.invalidate(recentExpensesProvider);
           ref.invalidate(employeeCountProvider);
         },
         child: _isWide(context)
-            ? _buildDesktopLayout(context, ref, todaySummary, weeklySales, activeShift, allInventory, colorScheme)
+            ? _buildDesktopLayout(context, ref, todaySummary, weeklySales, weeklyExpenses, weeklyProfit, activeShift, allInventory, colorScheme)
             : _buildMobileLayout(context, ref, todaySummary, weeklySales, activeShift, allInventory, colorScheme),
       ),
     );
@@ -57,7 +61,7 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildDesktopLayout(BuildContext context, WidgetRef ref, AsyncValue<Map<String, double>> todaySummary, AsyncValue<List<MapEntry<DateTime, double>>> weeklySales, AsyncValue<Shift?> activeShift, AsyncValue<List<dynamic>> allInventory, ColorScheme colorScheme) {
+  Widget _buildDesktopLayout(BuildContext context, WidgetRef ref, AsyncValue<Map<String, double>> todaySummary, AsyncValue<List<MapEntry<DateTime, double>>> weeklySales, AsyncValue<List<MapEntry<DateTime, double>>> weeklyExpenses, AsyncValue<List<MapEntry<DateTime, double>>> weeklyProfit, AsyncValue<Shift?> activeShift, AsyncValue<List<dynamic>> allInventory, ColorScheme colorScheme) {
     final monthlySummary = ref.watch(monthlySummaryProvider);
     final employeeCount = ref.watch(employeeCountProvider);
 
@@ -92,8 +96,17 @@ class DashboardScreen extends ConsumerWidget {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(child: _buildSalesChart(context, weeklySales, colorScheme)),
+                  Expanded(child: _buildTrendChart(context, 'Sales Trends (7 days)', weeklySales, colorScheme.primary, colorScheme)),
                   const SizedBox(width: 16),
+                  Expanded(child: _buildTrendChart(context, 'Expense Trends (7 days)', weeklyExpenses, colorScheme.error, colorScheme)),
+                  const SizedBox(width: 16),
+                  Expanded(child: _buildTrendChart(context, 'Profit Trends (7 days)', weeklyProfit, Colors.green, colorScheme)),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                   Expanded(child: _buildInventoryAlerts(context, ref, allInventory, colorScheme)),
                 ],
               ),
@@ -209,7 +222,7 @@ class DashboardScreen extends ConsumerWidget {
               icon: Icons.receipt_long,
               label: 'Add Expense',
               color: colorScheme.error,
-              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ExpensesScreen())),
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AddExpenseScreen())),
             ),
           ],
         ),
@@ -290,6 +303,96 @@ class DashboardScreen extends ConsumerWidget {
                           color: colorScheme.primary,
                           barWidth: 3,
                           belowBarData: BarAreaData(show: true, color: colorScheme.primary.withValues(alpha: 0.1)),
+                          dotData: const FlDotData(show: true),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+      loading: () => const Card(child: Padding(padding: EdgeInsets.all(32), child: Center(child: CircularProgressIndicator()))),
+      error: (e, _) => Card(child: Padding(padding: const EdgeInsets.all(16), child: Text('Error: $e'))),
+    );
+  }
+
+  Widget _buildTrendChart(BuildContext context, String title, AsyncValue<List<MapEntry<DateTime, double>>> weeklyData, Color chartColor, ColorScheme colorScheme) {
+    return weeklyData.when(
+      data: (data) {
+        if (data.every((e) => e.value == 0)) {
+          return Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 32),
+                  Center(child: Text('No data yet', style: TextStyle(color: colorScheme.onSurfaceVariant))),
+                  const SizedBox(height: 32),
+                ],
+              ),
+            ),
+          );
+        }
+
+        final spots = data.asMap().entries.map((entry) {
+          return FlSpot(entry.key.toDouble(), entry.value.value);
+        }).toList();
+
+        final maxY = spots.fold<double>(0, (max, spot) => spot.y > max ? spot.y : max);
+        final minY = spots.fold<double>(0, (min, spot) => spot.y < min ? spot.y : min);
+
+        return Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 16),
+                SizedBox(
+                  height: 220,
+                  child: LineChart(
+                    LineChartData(
+                      gridData: const FlGridData(show: true),
+                      minY: minY < 0 ? minY * 1.2 : 0,
+                      maxY: maxY > 0 ? maxY * 1.2 : 100,
+                      titlesData: FlTitlesData(
+                        leftTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            reservedSize: 50,
+                            getTitlesWidget: (value, meta) {
+                              if (value == 0) return const SizedBox.shrink();
+                              return Text(formatMoney(value), style: const TextStyle(fontSize: 10));
+                            },
+                          ),
+                        ),
+                        bottomTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            getTitlesWidget: (value, meta) {
+                              final index = value.toInt();
+                              if (index < 0 || index >= data.length) return const SizedBox.shrink();
+                              return Text(DateFormat('E').format(data[index].key), style: const TextStyle(fontSize: 10));
+                            },
+                          ),
+                        ),
+                        topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                        rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                      ),
+                      borderData: FlBorderData(show: true),
+                      lineBarsData: [
+                        LineChartBarData(
+                          spots: spots,
+                          isCurved: true,
+                          color: chartColor,
+                          barWidth: 3,
+                          belowBarData: BarAreaData(show: true, color: chartColor.withValues(alpha: 0.1)),
                           dotData: const FlDotData(show: true),
                         ),
                       ],

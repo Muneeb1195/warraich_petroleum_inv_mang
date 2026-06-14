@@ -21,6 +21,13 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
   bool _isWide(BuildContext context) => MediaQuery.sizeOf(context).width > 800;
 
   @override
+  void dispose() {
+    _amountController.dispose();
+    _descriptionController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final expenseState = ref.watch(expenseNotifierProvider);
     final activeShift = ref.watch(activeShiftProvider);

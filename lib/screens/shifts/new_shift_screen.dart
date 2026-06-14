@@ -87,8 +87,13 @@ class _NewShiftScreenState extends ConsumerState<NewShiftScreen> {
                     final dateTime = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day, _selectedTime.hour, _selectedTime.minute);
                     await ref.read(shiftNotifierProvider.notifier).startShift(_selectedType, dateTime: dateTime);
                     if (context.mounted) {
-                      Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$_selectedType shift started')));
+                      final latestState = ref.read(shiftNotifierProvider);
+                      if (latestState.hasError) {
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to start shift')));
+                      } else {
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$_selectedType shift started')));
+                      }
                     }
                   },
             child: shiftState.isLoading ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2)) : const Text('Start Shift'),

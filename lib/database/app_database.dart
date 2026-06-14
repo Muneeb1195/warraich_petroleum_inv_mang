@@ -57,56 +57,58 @@ class AppDatabase extends _$AppDatabase {
       );
 
   Future<void> _seedProducts() async {
-    await into(products).insert(ProductsCompanion.insert(
-      name: 'Petrol Hi-Octane',
-      category: 'fuel',
-      unit: 'liters',
-      pricePerUnit: const Value(0),
-      costPerUnit: const Value(0),
-    ));
-    await into(products).insert(ProductsCompanion.insert(
-      name: 'Petrol Regular',
-      category: 'fuel',
-      unit: 'liters',
-      pricePerUnit: const Value(0),
-      costPerUnit: const Value(0),
-    ));
-    await into(products).insert(ProductsCompanion.insert(
-      name: 'Diesel',
-      category: 'fuel',
-      unit: 'liters',
-      pricePerUnit: const Value(0),
-      costPerUnit: const Value(0),
-    ));
-    await into(products).insert(ProductsCompanion.insert(
-      name: 'Engine Oil 4L',
-      category: 'lube',
-      unit: 'pieces',
-      pricePerUnit: const Value(0),
-      costPerUnit: const Value(0),
-    ));
-    await into(products).insert(ProductsCompanion.insert(
-      name: 'Engine Oil 3L',
-      category: 'lube',
-      unit: 'pieces',
-      pricePerUnit: const Value(0),
-      costPerUnit: const Value(0),
-    ));
-    await into(products).insert(ProductsCompanion.insert(
-      name: 'Engine Oil (Liters)',
-      category: 'lube',
-      unit: 'liters',
-      pricePerUnit: const Value(0),
-      costPerUnit: const Value(0),
-    ));
-
-    for (final product in await select(products).get()) {
-      await into(inventory).insert(InventoryCompanion.insert(
-        productId: product.id,
-        currentStock: const Value(0),
-        minStock: const Value(0),
+    await transaction(() async {
+      await into(products).insert(ProductsCompanion.insert(
+        name: 'Petrol Hi-Octane',
+        category: 'fuel',
+        unit: 'liters',
+        pricePerUnit: const Value(0),
+        costPerUnit: const Value(0),
       ));
-    }
+      await into(products).insert(ProductsCompanion.insert(
+        name: 'Petrol Regular',
+        category: 'fuel',
+        unit: 'liters',
+        pricePerUnit: const Value(0),
+        costPerUnit: const Value(0),
+      ));
+      await into(products).insert(ProductsCompanion.insert(
+        name: 'Diesel',
+        category: 'fuel',
+        unit: 'liters',
+        pricePerUnit: const Value(0),
+        costPerUnit: const Value(0),
+      ));
+      await into(products).insert(ProductsCompanion.insert(
+        name: 'Engine Oil 4L',
+        category: 'lube',
+        unit: 'pieces',
+        pricePerUnit: const Value(0),
+        costPerUnit: const Value(0),
+      ));
+      await into(products).insert(ProductsCompanion.insert(
+        name: 'Engine Oil 3L',
+        category: 'lube',
+        unit: 'pieces',
+        pricePerUnit: const Value(0),
+        costPerUnit: const Value(0),
+      ));
+      await into(products).insert(ProductsCompanion.insert(
+        name: 'Engine Oil (Liters)',
+        category: 'lube',
+        unit: 'liters',
+        pricePerUnit: const Value(0),
+        costPerUnit: const Value(0),
+      ));
+
+      for (final product in await select(products).get()) {
+        await into(inventory).insert(InventoryCompanion.insert(
+          productId: product.id,
+          currentStock: const Value(0),
+          minStock: const Value(0),
+        ));
+      }
+    });
   }
 }
 

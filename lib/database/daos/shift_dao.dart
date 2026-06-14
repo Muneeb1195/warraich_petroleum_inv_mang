@@ -51,7 +51,7 @@ class ShiftDao extends DatabaseAccessor<AppDatabase> with _$ShiftDaoMixin {
     await (delete(shiftSales)..where((s) => s.id.equals(saleId))).go();
   }
 
-  Future<void> closeShift(int shiftId, int closedBy, double totalSales, double totalExpenses) async {
+  Future<void> closeShift(int shiftId, int? closedBy, double totalSales, double totalExpenses) async {
     await (update(shifts)..where((s) => s.id.equals(shiftId))).write(ShiftsCompanion(
       status: const Value('closed'),
       endDate: Value(DateTime.now()),
@@ -59,13 +59,6 @@ class ShiftDao extends DatabaseAccessor<AppDatabase> with _$ShiftDaoMixin {
       totalSales: Value(totalSales),
       totalExpenses: Value(totalExpenses),
     ));
-  }
-
-  Future<double> calculateShiftTotalSales(int shiftId) async {
-    final query = select(shiftSales)
-      ..where((s) => s.shiftId.equals(shiftId));
-    final sales = await query.get();
-    return sales.fold<double>(0.0, (sum, sale) => sum + sale.totalAmount);
   }
 
   Future<double> getShiftExpenses(int shiftId) async {
@@ -138,6 +131,41 @@ class ShiftDao extends DatabaseAccessor<AppDatabase> with _$ShiftDaoMixin {
     }
 
     return results;
+  }
+
+  Future<List<MapEntry<DateTime, double>>> getWeeklyExpensesData() async {
+    final now = DateTime.now();
+    final sevenDaysAgo = DateTime(now.year, now.month, now.day - 6);
+    final endOfToday = DateTime(now.year, now.month, now.day + 1);
+
+    final allExpenses = await (select(db.expenses)
+          ..where((e) => e.date.isBetweenValues(sevenDaysAgo, endOfToday)))
+        .get();
+
+    final results = <MapEntry<DateTime, double>>[];
+
+    for (int i = 6; i >= 0; i--) {
+      final day = DateTime(now.year, now.month, now.day - i);
+      final nextDay = day.add(const Duration(days: 1));
+
+      final dayExpenses = allExpenses.where((e) =>
+          e.date.isAfter(day.subtract(const Duration(microseconds: 1))) &&
+          e.date.isBefore(nextDay));
+
+      final totalExpenses = dayExpenses.fold<double>(0.0, (sum, e) => sum + e.amount);
+      results.add(MapEntry(day, totalExpenses));
+    }
+
+    return results;
+  }
+
+  Future<List<MapEntry<DateTime, double>>> getWeeklyProfitData() async {
+    final sales = await getWeeklySalesData();
+    final expenses = await getWeeklyExpensesData();
+
+    return List.generate(7, (i) {
+      return MapEntry(sales[i].key, sales[i].value - expenses[i].value);
+    });
   }
 
   Future<Map<String, double>> getMonthlySummary(int month, int year) async {

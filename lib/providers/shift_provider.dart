@@ -28,6 +28,14 @@ final weeklySalesProvider = FutureProvider<List<MapEntry<DateTime, double>>>((re
   return ref.watch(shiftDaoProvider).getWeeklySalesData();
 });
 
+final weeklyExpensesProvider = FutureProvider<List<MapEntry<DateTime, double>>>((ref) {
+  return ref.watch(shiftDaoProvider).getWeeklyExpensesData();
+});
+
+final weeklyProfitProvider = FutureProvider<List<MapEntry<DateTime, double>>>((ref) {
+  return ref.watch(shiftDaoProvider).getWeeklyProfitData();
+});
+
 final monthlySummaryProvider = FutureProvider<Map<String, double>>((ref) {
   final now = DateTime.now();
   return ref.watch(shiftDaoProvider).getMonthlySummary(now.month, now.year);
@@ -118,7 +126,7 @@ class ShiftNotifier extends StateNotifier<AsyncValue<void>> {
     });
   }
 
-  Future<void> closeShift(int shiftId, int closedBy) async {
+  Future<void> closeShift(int shiftId, int? closedBy) async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
       await _db.transaction(() async {

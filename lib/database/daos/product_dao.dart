@@ -71,56 +71,64 @@ class ProductDao extends DatabaseAccessor<AppDatabase> with _$ProductDaoMixin {
   }
 
   Future<void> addStock(int productId, double quantity, double unitCost, String? notes) async {
-    final product = await (select(products)..where((p) => p.id.equals(productId))).getSingleOrNull();
+    await transaction(() async {
+      final product = await (select(products)..where((p) => p.id.equals(productId))).getSingleOrNull();
 
-    await into(inventoryTransactions).insert(InventoryTransactionsCompanion.insert(
-      productId: productId,
-      type: 'purchase',
-      quantity: quantity,
-      unitCost: Value(unitCost),
-      notes: Value(notes),
-    ));
-
-    final current = await getInventory(productId);
-    if (current != null) {
-      await (update(inventory)..where((i) => i.id.equals(current.id))).write(
-        InventoryCompanion(
-          currentStock: Value(current.currentStock + quantity),
-          lastUpdated: Value(DateTime.now()),
-        ),
-      );
-    }
-
-    final totalCost = quantity * unitCost;
-    if (totalCost > 0) {
-      final description = StringBuffer('Stock: ${product?.name ?? "Unknown"}');
-      if (notes != null && notes.isNotEmpty) description.write(' - $notes');
-      await into(expenses).insert(ExpensesCompanion.insert(
-        category: 'Supplier',
-        amount: totalCost,
-        date: DateTime.now(),
-        description: Value(description.toString()),
+      await into(inventoryTransactions).insert(InventoryTransactionsCompanion.insert(
+        productId: productId,
+        type: 'purchase',
+        quantity: quantity,
+        unitCost: Value(unitCost),
+        notes: Value(notes),
       ));
-    }
+
+      final current = await getInventory(productId);
+      if (current != null) {
+        await (update(inventory)..where((i) => i.id.equals(current.id))).write(
+          InventoryCompanion(
+            currentStock: Value(current.currentStock + quantity),
+            lastUpdated: Value(DateTime.now()),
+          ),
+        );
+      }
+
+      final totalCost = quantity * unitCost;
+      if (totalCost > 0) {
+        final description = StringBuffer('Stock: ${product?.name ?? "Unknown"}');
+        if (notes != null && notes.isNotEmpty) description.write(' - $notes');
+        await into(expenses).insert(ExpensesCompanion.insert(
+          category: 'Supplier',
+          amount: totalCost,
+          date: DateTime.now(),
+          description: Value(description.toString()),
+        ));
+      }
+    });
   }
 
   Future<void> deductStock(int productId, double quantity, int? shiftId) async {
-    await into(inventoryTransactions).insert(InventoryTransactionsCompanion.insert(
-      productId: productId,
-      type: 'sale',
-      quantity: -quantity,
-      referenceId: Value(shiftId),
-    ));
+    await transaction(() async {
+      final current = await getInventory(productId);
+      if (current == null) return;
 
-    final current = await getInventory(productId);
-    if (current != null) {
+      if (current.currentStock < quantity) {
+        throw Exception('Insufficient stock for ${productId}');
+      }
+
+      await into(inventoryTransactions).insert(InventoryTransactionsCompanion.insert(
+        productId: productId,
+        type: 'sale',
+        quantity: -quantity,
+        referenceId: Value(shiftId),
+      ));
+
       await (update(inventory)..where((i) => i.id.equals(current.id))).write(
         InventoryCompanion(
           currentStock: Value(current.currentStock - quantity),
           lastUpdated: Value(DateTime.now()),
         ),
       );
-    }
+    });
   }
 
   Future<List<InventoryTransaction>> getTransactions(int productId) async {

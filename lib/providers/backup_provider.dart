@@ -93,7 +93,10 @@ class BackupNotifier extends StateNotifier<AsyncValue<void>> {
       await db.close();
     } catch (_) {}
 
-    final result = await _service.localRestore();
+    File? result;
+    try {
+      result = await _service.localRestore();
+    } catch (_) {}
 
     if (result != null) {
       _ref.invalidate(databaseProvider);
@@ -107,5 +110,5 @@ class BackupNotifier extends StateNotifier<AsyncValue<void>> {
 }
 
 final backupNotifierProvider = StateNotifierProvider<BackupNotifier, AsyncValue<void>>((ref) {
-  return BackupNotifier(ref.watch(backupServiceProvider), ref);
+  return BackupNotifier(ref.read(backupServiceProvider), ref);
 });

@@ -288,7 +288,7 @@ class _ShiftDetailScreenState extends ConsumerState<ShiftDetailScreen> {
           FilledButton(
             onPressed: () async {
               Navigator.pop(context);
-              await ref.read(shiftNotifierProvider.notifier).closeShift(widget.shiftId, 1);
+              await ref.read(shiftNotifierProvider.notifier).closeShift(widget.shiftId, null);
               if (context.mounted) {
                 ref.invalidate(shiftSalesProvider(widget.shiftId));
                 ref.invalidate(todaySummaryProvider);
@@ -367,8 +367,8 @@ class _AddFuelSheetState extends ConsumerState<_AddFuelSheet> {
 
   bool get _isEditing => widget.existingSale != null;
 
-  List<dynamic> get _products => ref.read(allProductsProvider).valueOrNull ?? [];
-  List<dynamic> get _inventory => ref.read(allInventoryProvider).valueOrNull ?? [];
+  List<dynamic> get _products => ref.watch(allProductsProvider).valueOrNull ?? [];
+  List<dynamic> get _inventory => ref.watch(allInventoryProvider).valueOrNull ?? [];
 
   double get _availableStock {
     if (_selectedProductId == null) return 0;
@@ -384,8 +384,9 @@ class _AddFuelSheetState extends ConsumerState<_AddFuelSheet> {
 
   double get _pricePerUnit {
     if (_selectedProductId == null) return 0;
-    final product = _products.firstWhere((p) => p.id == _selectedProductId);
-    return product.pricePerUnit as double;
+    final product = _products.firstWhere((p) => p.id == _selectedProductId, orElse: () => null);
+    if (product == null) return 0;
+    return (product.pricePerUnit as num).toDouble();
   }
 
   double get _totalAmount => _quantity * _pricePerUnit;

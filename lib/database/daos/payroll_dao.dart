@@ -70,7 +70,23 @@ class PayrollDao extends DatabaseAccessor<AppDatabase> with _$PayrollDaoMixin {
   }
 
   Future<void> updatePayroll(int id, PayrollCompanion data) async {
-    await (update(payroll)..where((p) => p.id.equals(id))).write(data);
+    final existing = await (select(payroll)..where((p) => p.id.equals(id))).getSingleOrNull();
+    if (existing == null) return;
+
+    final baseSalary = data.baseSalary.present ? data.baseSalary.value : existing.baseSalary;
+    final deductions = data.deductions.present ? data.deductions.value : existing.deductions;
+    final advances = data.advances.present ? data.advances.value : existing.advances;
+    final bonuses = data.bonuses.present ? data.bonuses.value : existing.bonuses;
+
+    final netPay = baseSalary - deductions - advances + bonuses;
+
+    await (update(payroll)..where((p) => p.id.equals(id))).write(PayrollCompanion(
+      baseSalary: data.baseSalary,
+      deductions: data.deductions,
+      advances: data.advances,
+      bonuses: data.bonuses,
+      netPay: Value(netPay),
+    ));
   }
 }
 

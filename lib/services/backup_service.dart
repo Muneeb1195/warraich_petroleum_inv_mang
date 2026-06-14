@@ -10,6 +10,7 @@ import '../config/app_config.dart';
 class BackupService {
   static const _maxBackups = 5;
   static const _folderName = 'WarraichPetroleum';
+  static const _httpTimeout = Duration(seconds: 60);
 
   final GoogleSignIn _googleSignIn = GoogleSignIn(
     params: const GoogleSignInParams(
@@ -46,7 +47,7 @@ class BackupService {
       final response = await http.get(
         Uri.parse('https://www.googleapis.com/drive/v3/files?q=name%3D%27$_folderName%27%20and%20mimeType%3D%27application%2Fvnd.google-apps.folder%27%20and%20trashed%3Dfalse'),
         headers: headers,
-      );
+      ).timeout(_httpTimeout);
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -71,7 +72,7 @@ class BackupService {
         Uri.parse('https://www.googleapis.com/drive/v3/files'),
         headers: headers,
         body: metadata,
-      );
+      ).timeout(_httpTimeout);
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -116,7 +117,7 @@ class BackupService {
         await http.MultipartFile.fromPath('file', dbFile.path),
       );
 
-      final streamedResponse = await request.send();
+      final streamedResponse = await request.send().timeout(_httpTimeout);
       final response = await http.Response.fromStream(streamedResponse);
 
       if (response.statusCode == 200) {
@@ -134,7 +135,7 @@ class BackupService {
       final response = await http.get(
         Uri.parse('https://www.googleapis.com/drive/v3/files?q=%27$folderId%27%20in%20parents%20and%20name%20contains%20%27warraich_backup_%27%20and%20trashed%3Dfalse&orderBy=createdTime%20desc'),
         headers: headers,
-      );
+      ).timeout(_httpTimeout);
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -144,7 +145,7 @@ class BackupService {
             await http.delete(
               Uri.parse('https://www.googleapis.com/drive/v3/files/${file['id']}'),
               headers: headers,
-            );
+            ).timeout(_httpTimeout);
           }
         }
       }
@@ -164,7 +165,7 @@ class BackupService {
       final response = await http.get(
         Uri.parse('https://www.googleapis.com/drive/v3/files?q=%27$folderId%27%20in%20parents%20and%20name%20contains%20%27warraich_backup_%27%20and%20trashed%3Dfalse&orderBy=createdTime%20desc&pageSize=1'),
         headers: headers,
-      );
+      ).timeout(_httpTimeout);
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -175,7 +176,7 @@ class BackupService {
         final downloadResponse = await http.get(
           Uri.parse('https://www.googleapis.com/drive/v3/files/$fileId?alt=media'),
           headers: headers,
-        );
+        ).timeout(_httpTimeout);
 
         if (downloadResponse.statusCode == 200) {
           final dir = await getApplicationDocumentsDirectory();
@@ -201,7 +202,7 @@ class BackupService {
       final response = await http.get(
         Uri.parse('https://www.googleapis.com/drive/v3/files?q=%27$folderId%27%20in%20parents%20and%20name%20contains%20%27warraich_backup_%27%20and%20trashed%3Dfalse&orderBy=createdTime%20desc&fields=files(id,name,createdTime)'),
         headers: headers,
-      );
+      ).timeout(_httpTimeout);
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -226,7 +227,7 @@ class BackupService {
       final downloadResponse = await http.get(
         Uri.parse('https://www.googleapis.com/drive/v3/files/$fileId?alt=media'),
         headers: headers,
-      );
+      ).timeout(_httpTimeout);
 
       if (downloadResponse.statusCode == 200) {
         final dir = await getApplicationDocumentsDirectory();
