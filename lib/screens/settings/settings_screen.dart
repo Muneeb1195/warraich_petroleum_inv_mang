@@ -7,6 +7,8 @@ import '../employees/employees_screen.dart';
 import '../payroll/payroll_screen.dart';
 import '../history/sales_history_screen.dart';
 import '../reports/pdf_report_screen.dart';
+import '../../services/error_logger.dart';
+import 'help_screen.dart';
 import 'backup_screen.dart';
 import 'app_lock_screen.dart';
 import 'fuel_prices_screen.dart';
@@ -167,6 +169,18 @@ class SettingsScreen extends ConsumerWidget {
               subtitle: 'Configure biometric lock',
               onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AppLockScreen())),
             ),
+          _MenuItem(
+            icon: Icons.help_outline,
+            title: 'Help & Guide',
+            subtitle: 'Learn how to use the app',
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HelpScreen())),
+          ),
+          _MenuItem(
+            icon: Icons.bug_report,
+            title: 'View Error Log',
+            subtitle: 'Check for any recorded errors',
+            onTap: () => _showErrorLog(context),
+          ),
         ],
       ),
       const SizedBox(height: 16),
@@ -191,6 +205,37 @@ class SettingsScreen extends ConsumerWidget {
         ),
       ),
     ];
+  }
+
+  void _showErrorLog(BuildContext context) async {
+    final logContent = await ErrorLogger.getLogContent();
+    if (!context.mounted) return;
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Error Log'),
+        content: SizedBox(
+          width: 400,
+          height: 300,
+          child: SingleChildScrollView(
+            child: SelectableText(
+              logContent,
+              style: const TextStyle(fontSize: 12, fontFamily: 'monospace'),
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () async {
+              await ErrorLogger.clearLog();
+              if (ctx.mounted) Navigator.pop(ctx);
+            },
+            child: const Text('Clear Log'),
+          ),
+          FilledButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK')),
+        ],
+      ),
+    );
   }
 }
 

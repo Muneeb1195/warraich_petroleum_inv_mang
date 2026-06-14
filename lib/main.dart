@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:window_manager/window_manager.dart';
 import 'app.dart';
+import 'services/error_logger.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,6 +26,7 @@ void main() async {
 
   FlutterError.onError = (FlutterErrorDetails details) {
     FlutterError.presentError(details);
+    ErrorLogger.log(details.exceptionAsString(), source: 'FlutterError', stackTrace: details.stack);
   };
 
   runZonedGuarded(() {
@@ -35,5 +37,6 @@ void main() async {
     );
   }, (error, stack) {
     log('Uncaught async error: $error', stackTrace: stack);
+    ErrorLogger.log(error.toString(), source: 'AsyncError', stackTrace: stack);
   });
 }
