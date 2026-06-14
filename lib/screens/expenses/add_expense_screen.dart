@@ -115,7 +115,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                 firstDate: DateTime(2020),
                 lastDate: DateTime.now(),
               );
-              if (date != null) setState(() => _selectedDate = date);
+                      if (date != null && context.mounted) setState(() => _selectedDate = date);
             },
           ),
           const SizedBox(height: 16),
@@ -130,23 +130,27 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                       );
                       return;
                     }
-                    final activeShiftData = ref.read(activeShiftProvider).valueOrNull;
-                    await ref.read(expenseNotifierProvider.notifier).addExpense(
-                          category: _selectedCategory,
-                          amount: amount,
-                          description: _descriptionController.text.isNotEmpty ? _descriptionController.text : null,
-                          date: _selectedDate,
-                          shiftId: activeShiftData?.id,
+                    try {
+                      final activeShiftData = ref.read(activeShiftProvider).valueOrNull;
+                      await ref.read(expenseNotifierProvider.notifier).addExpense(
+                            category: _selectedCategory,
+                            amount: amount,
+                            description: _descriptionController.text.isNotEmpty ? _descriptionController.text : null,
+                            date: _selectedDate,
+                            shiftId: activeShiftData?.id,
+                          );
+                      if (context.mounted) {
+                        ref.invalidate(todaySummaryProvider);
+                        ref.invalidate(weeklyExpensesProvider);
+                        ref.invalidate(weeklyProfitProvider);
+                        ref.invalidate(monthlySummaryProvider);
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Expense added')),
                         );
-                    if (context.mounted) {
-                      ref.invalidate(todaySummaryProvider);
-                      ref.invalidate(weeklyExpensesProvider);
-                      ref.invalidate(weeklyProfitProvider);
-                      ref.invalidate(monthlySummaryProvider);
-                      Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Expense added')),
-                      );
+                      }
+                    } catch (e) {
+                      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to add expense: $e')));
                     }
                   },
             child: expenseState.isLoading

@@ -125,22 +125,28 @@ class _FuelPricesScreenState extends ConsumerState<FuelPricesScreen> {
             onPressed: () async {
               final selling = double.tryParse(sellingController.text) ?? 0;
               final cost = double.tryParse(costController.text) ?? 0;
-              await ref.read(productNotifierProvider.notifier).updatePrice(
-                    product.id,
-                    selling,
-                    cost,
+              try {
+                await ref.read(productNotifierProvider.notifier).updatePrice(
+                      product.id,
+                      selling,
+                      cost,
+                    );
+                if (context.mounted) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('${product.name} prices updated')),
                   );
-              if (context.mounted) {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('${product.name} prices updated')),
-                );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
+                }
               }
             },
             child: const Text('Save'),
           ),
         ],
       ),
-    );
+    ).then((_) { sellingController.dispose(); costController.dispose(); });
   }
 }

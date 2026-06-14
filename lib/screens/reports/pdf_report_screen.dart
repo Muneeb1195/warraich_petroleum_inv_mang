@@ -93,7 +93,7 @@ class _PdfReportScreenState extends ConsumerState<PdfReportScreen> {
                   trailing: const Icon(Icons.edit_calendar),
                   onTap: () async {
                     final date = await showDatePicker(context: context, initialDate: _selectedMonth, firstDate: DateTime(2020), lastDate: DateTime.now());
-                    if (date != null) setState(() => _selectedMonth = date);
+                    if (date != null && context.mounted) setState(() => _selectedMonth = date);
                   },
                 ),
                 const SizedBox(height: 12),
@@ -136,7 +136,7 @@ class _PdfReportScreenState extends ConsumerState<PdfReportScreen> {
                   trailing: const Icon(Icons.edit_calendar),
                   onTap: () async {
                     final date = await showDatePicker(context: context, initialDate: _expenseSelectedMonth, firstDate: DateTime(2020), lastDate: DateTime.now());
-                    if (date != null) setState(() => _expenseSelectedMonth = date);
+                    if (date != null && context.mounted) setState(() => _expenseSelectedMonth = date);
                   },
                 ),
                 const SizedBox(height: 12),

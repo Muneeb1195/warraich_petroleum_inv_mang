@@ -19,7 +19,13 @@ class _LockScreenState extends ConsumerState<LockScreen> {
   }
 
   Future<void> _tryAuthenticate() async {
-    await ref.read(authStateProvider.notifier).authenticate();
+    try {
+      await ref.read(authStateProvider.notifier).authenticate();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
+      }
+    }
   }
 
   @override

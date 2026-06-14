@@ -83,13 +83,19 @@ class ExpensesScreen extends ConsumerWidget {
                           FilledButton(
                             onPressed: () async {
                               Navigator.pop(ctx);
-                              await ref.read(expenseNotifierProvider.notifier).deleteExpense(expense.id);
-                              ref.invalidate(todaySummaryProvider);
-                              ref.invalidate(weeklyExpensesProvider);
-                              ref.invalidate(weeklyProfitProvider);
-                              ref.invalidate(monthlySummaryProvider);
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Expense deleted')));
+                              try {
+                                await ref.read(expenseNotifierProvider.notifier).deleteExpense(expense.id);
+                                ref.invalidate(todaySummaryProvider);
+                                ref.invalidate(weeklyExpensesProvider);
+                                ref.invalidate(weeklyProfitProvider);
+                                ref.invalidate(monthlySummaryProvider);
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Expense deleted')));
+                                }
+                              } catch (e) {
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
+                                }
                               }
                             },
                             child: const Text('Delete'),

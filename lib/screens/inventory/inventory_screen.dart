@@ -321,19 +321,25 @@ class InventoryScreen extends ConsumerWidget {
               final minStock = double.tryParse(minController.text) ?? 0;
               final maxStock = double.tryParse(maxController.text) ?? 0;
               final database = ref.read(databaseProvider);
-              await (database.update(database.inventory)
-                    ..where((i) => i.id.equals(item.inventoryEntry.id)))
-                  .write(InventoryCompanion(
-                    minStock: Value(minStock),
-                    maxStock: Value(maxStock),
-                  ));
-              ref.invalidate(allInventoryProvider);
-              if (context.mounted) Navigator.pop(context);
+              try {
+                await (database.update(database.inventory)
+                      ..where((i) => i.id.equals(item.inventoryEntry.id)))
+                    .write(InventoryCompanion(
+                      minStock: Value(minStock),
+                      maxStock: Value(maxStock),
+                    ));
+                ref.invalidate(allInventoryProvider);
+                if (context.mounted) Navigator.pop(context);
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
+                }
+              }
             },
             child: const Text('Save'),
           ),
         ],
       ),
-    );
+    ).then((_) { minController.dispose(); maxController.dispose(); });
   }
 }

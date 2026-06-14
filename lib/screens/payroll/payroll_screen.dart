@@ -57,9 +57,15 @@ class PayrollScreen extends ConsumerWidget {
                         : Column(mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.end, children: [
                             TextButton(
                               onPressed: () async {
-                                await ref.read(payrollNotifierProvider.notifier).markAsPaid(row.payrollEntry.id);
-                                if (context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${row.employee.name} marked as paid')));
+                                try {
+                                  await ref.read(payrollNotifierProvider.notifier).markAsPaid(row.payrollEntry.id);
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${row.employee.name} marked as paid')));
+                                  }
+                                } catch (e) {
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
+                                  }
                                 }
                               },
                               child: const Text('Mark Paid'),

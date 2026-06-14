@@ -52,15 +52,21 @@ class AppLockScreen extends ConsumerWidget {
             subtitle: Text(authState.biometricEnabled ? 'App is locked. Authentication required on launch.' : 'App is unlocked. No authentication required.'),
             value: authState.biometricEnabled,
             onChanged: (value) async {
-              final biometricService = ref.read(biometricServiceProvider);
-              final authenticated = await biometricService.authenticate();
-              if (!authenticated) return;
-              if (value) {
-                await ref.read(authStateProvider.notifier).enableLock();
-                if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('App lock enabled')));
-              } else {
-                await ref.read(authStateProvider.notifier).disableLock();
-                if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('App lock disabled')));
+              try {
+                final biometricService = ref.read(biometricServiceProvider);
+                final authenticated = await biometricService.authenticate();
+                if (!authenticated) return;
+                if (value) {
+                  await ref.read(authStateProvider.notifier).enableLock();
+                  if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('App lock enabled')));
+                } else {
+                  await ref.read(authStateProvider.notifier).disableLock();
+                  if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('App lock disabled')));
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
+                }
               }
             },
           ),

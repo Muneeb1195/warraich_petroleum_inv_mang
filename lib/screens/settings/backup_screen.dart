@@ -44,7 +44,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
   Future<void> _saveAutoBackupSetting(bool value) async {
     const storage = FlutterSecureStorage();
     await storage.write(key: _autoBackupKey, value: value.toString());
-    setState(() => _autoBackup = value);
+    if (mounted) setState(() => _autoBackup = value);
   }
 
   @override
@@ -69,11 +69,17 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
                 onTap: backupState.isLoading
                     ? null
                     : () async {
-                        final dir = await getApplicationDocumentsDirectory();
-                        final dbFile = File(p.join(dir.path, 'warraich_petroleum.db'));
-                        final success = await ref.read(backupNotifierProvider.notifier).localBackup(dbFile);
-                        if (!context.mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(success ? 'Backup saved locally' : 'Backup failed')));
+                        try {
+                          final dir = await getApplicationDocumentsDirectory();
+                          final dbFile = File(p.join(dir.path, 'warraich_petroleum.db'));
+                          final success = await ref.read(backupNotifierProvider.notifier).localBackup(dbFile);
+                          if (!context.mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(success ? 'Backup saved locally' : 'Backup failed')));
+                        } catch (e) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
+                          }
+                        }
                       },
               ),
               if (_backupPath.isNotEmpty) ...[
@@ -106,19 +112,25 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
                 onTap: backupState.isLoading
                     ? null
                     : () async {
-                        final restored = await ref.read(backupNotifierProvider.notifier).localRestore();
-                        if (!context.mounted) return;
-                        if (restored) {
-                          showDialog(
-                            context: context,
-                            builder: (ctx) => AlertDialog(
-                              title: const Text('Restore Complete'),
-                              content: const Text('Database restored from local backup. Please restart the app.'),
-                              actions: [FilledButton(onPressed: () { Navigator.pop(ctx); Navigator.pop(context); }, child: const Text('OK'))],
-                            ),
-                          );
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No local backup found')));
+                        try {
+                          final restored = await ref.read(backupNotifierProvider.notifier).localRestore();
+                          if (!context.mounted) return;
+                          if (restored) {
+                            showDialog(
+                              context: context,
+                              builder: (ctx) => AlertDialog(
+                                title: const Text('Restore Complete'),
+                                content: const Text('Database restored from local backup. Please restart the app.'),
+                                actions: [FilledButton(onPressed: () { Navigator.pop(ctx); Navigator.pop(context); }, child: const Text('OK'))],
+                              ),
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No local backup found')));
+                          }
+                        } catch (e) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
+                          }
                         }
                       },
               ),
@@ -134,16 +146,22 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
                 title: Text(_isSignedIn ? 'Signed in to Google' : 'Google Drive'),
                 subtitle: Text(_isSignedIn ? 'Connected to Google Drive' : 'Sign in to enable cloud backup'),
                 trailing: Switch(value: _isSignedIn, onChanged: (_) async {
-                  const storage = FlutterSecureStorage();
-                  if (_isSignedIn) {
-                    await ref.read(backupNotifierProvider.notifier).signOut();
-                    await storage.write(key: _signedInKey, value: 'false');
-                    setState(() => _isSignedIn = false);
-                  } else {
-                    final success = await ref.read(backupNotifierProvider.notifier).signIn();
-                    if (success) {
-                      await storage.write(key: _signedInKey, value: 'true');
-                      setState(() => _isSignedIn = true);
+                  try {
+                    const storage = FlutterSecureStorage();
+                    if (_isSignedIn) {
+                      await ref.read(backupNotifierProvider.notifier).signOut();
+                      await storage.write(key: _signedInKey, value: 'false');
+                      if (mounted) setState(() => _isSignedIn = false);
+                    } else {
+                      final success = await ref.read(backupNotifierProvider.notifier).signIn();
+                      if (success) {
+                        await storage.write(key: _signedInKey, value: 'true');
+                        if (mounted) setState(() => _isSignedIn = true);
+                      }
+                    }
+                  } catch (e) {
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
                     }
                   }
                 }),
@@ -156,11 +174,17 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
                   subtitle: const Text('Backup to Google Drive'),
                   trailing: backupState.isLoading ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.chevron_right),
                   onTap: backupState.isLoading ? null : () async {
-                    final dir = await getApplicationDocumentsDirectory();
-                    final dbFile = File(p.join(dir.path, 'warraich_petroleum.db'));
-                    final success = await ref.read(backupNotifierProvider.notifier).backupDatabase(dbFile);
-                    if (!context.mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(success ? 'Backup completed' : 'Backup failed')));
+                    try {
+                      final dir = await getApplicationDocumentsDirectory();
+                      final dbFile = File(p.join(dir.path, 'warraich_petroleum.db'));
+                      final success = await ref.read(backupNotifierProvider.notifier).backupDatabase(dbFile);
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(success ? 'Backup completed' : 'Backup failed')));
+                    } catch (e) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
+                      }
+                    }
                   },
                 ),
                 const Divider(height: 1),
@@ -252,19 +276,25 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
                 subtitle: Text(name, style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant)),
                 onTap: () async {
                   Navigator.pop(ctx);
-                  final restored = await ref.read(backupNotifierProvider.notifier).restoreCloudBackup(backup['id']!);
-                  if (!context.mounted) return;
-                  if (restored) {
-                    showDialog(
-                      context: context,
-                      builder: (ctx2) => AlertDialog(
-                        title: const Text('Restore Complete'),
-                        content: const Text('Database restored from cloud backup. Please restart the app.'),
-                        actions: [FilledButton(onPressed: () { Navigator.pop(ctx2); Navigator.pop(context); }, child: const Text('OK'))],
-                      ),
-                    );
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Restore failed')));
+                  try {
+                    final restored = await ref.read(backupNotifierProvider.notifier).restoreCloudBackup(backup['id'] ?? '');
+                    if (!context.mounted) return;
+                    if (restored) {
+                      showDialog(
+                        context: context,
+                        builder: (ctx2) => AlertDialog(
+                          title: const Text('Restore Complete'),
+                          content: const Text('Database restored from cloud backup. Please restart the app.'),
+                          actions: [FilledButton(onPressed: () { Navigator.pop(ctx2); Navigator.pop(context); }, child: const Text('OK'))],
+                        ),
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Restore failed')));
+                    }
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
+                    }
                   }
                 },
               );

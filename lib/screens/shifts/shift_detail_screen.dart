@@ -263,11 +263,15 @@ class _ShiftDetailScreenState extends ConsumerState<ShiftDetailScreen> {
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           FilledButton(
             onPressed: () async {
-              Navigator.pop(ctx);
-              await ref.read(shiftNotifierProvider.notifier).deleteSaleFromShift(saleId);
-              ref.invalidate(shiftSalesProvider(widget.shiftId));
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Entry deleted')));
+              try {
+                Navigator.pop(ctx);
+                await ref.read(shiftNotifierProvider.notifier).deleteSaleFromShift(saleId);
+                ref.invalidate(shiftSalesProvider(widget.shiftId));
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Entry deleted')));
+                }
+              } catch (e) {
+                if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to delete: $e')));
               }
             },
             child: const Text('Delete'),
@@ -287,18 +291,27 @@ class _ShiftDetailScreenState extends ConsumerState<ShiftDetailScreen> {
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           FilledButton(
             onPressed: () async {
-              Navigator.pop(ctx);
-              await ref.read(shiftNotifierProvider.notifier).closeShift(widget.shiftId, null);
-              if (context.mounted) {
-                ref.invalidate(shiftSalesProvider(widget.shiftId));
-                ref.invalidate(todaySummaryProvider);
-                ref.invalidate(weeklySalesProvider);
-                ref.invalidate(weeklyExpensesProvider);
-                ref.invalidate(weeklyProfitProvider);
-                ref.invalidate(monthlySummaryProvider);
-                ref.invalidate(allInventoryProvider);
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Shift closed')));
+              try {
+                Navigator.pop(ctx);
+                await ref.read(shiftNotifierProvider.notifier).closeShift(widget.shiftId, null);
+                final closeState = ref.read(shiftNotifierProvider);
+                if (closeState.hasError) {
+                  if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to close shift: ${closeState.error}')));
+                  return;
+                }
+                if (context.mounted) {
+                  ref.invalidate(shiftSalesProvider(widget.shiftId));
+                  ref.invalidate(todaySummaryProvider);
+                  ref.invalidate(weeklySalesProvider);
+                  ref.invalidate(weeklyExpensesProvider);
+                  ref.invalidate(weeklyProfitProvider);
+                  ref.invalidate(monthlySummaryProvider);
+                  ref.invalidate(allInventoryProvider);
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Shift closed')));
+                }
+              } catch (e) {
+                if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to close shift: $e')));
               }
             },
             child: const Text('Close Shift'),
@@ -558,37 +571,43 @@ class _AddFuelSheetState extends ConsumerState<_AddFuelSheet> {
                   ? null
                   : () async {
                       setState(() => _isSubmitting = true);
-                      final amount = double.tryParse(_amountController.text) ?? _totalAmount;
-                      final cash = _paymentMethod == 'cash' ? amount : 0.0;
-                      final card = (_paymentMethod == 'card' || _paymentMethod == 'raast') ? amount : 0.0;
-                      final credit = _paymentMethod == 'credit' ? amount : 0.0;
+                      try {
+                        final amount = double.tryParse(_amountController.text) ?? _totalAmount;
+                        final cash = _paymentMethod == 'cash' ? amount : 0.0;
+                        final card = (_paymentMethod == 'card' || _paymentMethod == 'raast') ? amount : 0.0;
+                        final credit = _paymentMethod == 'credit' ? amount : 0.0;
 
-                      if (_isEditing) {
-                        await ref.read(shiftNotifierProvider.notifier).updateSaleInShift(
-                              widget.existingSale!.sale.id,
-                              widget.shiftId,
-                              _selectedProductId!,
-                              double.tryParse(_openingController.text) ?? 0,
-                              double.tryParse(_closingController.text) ?? 0,
-                              _pricePerUnit,
-                              cash,
-                              card,
-                              credit,
-                            );
-                      } else {
-                        await ref.read(shiftNotifierProvider.notifier).addSaleToShift(
-                              widget.shiftId,
-                              _selectedProductId!,
-                              double.tryParse(_openingController.text) ?? 0,
-                              double.tryParse(_closingController.text) ?? 0,
-                              _pricePerUnit,
-                              cash,
-                              card,
-                              credit,
-                            );
+                        if (_isEditing) {
+                          await ref.read(shiftNotifierProvider.notifier).updateSaleInShift(
+                                widget.existingSale!.sale.id,
+                                widget.shiftId,
+                                _selectedProductId!,
+                                double.tryParse(_openingController.text) ?? 0,
+                                double.tryParse(_closingController.text) ?? 0,
+                                _pricePerUnit,
+                                cash,
+                                card,
+                                credit,
+                              );
+                        } else {
+                          await ref.read(shiftNotifierProvider.notifier).addSaleToShift(
+                                widget.shiftId,
+                                _selectedProductId!,
+                                double.tryParse(_openingController.text) ?? 0,
+                                double.tryParse(_closingController.text) ?? 0,
+                                _pricePerUnit,
+                                cash,
+                                card,
+                                credit,
+                              );
+                        }
+                        ref.invalidate(shiftSalesProvider(widget.shiftId));
+                        if (context.mounted) Navigator.pop(context);
+                      } catch (e) {
+                        if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to save: $e')));
+                      } finally {
+                        if (mounted) setState(() => _isSubmitting = false);
                       }
-                      ref.invalidate(shiftSalesProvider(widget.shiftId));
-                      if (context.mounted) Navigator.pop(context);
                     },
               child: _isSubmitting ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2)) : Text(_isEditing ? 'Update Entry' : 'Add Entry'),
             ),

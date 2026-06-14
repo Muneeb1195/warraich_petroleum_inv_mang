@@ -62,7 +62,7 @@ class _NewShiftScreenState extends ConsumerState<NewShiftScreen> {
                     trailing: const Icon(Icons.edit_calendar),
                     onTap: () async {
                       final date = await showDatePicker(context: context, initialDate: _selectedDate, firstDate: DateTime(2020), lastDate: DateTime.now());
-                      if (date != null) setState(() => _selectedDate = date);
+                      if (date != null && context.mounted) setState(() => _selectedDate = date);
                     },
                   ),
                   ListTile(
@@ -72,7 +72,7 @@ class _NewShiftScreenState extends ConsumerState<NewShiftScreen> {
                     trailing: const Icon(Icons.edit),
                     onTap: () async {
                       final time = await showTimePicker(context: context, initialTime: _selectedTime);
-                      if (time != null) setState(() => _selectedTime = time);
+                      if (time != null && context.mounted) setState(() => _selectedTime = time);
                     },
                   ),
                 ],

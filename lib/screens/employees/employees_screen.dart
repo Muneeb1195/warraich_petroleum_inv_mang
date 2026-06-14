@@ -119,16 +119,20 @@ class _AddEmployeeScreenState extends ConsumerState<AddEmployeeScreen> {
                   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Enter a valid salary')));
                   return;
                 }
-                await ref.read(employeeNotifierProvider.notifier).addEmployee(
-                  name: _nameController.text,
-                  phone: _phoneController.text.isNotEmpty ? _phoneController.text : null,
-                  role: _selectedRole,
-                  defaultShift: _selectedShift,
-                  salary: salary,
-                );
-                if (context.mounted) {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Employee added')));
+                try {
+                  await ref.read(employeeNotifierProvider.notifier).addEmployee(
+                    name: _nameController.text,
+                    phone: _phoneController.text.isNotEmpty ? _phoneController.text : null,
+                    role: _selectedRole,
+                    defaultShift: _selectedShift,
+                    salary: salary,
+                  );
+                  if (context.mounted) {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Employee added')));
+                  }
+                } catch (e) {
+                  if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to add employee: $e')));
                 }
               },
               child: employeeState.isLoading ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2)) : const Text('Add Employee'),
