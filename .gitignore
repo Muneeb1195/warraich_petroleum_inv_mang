@@ -1,4 +1,6 @@
 lib/config/app_config.dart
+android/key.properties
+android/release-key.jks
 
 build/
 .dart_tool/
