@@ -21,6 +21,22 @@ jobs:
           flutter-version: '3.44.x'
           channel: 'stable'
 
+      - name: Generate app_config.dart
+        run: |
+          mkdir -p lib/config
+          cat > lib/config/app_config.dart << 'DART'
+          class AppConfig {
+            static const String googleClientId = String.fromEnvironment(
+              'GOOGLE_CLIENT_ID',
+              defaultValue: '${{ secrets.GOOGLE_CLIENT_ID }}',
+            );
+            static const String googleClientSecret = String.fromEnvironment(
+              'GOOGLE_CLIENT_SECRET',
+              defaultValue: '${{ secrets.GOOGLE_CLIENT_SECRET }}',
+            );
+          }
+          DART
+
       - name: Install dependencies
         run: flutter pub get
 
@@ -47,6 +63,22 @@ jobs:
         with:
           flutter-version: '3.44.x'
           channel: 'stable'
+
+      - name: Generate app_config.dart
+        run: |
+          mkdir -p lib/config
+          cat > lib/config/app_config.dart << 'DART'
+          class AppConfig {
+            static const String googleClientId = String.fromEnvironment(
+              'GOOGLE_CLIENT_ID',
+              defaultValue: '${{ secrets.GOOGLE_CLIENT_ID }}',
+            );
+            static const String googleClientSecret = String.fromEnvironment(
+              'GOOGLE_CLIENT_SECRET',
+              defaultValue: '${{ secrets.GOOGLE_CLIENT_SECRET }}',
+            );
+          }
+          DART
 
       - name: Install dependencies
         run: flutter pub get
@@ -77,6 +109,23 @@ jobs:
         with:
           flutter-version: '3.44.x'
           channel: 'stable'
+
+      - name: Generate app_config.dart
+        shell: bash
+        run: |
+          mkdir -p lib/config
+          cat > lib/config/app_config.dart << 'DART'
+          class AppConfig {
+            static const String googleClientId = String.fromEnvironment(
+              'GOOGLE_CLIENT_ID',
+              defaultValue: '${{ secrets.GOOGLE_CLIENT_ID }}',
+            );
+            static const String googleClientSecret = String.fromEnvironment(
+              'GOOGLE_CLIENT_SECRET',
+              defaultValue: '${{ secrets.GOOGLE_CLIENT_SECRET }}',
+            );
+          }
+          DART
 
       - name: Install dependencies
         run: flutter pub get
