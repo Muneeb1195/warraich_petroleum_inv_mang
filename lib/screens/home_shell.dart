@@ -21,6 +21,7 @@ class HomeShell extends ConsumerStatefulWidget {
 
 class _HomeShellState extends ConsumerState<HomeShell> {
   int _currentIndex = 0;
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
 
   final _mobileScreens = [
     const DashboardScreen(),
@@ -49,7 +50,8 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     final activeShift = ref.watch(activeShiftProvider);
 
     if (_isDesktop) {
-      return Scaffold(
+    return Scaffold(
+      key: _scaffoldKey,
         body: Row(
           children: [
             NavigationRail(
@@ -183,7 +185,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
         selectedIndex: _currentIndex,
         onDestinationSelected: (index) {
           if (index == 4) {
-            Scaffold.of(context).openDrawer();
+            _scaffoldKey.currentState?.openDrawer();
           } else {
             setState(() => _currentIndex = index);
           }
