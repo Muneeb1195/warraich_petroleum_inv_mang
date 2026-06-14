@@ -63,7 +63,7 @@ class SettingsScreen extends ConsumerWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('More')),
+      appBar: AppBar(title: Text(_isDesktop ? 'Settings' : 'More')),
       body: _isDesktop
           ? _buildDesktopLayout(context, ref, colorScheme)
           : _buildMobileLayout(context, ref, colorScheme),
@@ -91,8 +91,52 @@ class SettingsScreen extends ConsumerWidget {
 
   List<Widget> _buildMenuSections(BuildContext context, WidgetRef ref, ColorScheme colorScheme) {
     return [
+      if (!_isDesktop) ...[
+        _MenuSection(
+          title: 'Management',
+          items: [
+            _MenuItem(
+              icon: Icons.local_gas_station,
+              title: 'Fuel Prices',
+              subtitle: 'Manage product prices',
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FuelPricesScreen())),
+            ),
+            _MenuItem(
+              icon: Icons.people,
+              title: 'Employees',
+                  subtitle: 'Manage staff',
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EmployeesScreen())),
+            ),
+            _MenuItem(
+              icon: Icons.payments,
+              title: 'Payroll',
+              subtitle: 'Generate and manage payroll',
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PayrollScreen())),
+            ),
+            _MenuItem(
+              icon: Icons.history,
+              title: 'Sales History',
+              subtitle: 'View all past shifts',
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SalesHistoryScreen())),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        _MenuSection(
+          title: 'Reports',
+          items: [
+            _MenuItem(
+              icon: Icons.picture_as_pdf,
+              title: 'Generate Report',
+              subtitle: 'Create PDF reports',
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PdfReportScreen())),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+      ],
       _MenuSection(
-        title: 'Management',
+        title: 'Settings',
         items: [
           _MenuItem(
             icon: Icons.local_gas_station,
@@ -100,42 +144,6 @@ class SettingsScreen extends ConsumerWidget {
             subtitle: 'Manage product prices',
             onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FuelPricesScreen())),
           ),
-          _MenuItem(
-            icon: Icons.people,
-            title: 'Employees',
-                subtitle: 'Manage staff',
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EmployeesScreen())),
-          ),
-          _MenuItem(
-            icon: Icons.payments,
-            title: 'Payroll',
-            subtitle: 'Generate and manage payroll',
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PayrollScreen())),
-          ),
-          _MenuItem(
-            icon: Icons.history,
-            title: 'Sales History',
-            subtitle: 'View all past shifts',
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SalesHistoryScreen())),
-          ),
-        ],
-      ),
-      const SizedBox(height: 16),
-      _MenuSection(
-        title: 'Reports',
-        items: [
-          _MenuItem(
-            icon: Icons.picture_as_pdf,
-            title: 'Generate Report',
-            subtitle: 'Create PDF reports',
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PdfReportScreen())),
-          ),
-        ],
-      ),
-      const SizedBox(height: 16),
-      _MenuSection(
-        title: 'Settings',
-        items: [
           _MenuItem(
             icon: Icons.cloud_upload,
             title: 'Backup & Restore',
@@ -167,7 +175,7 @@ class SettingsScreen extends ConsumerWidget {
               const SizedBox(height: 8),
               Text('Warraich Petroleum', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
               const SizedBox(height: 4),
-              Text('Version 1.0.0', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant)),
+              Text('Version 1.2.0', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant)),
             ],
           ),
         ),

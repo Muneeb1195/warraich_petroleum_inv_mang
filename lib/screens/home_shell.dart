@@ -5,6 +5,10 @@ import '../screens/dashboard/dashboard_screen.dart';
 import '../screens/shifts/shifts_screen.dart';
 import '../screens/inventory/inventory_screen.dart';
 import '../screens/expenses/expenses_screen.dart';
+import '../screens/employees/employees_screen.dart';
+import '../screens/payroll/payroll_screen.dart';
+import '../screens/history/sales_history_screen.dart';
+import '../screens/reports/pdf_report_screen.dart';
 import '../screens/settings/settings_screen.dart';
 import '../providers/shift_provider.dart';
 
@@ -18,11 +22,23 @@ class HomeShell extends ConsumerStatefulWidget {
 class _HomeShellState extends ConsumerState<HomeShell> {
   int _currentIndex = 0;
 
-  final _screens = [
+  final _mobileScreens = [
     const DashboardScreen(),
     const ShiftsScreen(),
     const InventoryScreen(),
     const ExpensesScreen(),
+    const SettingsScreen(),
+  ];
+
+  final _desktopScreens = [
+    const DashboardScreen(),
+    const ShiftsScreen(),
+    const InventoryScreen(),
+    const ExpensesScreen(),
+    const EmployeesScreen(),
+    const PayrollScreen(),
+    const SalesHistoryScreen(),
+    const PdfReportScreen(),
     const SettingsScreen(),
   ];
 
@@ -95,9 +111,29 @@ class _HomeShellState extends ConsumerState<HomeShell> {
                   label: Text('Expenses'),
                 ),
                 const NavigationRailDestination(
-                  icon: Icon(Icons.more_horiz_outlined),
-                  selectedIcon: Icon(Icons.more_horiz),
-                  label: Text('More'),
+                  icon: Icon(Icons.people_outlined),
+                  selectedIcon: Icon(Icons.people),
+                  label: Text('Employees'),
+                ),
+                const NavigationRailDestination(
+                  icon: Icon(Icons.payments_outlined),
+                  selectedIcon: Icon(Icons.payments),
+                  label: Text('Payroll'),
+                ),
+                const NavigationRailDestination(
+                  icon: Icon(Icons.history_outlined),
+                  selectedIcon: Icon(Icons.history),
+                  label: Text('Sales History'),
+                ),
+                const NavigationRailDestination(
+                  icon: Icon(Icons.picture_as_pdf_outlined),
+                  selectedIcon: Icon(Icons.picture_as_pdf),
+                  label: Text('Reports'),
+                ),
+                const NavigationRailDestination(
+                  icon: Icon(Icons.settings_outlined),
+                  selectedIcon: Icon(Icons.settings),
+                  label: Text('Settings'),
                 ),
               ],
             ),
@@ -105,7 +141,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
             Expanded(
               child: IndexedStack(
                 index: _currentIndex,
-                children: _screens,
+                children: _desktopScreens,
               ),
             ),
           ],
@@ -116,7 +152,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     return Scaffold(
       body: IndexedStack(
         index: _currentIndex,
-        children: _screens,
+        children: _mobileScreens,
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,

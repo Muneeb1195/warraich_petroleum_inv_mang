@@ -520,6 +520,18 @@ class $InventoryTable extends Inventory
     requiredDuringInsert: false,
     defaultValue: const Constant(0),
   );
+  static const VerificationMeta _maxStockMeta = const VerificationMeta(
+    'maxStock',
+  );
+  @override
+  late final GeneratedColumn<double> maxStock = GeneratedColumn<double>(
+    'max_stock',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
   static const VerificationMeta _lastUpdatedMeta = const VerificationMeta(
     'lastUpdated',
   );
@@ -538,6 +550,7 @@ class $InventoryTable extends Inventory
     productId,
     currentStock,
     minStock,
+    maxStock,
     lastUpdated,
   ];
   @override
@@ -578,6 +591,12 @@ class $InventoryTable extends Inventory
         minStock.isAcceptableOrUnknown(data['min_stock']!, _minStockMeta),
       );
     }
+    if (data.containsKey('max_stock')) {
+      context.handle(
+        _maxStockMeta,
+        maxStock.isAcceptableOrUnknown(data['max_stock']!, _maxStockMeta),
+      );
+    }
     if (data.containsKey('last_updated')) {
       context.handle(
         _lastUpdatedMeta,
@@ -612,6 +631,10 @@ class $InventoryTable extends Inventory
         DriftSqlType.double,
         data['${effectivePrefix}min_stock'],
       )!,
+      maxStock: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}max_stock'],
+      )!,
       lastUpdated: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}last_updated'],
@@ -630,12 +653,14 @@ class InventoryData extends DataClass implements Insertable<InventoryData> {
   final int productId;
   final double currentStock;
   final double minStock;
+  final double maxStock;
   final DateTime lastUpdated;
   const InventoryData({
     required this.id,
     required this.productId,
     required this.currentStock,
     required this.minStock,
+    required this.maxStock,
     required this.lastUpdated,
   });
   @override
@@ -645,6 +670,7 @@ class InventoryData extends DataClass implements Insertable<InventoryData> {
     map['product_id'] = Variable<int>(productId);
     map['current_stock'] = Variable<double>(currentStock);
     map['min_stock'] = Variable<double>(minStock);
+    map['max_stock'] = Variable<double>(maxStock);
     map['last_updated'] = Variable<DateTime>(lastUpdated);
     return map;
   }
@@ -655,6 +681,7 @@ class InventoryData extends DataClass implements Insertable<InventoryData> {
       productId: Value(productId),
       currentStock: Value(currentStock),
       minStock: Value(minStock),
+      maxStock: Value(maxStock),
       lastUpdated: Value(lastUpdated),
     );
   }
@@ -669,6 +696,7 @@ class InventoryData extends DataClass implements Insertable<InventoryData> {
       productId: serializer.fromJson<int>(json['productId']),
       currentStock: serializer.fromJson<double>(json['currentStock']),
       minStock: serializer.fromJson<double>(json['minStock']),
+      maxStock: serializer.fromJson<double>(json['maxStock']),
       lastUpdated: serializer.fromJson<DateTime>(json['lastUpdated']),
     );
   }
@@ -680,6 +708,7 @@ class InventoryData extends DataClass implements Insertable<InventoryData> {
       'productId': serializer.toJson<int>(productId),
       'currentStock': serializer.toJson<double>(currentStock),
       'minStock': serializer.toJson<double>(minStock),
+      'maxStock': serializer.toJson<double>(maxStock),
       'lastUpdated': serializer.toJson<DateTime>(lastUpdated),
     };
   }
@@ -689,12 +718,14 @@ class InventoryData extends DataClass implements Insertable<InventoryData> {
     int? productId,
     double? currentStock,
     double? minStock,
+    double? maxStock,
     DateTime? lastUpdated,
   }) => InventoryData(
     id: id ?? this.id,
     productId: productId ?? this.productId,
     currentStock: currentStock ?? this.currentStock,
     minStock: minStock ?? this.minStock,
+    maxStock: maxStock ?? this.maxStock,
     lastUpdated: lastUpdated ?? this.lastUpdated,
   );
   InventoryData copyWithCompanion(InventoryCompanion data) {
@@ -705,6 +736,7 @@ class InventoryData extends DataClass implements Insertable<InventoryData> {
           ? data.currentStock.value
           : this.currentStock,
       minStock: data.minStock.present ? data.minStock.value : this.minStock,
+      maxStock: data.maxStock.present ? data.maxStock.value : this.maxStock,
       lastUpdated: data.lastUpdated.present
           ? data.lastUpdated.value
           : this.lastUpdated,
@@ -718,6 +750,7 @@ class InventoryData extends DataClass implements Insertable<InventoryData> {
           ..write('productId: $productId, ')
           ..write('currentStock: $currentStock, ')
           ..write('minStock: $minStock, ')
+          ..write('maxStock: $maxStock, ')
           ..write('lastUpdated: $lastUpdated')
           ..write(')'))
         .toString();
@@ -725,7 +758,7 @@ class InventoryData extends DataClass implements Insertable<InventoryData> {
 
   @override
   int get hashCode =>
-      Object.hash(id, productId, currentStock, minStock, lastUpdated);
+      Object.hash(id, productId, currentStock, minStock, maxStock, lastUpdated);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -734,6 +767,7 @@ class InventoryData extends DataClass implements Insertable<InventoryData> {
           other.productId == this.productId &&
           other.currentStock == this.currentStock &&
           other.minStock == this.minStock &&
+          other.maxStock == this.maxStock &&
           other.lastUpdated == this.lastUpdated);
 }
 
@@ -742,12 +776,14 @@ class InventoryCompanion extends UpdateCompanion<InventoryData> {
   final Value<int> productId;
   final Value<double> currentStock;
   final Value<double> minStock;
+  final Value<double> maxStock;
   final Value<DateTime> lastUpdated;
   const InventoryCompanion({
     this.id = const Value.absent(),
     this.productId = const Value.absent(),
     this.currentStock = const Value.absent(),
     this.minStock = const Value.absent(),
+    this.maxStock = const Value.absent(),
     this.lastUpdated = const Value.absent(),
   });
   InventoryCompanion.insert({
@@ -755,6 +791,7 @@ class InventoryCompanion extends UpdateCompanion<InventoryData> {
     required int productId,
     this.currentStock = const Value.absent(),
     this.minStock = const Value.absent(),
+    this.maxStock = const Value.absent(),
     this.lastUpdated = const Value.absent(),
   }) : productId = Value(productId);
   static Insertable<InventoryData> custom({
@@ -762,6 +799,7 @@ class InventoryCompanion extends UpdateCompanion<InventoryData> {
     Expression<int>? productId,
     Expression<double>? currentStock,
     Expression<double>? minStock,
+    Expression<double>? maxStock,
     Expression<DateTime>? lastUpdated,
   }) {
     return RawValuesInsertable({
@@ -769,6 +807,7 @@ class InventoryCompanion extends UpdateCompanion<InventoryData> {
       if (productId != null) 'product_id': productId,
       if (currentStock != null) 'current_stock': currentStock,
       if (minStock != null) 'min_stock': minStock,
+      if (maxStock != null) 'max_stock': maxStock,
       if (lastUpdated != null) 'last_updated': lastUpdated,
     });
   }
@@ -778,6 +817,7 @@ class InventoryCompanion extends UpdateCompanion<InventoryData> {
     Value<int>? productId,
     Value<double>? currentStock,
     Value<double>? minStock,
+    Value<double>? maxStock,
     Value<DateTime>? lastUpdated,
   }) {
     return InventoryCompanion(
@@ -785,6 +825,7 @@ class InventoryCompanion extends UpdateCompanion<InventoryData> {
       productId: productId ?? this.productId,
       currentStock: currentStock ?? this.currentStock,
       minStock: minStock ?? this.minStock,
+      maxStock: maxStock ?? this.maxStock,
       lastUpdated: lastUpdated ?? this.lastUpdated,
     );
   }
@@ -804,6 +845,9 @@ class InventoryCompanion extends UpdateCompanion<InventoryData> {
     if (minStock.present) {
       map['min_stock'] = Variable<double>(minStock.value);
     }
+    if (maxStock.present) {
+      map['max_stock'] = Variable<double>(maxStock.value);
+    }
     if (lastUpdated.present) {
       map['last_updated'] = Variable<DateTime>(lastUpdated.value);
     }
@@ -817,6 +861,7 @@ class InventoryCompanion extends UpdateCompanion<InventoryData> {
           ..write('productId: $productId, ')
           ..write('currentStock: $currentStock, ')
           ..write('minStock: $minStock, ')
+          ..write('maxStock: $maxStock, ')
           ..write('lastUpdated: $lastUpdated')
           ..write(')'))
         .toString();
@@ -4998,6 +5043,7 @@ typedef $$InventoryTableCreateCompanionBuilder =
       required int productId,
       Value<double> currentStock,
       Value<double> minStock,
+      Value<double> maxStock,
       Value<DateTime> lastUpdated,
     });
 typedef $$InventoryTableUpdateCompanionBuilder =
@@ -5006,6 +5052,7 @@ typedef $$InventoryTableUpdateCompanionBuilder =
       Value<int> productId,
       Value<double> currentStock,
       Value<double> minStock,
+      Value<double> maxStock,
       Value<DateTime> lastUpdated,
     });
 
@@ -5052,6 +5099,11 @@ class $$InventoryTableFilterComposer
 
   ColumnFilters<double> get minStock => $composableBuilder(
     column: $table.minStock,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get maxStock => $composableBuilder(
+    column: $table.maxStock,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -5108,6 +5160,11 @@ class $$InventoryTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<double> get maxStock => $composableBuilder(
+    column: $table.maxStock,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get lastUpdated => $composableBuilder(
     column: $table.lastUpdated,
     builder: (column) => ColumnOrderings(column),
@@ -5156,6 +5213,9 @@ class $$InventoryTableAnnotationComposer
 
   GeneratedColumn<double> get minStock =>
       $composableBuilder(column: $table.minStock, builder: (column) => column);
+
+  GeneratedColumn<double> get maxStock =>
+      $composableBuilder(column: $table.maxStock, builder: (column) => column);
 
   GeneratedColumn<DateTime> get lastUpdated => $composableBuilder(
     column: $table.lastUpdated,
@@ -5218,12 +5278,14 @@ class $$InventoryTableTableManager
                 Value<int> productId = const Value.absent(),
                 Value<double> currentStock = const Value.absent(),
                 Value<double> minStock = const Value.absent(),
+                Value<double> maxStock = const Value.absent(),
                 Value<DateTime> lastUpdated = const Value.absent(),
               }) => InventoryCompanion(
                 id: id,
                 productId: productId,
                 currentStock: currentStock,
                 minStock: minStock,
+                maxStock: maxStock,
                 lastUpdated: lastUpdated,
               ),
           createCompanionCallback:
@@ -5232,12 +5294,14 @@ class $$InventoryTableTableManager
                 required int productId,
                 Value<double> currentStock = const Value.absent(),
                 Value<double> minStock = const Value.absent(),
+                Value<double> maxStock = const Value.absent(),
                 Value<DateTime> lastUpdated = const Value.absent(),
               }) => InventoryCompanion.insert(
                 id: id,
                 productId: productId,
                 currentStock: currentStock,
                 minStock: minStock,
+                maxStock: maxStock,
                 lastUpdated: lastUpdated,
               ),
           withReferenceMapper: (p0) => p0

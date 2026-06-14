@@ -53,6 +53,57 @@ class BackupNotifier extends StateNotifier<AsyncValue<void>> {
   Future<bool> signIn() async {
     return await _service.signIn();
   }
+
+  Future<List<Map<String, String>>> listCloudBackups() async {
+    return await _service.listBackups();
+  }
+
+  Future<bool> restoreCloudBackup(String fileId) async {
+    state = const AsyncValue.loading();
+    try {
+      final db = _ref.read(databaseProvider);
+      await db.close();
+    } catch (_) {}
+
+    final result = await _service.restoreFromId(fileId);
+
+    if (result) {
+      _ref.invalidate(databaseProvider);
+    }
+
+    state = result
+        ? const AsyncValue.data(null)
+        : const AsyncValue.error('Cloud restore failed', StackTrace.empty);
+    return result;
+  }
+
+  Future<bool> localBackup(File dbFile) async {
+    state = const AsyncValue.loading();
+    final result = await _service.localBackup(dbFile);
+    state = result
+        ? const AsyncValue.data(null)
+        : const AsyncValue.error('Local backup failed', StackTrace.empty);
+    return result;
+  }
+
+  Future<bool> localRestore() async {
+    state = const AsyncValue.loading();
+    try {
+      final db = _ref.read(databaseProvider);
+      await db.close();
+    } catch (_) {}
+
+    final result = await _service.localRestore();
+
+    if (result != null) {
+      _ref.invalidate(databaseProvider);
+    }
+
+    state = result != null
+        ? const AsyncValue.data(null)
+        : const AsyncValue.error('Local restore failed', StackTrace.empty);
+    return result != null;
+  }
 }
 
 final backupNotifierProvider = StateNotifierProvider<BackupNotifier, AsyncValue<void>>((ref) {

@@ -190,6 +190,56 @@ class BackupService {
     }
   }
 
+  Future<List<Map<String, String>>> listBackups() async {
+    try {
+      final headers = await _getHeaders();
+      if (headers.isEmpty) return [];
+
+      final folderId = await _getFolderId();
+      if (folderId == null) return [];
+
+      final response = await http.get(
+        Uri.parse('https://www.googleapis.com/drive/v3/files?q=%27$folderId%27%20in%20parents%20and%20name%20contains%20%27warraich_backup_%27%20and%20trashed%3Dfalse&orderBy=createdTime%20desc&fields=files(id,name,createdTime)'),
+        headers: headers,
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final files = data['files'] as List? ?? [];
+        return files.map<Map<String, String>>((f) => {
+          'id': f['id'] as String,
+          'name': f['name'] as String,
+          'createdTime': f['createdTime'] as String,
+        }).toList();
+      }
+      return [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  Future<bool> restoreFromId(String fileId) async {
+    try {
+      final headers = await _getHeaders();
+      if (headers.isEmpty) return false;
+
+      final downloadResponse = await http.get(
+        Uri.parse('https://www.googleapis.com/drive/v3/files/$fileId?alt=media'),
+        headers: headers,
+      );
+
+      if (downloadResponse.statusCode == 200) {
+        final dir = await getApplicationDocumentsDirectory();
+        final file = File(p.join(dir.path, 'warraich_petroleum.db'));
+        await file.writeAsBytes(downloadResponse.bodyBytes);
+        return true;
+      }
+      return false;
+    } catch (e) {
+      return false;
+    }
+  }
+
   Future<void> signOut() async {
     try {
       await _googleSignIn.signOut();
@@ -205,6 +255,48 @@ class BackupService {
       return _credentials != null;
     } catch (e) {
       return false;
+    }
+  }
+
+  static const _localBackupsDir = 'backups';
+
+  Future<bool> localBackup(File dbFile) async {
+    try {
+      final dir = await getApplicationDocumentsDirectory();
+      final backupsDir = Directory(p.join(dir.path, _localBackupsDir));
+      await backupsDir.create(recursive: true);
+
+      final fileName = 'warraich_backup_${DateTime.now().millisecondsSinceEpoch}.db';
+      await dbFile.copy(p.join(backupsDir.path, fileName));
+
+      // Enforce max 5 local backups
+      final files = backupsDir.listSync().whereType<File>().toList()
+        ..sort((a, b) => b.path.compareTo(a.path));
+      for (final f in files.skip(_maxBackups)) {
+        await f.delete();
+      }
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  Future<File?> localRestore() async {
+    try {
+      final dir = await getApplicationDocumentsDirectory();
+      final backupsDir = Directory(p.join(dir.path, _localBackupsDir));
+      if (!backupsDir.existsSync()) return null;
+
+      final files = backupsDir.listSync().whereType<File>().toList()
+        ..sort((a, b) => b.path.compareTo(a.path));
+      if (files.isEmpty) return null;
+
+      final latest = files.first;
+      final dbFile = File(p.join(dir.path, 'warraich_petroleum.db'));
+      await latest.copy(dbFile.path);
+      return dbFile;
+    } catch (e) {
+      return null;
     }
   }
 }

@@ -6,6 +6,7 @@ class Inventory extends Table {
   IntColumn get productId => integer().references(Products, #id)();
   RealColumn get currentStock => real().withDefault(const Constant(0))();
   RealColumn get minStock => real().withDefault(const Constant(0))();
+  RealColumn get maxStock => real().withDefault(const Constant(0))();
   DateTimeColumn get lastUpdated => dateTime().withDefault(currentDateAndTime)();
 }
 
