@@ -119,7 +119,7 @@ class PayrollScreen extends ConsumerWidget {
                 }
                 ref.invalidate(currentMonthPayrollProvider);
                 if (context.mounted) {
-                  final msg = failed > 0 ? 'Generated $success/$empList.length payrolls ($failed failed)' : 'Payroll generated for $success employees';
+                  final msg = failed > 0 ? 'Generated $success/${empList.length} payrolls ($failed failed)' : 'Payroll generated for $success employees';
                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
                 }
               },

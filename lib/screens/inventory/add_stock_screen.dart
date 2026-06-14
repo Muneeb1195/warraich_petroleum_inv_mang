@@ -86,7 +86,7 @@ class _AddStockScreenState extends ConsumerState<AddStockScreen> {
           ],
           const SizedBox(height: 16),
           TextField(controller: _notesController, decoration: const InputDecoration(labelText: 'Notes (optional)')),
-          const Spacer(),
+          const SizedBox(height: 16),
           FilledButton(
             onPressed: _selectedProductId == null || productState.isLoading
                 ? null

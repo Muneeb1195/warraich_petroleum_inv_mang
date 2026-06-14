@@ -473,7 +473,7 @@ class DashboardScreen extends ConsumerWidget {
                   children: fuelItems.map((item) {
                     final isLow = item.inventoryEntry.currentStock <= item.inventoryEntry.minStock && item.inventoryEntry.minStock > 0;
                     final maxStock = item.inventoryEntry.minStock > 0 ? item.inventoryEntry.minStock * 3 : item.inventoryEntry.currentStock * 1.5;
-                    final progress = (item.inventoryEntry.currentStock / maxStock).clamp(0.0, 1.0);
+                    final progress = maxStock > 0 ? (item.inventoryEntry.currentStock / maxStock).clamp(0.0, 1.0) : 0.0;
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 12),
                       child: Column(

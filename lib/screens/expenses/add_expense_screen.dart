@@ -118,7 +118,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
               if (date != null) setState(() => _selectedDate = date);
             },
           ),
-          const Spacer(),
+          const SizedBox(height: 16),
           FilledButton(
             onPressed: expenseState.isLoading
                 ? null

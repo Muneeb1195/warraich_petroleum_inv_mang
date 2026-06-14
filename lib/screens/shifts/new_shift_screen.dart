@@ -79,7 +79,7 @@ class _NewShiftScreenState extends ConsumerState<NewShiftScreen> {
               ),
             ),
           ),
-          const Spacer(),
+          const SizedBox(height: 16),
           FilledButton(
             onPressed: shiftState.isLoading
                 ? null

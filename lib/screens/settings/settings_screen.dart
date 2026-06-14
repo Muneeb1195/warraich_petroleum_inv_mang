@@ -64,7 +64,7 @@ class SettingsScreen extends ConsumerWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(title: Text(_isDesktop ? 'Settings' : 'More')),
+      appBar: AppBar(title: const Text('Settings')),
       body: _isDesktop
           ? _buildDesktopLayout(context, ref, colorScheme)
           : _buildMobileLayout(context, ref, colorScheme),
