@@ -5,6 +5,7 @@ import '../screens/dashboard/dashboard_screen.dart';
 import '../screens/shifts/shifts_screen.dart';
 import '../screens/inventory/inventory_screen.dart';
 import '../screens/expenses/expenses_screen.dart';
+import '../screens/more/more_screen.dart';
 import '../screens/employees/employees_screen.dart';
 import '../screens/payroll/payroll_screen.dart';
 import '../screens/history/sales_history_screen.dart';
@@ -21,14 +22,13 @@ class HomeShell extends ConsumerStatefulWidget {
 
 class _HomeShellState extends ConsumerState<HomeShell> {
   int _currentIndex = 0;
-  final _scaffoldKey = GlobalKey<ScaffoldState>();
 
   final _mobileScreens = [
     const DashboardScreen(),
     const ShiftsScreen(),
     const InventoryScreen(),
     const ExpensesScreen(),
-    const SettingsScreen(),
+    const MoreScreen(),
   ];
 
   final _desktopScreens = [
@@ -51,7 +51,6 @@ class _HomeShellState extends ConsumerState<HomeShell> {
 
     if (_isDesktop) {
     return Scaffold(
-      key: _scaffoldKey,
         body: Row(
           children: [
             NavigationRail(
@@ -152,44 +151,13 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     }
 
     return Scaffold(
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            DrawerHeader(
-              decoration: BoxDecoration(color: colorScheme.primaryContainer),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Icon(Icons.local_gas_station, size: 36, color: colorScheme.onPrimaryContainer),
-                  const SizedBox(height: 8),
-                  Text('Warraich Petroleum', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: colorScheme.onPrimaryContainer)),
-                ],
-              ),
-            ),
-            _DrawerItem(icon: Icons.people, title: 'Employees', onTap: () { Navigator.pop(context); Navigator.push(context, MaterialPageRoute(builder: (_) => const EmployeesScreen())); }),
-            _DrawerItem(icon: Icons.payments, title: 'Payroll', onTap: () { Navigator.pop(context); Navigator.push(context, MaterialPageRoute(builder: (_) => const PayrollScreen())); }),
-            _DrawerItem(icon: Icons.history, title: 'Sales History', onTap: () { Navigator.pop(context); Navigator.push(context, MaterialPageRoute(builder: (_) => const SalesHistoryScreen())); }),
-            _DrawerItem(icon: Icons.picture_as_pdf, title: 'Reports', onTap: () { Navigator.pop(context); Navigator.push(context, MaterialPageRoute(builder: (_) => const PdfReportScreen())); }),
-            const Divider(),
-            _DrawerItem(icon: Icons.settings, title: 'Settings', onTap: () { Navigator.pop(context); Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen())); }),
-          ],
-        ),
-      ),
       body: IndexedStack(
         index: _currentIndex,
         children: _mobileScreens,
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
-        onDestinationSelected: (index) {
-          if (index == 4) {
-            _scaffoldKey.currentState?.openDrawer();
-          } else {
-            setState(() => _currentIndex = index);
-          }
-        },
+        onDestinationSelected: (index) => setState(() => _currentIndex = index),
         destinations: [
           const NavigationDestination(
             icon: Icon(Icons.dashboard_outlined),
@@ -228,17 +196,4 @@ class _HomeShellState extends ConsumerState<HomeShell> {
   }
 
   ColorScheme get colorScheme => Theme.of(context).colorScheme;
-}
-
-class _DrawerItem extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final VoidCallback onTap;
-
-  const _DrawerItem({required this.icon, required this.title, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(leading: Icon(icon), title: Text(title), onTap: onTap);
-  }
 }
