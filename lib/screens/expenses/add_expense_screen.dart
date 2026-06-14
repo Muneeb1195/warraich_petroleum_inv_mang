@@ -147,19 +147,8 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
     );
 
     if (_isDesktop) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Add Expense')),
-        body: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 1000),
-            child: content,
-          ),
-        ),
-      );
+      return Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 1000), child: content));
     }
-    return Scaffold(
-      appBar: AppBar(title: const Text('Add Expense')),
-      body: content,
-    );
+    return content;
   }
 }
