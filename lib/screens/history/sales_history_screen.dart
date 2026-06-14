@@ -12,15 +12,61 @@ class SalesHistoryScreen extends ConsumerStatefulWidget {
   ConsumerState<SalesHistoryScreen> createState() => _SalesHistoryScreenState();
 }
 
-bool get _isDesktop => Platform.isWindows || Platform.isLinux || Platform.isMacOS;
-
-  class _SalesHistoryScreenState extends ConsumerState<SalesHistoryScreen> {
+class _SalesHistoryScreenState extends ConsumerState<SalesHistoryScreen> {
   String _filterType = 'all';
+  bool get _isDesktop => Platform.isWindows || Platform.isLinux || Platform.isMacOS;
 
   @override
   Widget build(BuildContext context) {
     final allShifts = ref.watch(allShiftsProvider);
     final colorScheme = Theme.of(context).colorScheme;
+
+    final body = allShifts.when(
+      data: (shifts) {
+        var filtered = shifts;
+        if (_filterType == 'morning') {
+          filtered = shifts.where((s) => s.type == 'morning').toList();
+        } else if (_filterType == 'evening') {
+          filtered = shifts.where((s) => s.type == 'evening').toList();
+        } else if (_filterType == 'closed') {
+          filtered = shifts.where((s) => s.status == 'closed').toList();
+        }
+
+        if (filtered.isEmpty) {
+          return const Center(child: Text('No sales history'));
+        }
+        return ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: filtered.length,
+          itemBuilder: (context, index) {
+            final shift = filtered[index];
+            final isActive = shift.status == 'active';
+            final profit = shift.totalSales - shift.totalExpenses;
+            return Card(
+              child: ListTile(
+                leading: CircleAvatar(
+                  backgroundColor: isActive ? colorScheme.surfaceContainerHighest : colorScheme.primaryContainer,
+                  child: Icon(isActive ? Icons.schedule : Icons.check_circle, color: isActive ? colorScheme.onSurfaceVariant : colorScheme.onPrimaryContainer),
+                ),
+                title: Text('${shift.type.toUpperCase()} - ${shift.startDate.formattedDate}'),
+                subtitle: Text('Sales: Rs. ${shift.totalSales.toStringAsFixed(0)} | Exp: Rs. ${shift.totalExpenses.toStringAsFixed(0)}'),
+                trailing: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text('Rs. ${profit.toStringAsFixed(0)}', style: TextStyle(fontWeight: FontWeight.bold, color: profit >= 0 ? Colors.green : colorScheme.error)),
+                    if (isActive) Text('Active', style: TextStyle(fontSize: 10, color: colorScheme.onSurfaceVariant)),
+                  ],
+                ),
+                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ShiftDetailScreen(shiftId: shift.id))),
+              ),
+            );
+          },
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, _) => Center(child: Text('Error: $e')),
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -38,67 +84,9 @@ bool get _isDesktop => Platform.isWindows || Platform.isLinux || Platform.isMacO
           ),
         ],
       ),
-      body: allShifts.when(
-        data: (shifts) {
-          var filtered = shifts;
-          if (_filterType == 'morning') {
-            filtered = shifts.where((s) => s.type == 'morning').toList();
-          } else if (_filterType == 'evening') {
-            filtered = shifts.where((s) => s.type == 'evening').toList();
-          } else if (_filterType == 'closed') {
-            filtered = shifts.where((s) => s.status == 'closed').toList();
-          }
-
-          if (filtered.isEmpty) {
-            return const Center(child: Text('No sales history'));
-          }
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: filtered.length,
-            itemBuilder: (context, index) {
-              final shift = filtered[index];
-              final isActive = shift.status == 'active';
-              final profit = shift.totalSales - shift.totalExpenses;
-              return Card(
-                child: ListTile(
-                  leading: CircleAvatar(
-                    backgroundColor: isActive ? colorScheme.surfaceContainerHighest : colorScheme.primaryContainer,
-                    child: Icon(
-                      isActive ? Icons.schedule : Icons.check_circle,
-                      color: isActive ? colorScheme.onSurfaceVariant : colorScheme.onPrimaryContainer,
-                    ),
-                  ),
-                  title: Text('${shift.type.toUpperCase()} - ${shift.startDate.formattedDate}'),
-                  subtitle: Text(
-                    'Sales: Rs. ${shift.totalSales.toStringAsFixed(0)} | Exp: Rs. ${shift.totalExpenses.toStringAsFixed(0)}',
-                  ),
-                  trailing: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        'Rs. ${profit.toStringAsFixed(0)}',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: profit >= 0 ? Colors.green : colorScheme.error,
-                        ),
-                      ),
-                      if (isActive)
-                        Text('Active', style: TextStyle(fontSize: 10, color: colorScheme.onSurfaceVariant)),
-                    ],
-                  ),
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => ShiftDetailScreen(shiftId: shift.id)),
-                  ),
-                ),
-              );
-            },
-          );
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Error: $e')),
-      ),
+      body: _isDesktop
+          ? Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 1000), child: body))
+          : body,
     );
   }
 }

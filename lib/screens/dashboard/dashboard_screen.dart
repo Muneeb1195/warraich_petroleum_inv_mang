@@ -9,6 +9,7 @@ import '../../providers/product_provider.dart';
 import '../../utils/constants.dart';
 import '../../screens/shifts/shift_detail_screen.dart';
 import '../../screens/shifts/new_shift_screen.dart';
+import '../../screens/expenses/expenses_screen.dart';
 import '../../screens/settings/fuel_prices_screen.dart';
 
 class DashboardScreen extends ConsumerWidget {
@@ -209,7 +210,7 @@ class DashboardScreen extends ConsumerWidget {
               icon: Icons.receipt_long,
               label: 'Add Expense',
               color: colorScheme.error,
-              onTap: () => Navigator.pushNamed(context, '/expenses'),
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ExpensesScreen())),
             ),
           ],
         ),
