@@ -107,12 +107,20 @@ class PayrollScreen extends ConsumerWidget {
             FilledButton(
               onPressed: () async {
                 Navigator.pop(ctx);
+                int success = 0;
+                int failed = 0;
                 for (final emp in empList) {
-                  await ref.read(payrollNotifierProvider.notifier).generatePayroll(emp.id, now.month, now.year);
+                  try {
+                    await ref.read(payrollNotifierProvider.notifier).generatePayroll(emp.id, now.month, now.year);
+                    success++;
+                  } catch (_) {
+                    failed++;
+                  }
                 }
                 ref.invalidate(currentMonthPayrollProvider);
                 if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Payroll generated')));
+                  final msg = failed > 0 ? 'Generated $success/$empList.length payrolls ($failed failed)' : 'Payroll generated for $success employees';
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
                 }
               },
               child: const Text('Generate'),

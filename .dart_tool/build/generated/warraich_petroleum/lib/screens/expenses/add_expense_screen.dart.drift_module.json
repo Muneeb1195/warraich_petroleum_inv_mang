@@ -1,0 +1,11 @@
+{
+  "elements": {},
+  "imports": [
+    "package:flutter/material.dart",
+    "package:flutter_riverpod/flutter_riverpod.dart",
+    "package:warraich_petroleum/providers/expense_provider.dart",
+    "package:warraich_petroleum/providers/shift_provider.dart",
+    "package:warraich_petroleum/utils/constants.dart",
+    "package:warraich_petroleum/utils/extensions.dart"
+  ]
+}

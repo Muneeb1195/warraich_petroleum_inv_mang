@@ -50,7 +50,7 @@ class InventoryScreen extends ConsumerWidget {
             const SizedBox(height: 8),
             if (_isDesktop)
               GridView.count(
-                crossAxisCount: fuelItems.length <= 3 ? fuelItems.length : 2,
+                crossAxisCount: fuelItems.isEmpty ? 1 : (fuelItems.length <= 3 ? fuelItems.length : 2),
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 mainAxisSpacing: 12,
@@ -68,7 +68,7 @@ class InventoryScreen extends ConsumerWidget {
             const SizedBox(height: 8),
             if (_isDesktop)
               GridView.count(
-                crossAxisCount: lubeItems.length <= 3 ? lubeItems.length : 2,
+                crossAxisCount: lubeItems.isEmpty ? 1 : (lubeItems.length <= 3 ? lubeItems.length : 2),
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 mainAxisSpacing: 12,

@@ -14,13 +14,27 @@ class WarraichPetroleumApp extends ConsumerStatefulWidget {
   ConsumerState<WarraichPetroleumApp> createState() => _WarraichPetroleumAppState();
 }
 
-class _WarraichPetroleumAppState extends ConsumerState<WarraichPetroleumApp> {
+class _WarraichPetroleumAppState extends ConsumerState<WarraichPetroleumApp> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(authStateProvider.notifier).init();
     });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.inactive || state == AppLifecycleState.paused) {
+      ref.read(authStateProvider.notifier).lock();
+    }
   }
 
   @override

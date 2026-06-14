@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer' show log;
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -33,6 +34,6 @@ void main() async {
       ),
     );
   }, (error, stack) {
-    // Catch uncaught async errors
+    log('Uncaught async error: $error', stackTrace: stack);
   });
 }

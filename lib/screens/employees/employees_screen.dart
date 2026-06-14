@@ -61,6 +61,14 @@ class _AddEmployeeScreenState extends ConsumerState<AddEmployeeScreen> {
   bool _isWide(BuildContext context) => MediaQuery.sizeOf(context).width > 800;
 
   @override
+  void dispose() {
+    _nameController.dispose();
+    _phoneController.dispose();
+    _salaryController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final employeeState = ref.watch(employeeNotifierProvider);
 
@@ -106,12 +114,17 @@ class _AddEmployeeScreenState extends ConsumerState<AddEmployeeScreen> {
                   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Enter employee name')));
                   return;
                 }
+                final salary = double.tryParse(_salaryController.text) ?? 0;
+                if (salary <= 0) {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Enter a valid salary')));
+                  return;
+                }
                 await ref.read(employeeNotifierProvider.notifier).addEmployee(
                   name: _nameController.text,
                   phone: _phoneController.text.isNotEmpty ? _phoneController.text : null,
                   role: _selectedRole,
                   defaultShift: _selectedShift,
-                  salary: double.tryParse(_salaryController.text) ?? 0,
+                  salary: salary,
                 );
                 if (context.mounted) {
                   Navigator.pop(context);

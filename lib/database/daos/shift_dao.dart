@@ -11,8 +11,11 @@ class ShiftDao extends DatabaseAccessor<AppDatabase> with _$ShiftDaoMixin {
   Future<int> createShift(ShiftsCompanion shift) => into(shifts).insert(shift);
 
   Future<Shift?> getActiveShift() async {
-    final query = select(shifts)..where((s) => s.status.equals('active'));
-    return query.getSingleOrNull();
+    return (select(shifts)..where((s) => s.status.equals('active'))).getSingleOrNull();
+  }
+
+  Future<Shift?> getShiftById(int id) async {
+    return (select(shifts)..where((s) => s.id.equals(id))).getSingleOrNull();
   }
 
   Future<List<Shift>> getAllShifts() async {
@@ -90,7 +93,7 @@ class ShiftDao extends DatabaseAccessor<AppDatabase> with _$ShiftDaoMixin {
         .get();
 
     final todayExpenses = await (select(db.expenses)
-          ..where((e) => e.date.isBetweenValues(startOfDay, endOfDay)))
+          ..where((e) => e.date.isBetweenValues(startOfDay, endOfDay) & e.category.equals('Supplier').not()))
         .get();
 
     final totalSales = todayShifts.fold<double>(0.0, (sum, s) => sum + s.totalSales);
@@ -139,7 +142,7 @@ class ShiftDao extends DatabaseAccessor<AppDatabase> with _$ShiftDaoMixin {
     final endOfToday = DateTime(now.year, now.month, now.day + 1);
 
     final allExpenses = await (select(db.expenses)
-          ..where((e) => e.date.isBetweenValues(sevenDaysAgo, endOfToday)))
+          ..where((e) => e.date.isBetweenValues(sevenDaysAgo, endOfToday) & e.category.equals('Supplier').not()))
         .get();
 
     final results = <MapEntry<DateTime, double>>[];
@@ -177,7 +180,7 @@ class ShiftDao extends DatabaseAccessor<AppDatabase> with _$ShiftDaoMixin {
         .get();
 
     final monthExpenses = await (select(db.expenses)
-          ..where((e) => e.date.isBetweenValues(start, end)))
+          ..where((e) => e.date.isBetweenValues(start, end) & e.category.equals('Supplier').not()))
         .get();
 
     final totalSales = monthShifts.fold<double>(0.0, (sum, s) => sum + s.totalSales);

@@ -33,6 +33,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
     final autoBackup = await storage.read(key: _autoBackupKey);
     final signedIn = await storage.read(key: _signedInKey);
     final dir = await getApplicationDocumentsDirectory();
+    if (!mounted) return;
     setState(() {
       _autoBackup = autoBackup != 'false';
       _isSignedIn = signedIn == 'true';

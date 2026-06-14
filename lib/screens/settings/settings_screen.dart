@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import '../../providers/theme_provider.dart';
 import '../employees/employees_screen.dart';
 import '../payroll/payroll_screen.dart';
@@ -175,7 +176,13 @@ class SettingsScreen extends ConsumerWidget {
               const SizedBox(height: 8),
               Text('Warraich Petroleum', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
               const SizedBox(height: 4),
-              Text('Version 1.2.0', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant)),
+              FutureBuilder<PackageInfo>(
+                future: PackageInfo.fromPlatform(),
+                builder: (context, snapshot) => Text(
+                  'Version ${snapshot.data?.version ?? "..."}',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
+                ),
+              ),
             ],
           ),
         ),

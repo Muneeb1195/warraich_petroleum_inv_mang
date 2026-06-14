@@ -1,0 +1,7 @@
+{
+	"InstallScripts" : 
+	[
+		"/home/muneeb/Projects/com-warraich-petroleum/build/linux/x64/release/pdfium-download/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

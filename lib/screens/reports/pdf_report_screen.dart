@@ -16,6 +16,7 @@ class PdfReportScreen extends ConsumerStatefulWidget {
 class _PdfReportScreenState extends ConsumerState<PdfReportScreen> {
   int? _selectedShiftId;
   DateTime _selectedMonth = DateTime.now();
+  DateTime _expenseSelectedMonth = DateTime.now();
   bool get _isDesktop => Platform.isWindows || Platform.isLinux || Platform.isMacOS;
 
   @override
@@ -52,11 +53,15 @@ class _PdfReportScreenState extends ConsumerState<PdfReportScreen> {
                             onPressed: _selectedShiftId == null
                                 ? null
                                 : () async {
-                                    final shift = closedShifts.firstWhere((s) => s.id == _selectedShiftId);
-                                    final sales = await ref.read(shiftSalesProvider(_selectedShiftId!).future);
-                                    final mappedSales = sales.map((row) => {'product': row.product.name, 'quantity': row.sale.quantitySold, 'rate': row.product.pricePerUnit, 'amount': row.sale.totalAmount}).toList();
-                                    final dateFormatted = DateFormat('yyyy-MM-dd').format(shift.startDate);
-                                    await PdfService.generateShiftReport(shiftType: shift.type.toUpperCase(), date: dateFormatted, salesData: mappedSales, totalSales: shift.totalSales, totalExpenses: shift.totalExpenses, profit: shift.totalSales - shift.totalExpenses);
+                                    try {
+                                      final shift = closedShifts.firstWhere((s) => s.id == _selectedShiftId, orElse: () => closedShifts.first);
+                                      final sales = await ref.read(shiftSalesProvider(_selectedShiftId!).future);
+                                      final mappedSales = sales.map((row) => {'product': row.product.name, 'quantity': row.sale.quantitySold, 'rate': row.product.pricePerUnit, 'amount': row.sale.totalAmount}).toList();
+                                      final dateFormatted = DateFormat('yyyy-MM-dd').format(shift.startDate);
+                                      await PdfService.generateShiftReport(shiftType: shift.type.toUpperCase(), date: dateFormatted, salesData: mappedSales, totalSales: shift.totalSales, totalExpenses: shift.totalExpenses, profit: shift.totalSales - shift.totalExpenses);
+                                    } catch (e) {
+                                      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to generate report: $e')));
+                                    }
                                   },
                             icon: const Icon(Icons.picture_as_pdf),
                             label: const Text('Generate Shift Report'),
@@ -96,12 +101,16 @@ class _PdfReportScreenState extends ConsumerState<PdfReportScreen> {
                   width: double.infinity,
                   child: FilledButton.icon(
                     onPressed: () async {
-                      final summary = await ref.read(expenseSummaryProvider((start: DateTime(_selectedMonth.year, _selectedMonth.month), end: DateTime(_selectedMonth.year, _selectedMonth.month + 1))).future);
-                      final totalExpenses = summary.values.fold<double>(0, (s, v) => s + v);
-                      final shifts = ref.read(allShiftsProvider).valueOrNull ?? [];
-                      final monthShifts = shifts.where((s) => s.startDate.month == _selectedMonth.month && s.startDate.year == _selectedMonth.year && s.status == 'closed').toList();
-                      final totalSales = monthShifts.fold<double>(0, (s, shift) => s + shift.totalSales);
-                      await PdfService.generateMonthlyReport(month: _selectedMonth.month, year: _selectedMonth.year, expenseSummary: summary, totalSales: totalSales, totalExpenses: totalExpenses);
+                      try {
+                        final summary = await ref.read(expenseSummaryProvider((start: DateTime(_selectedMonth.year, _selectedMonth.month), end: DateTime(_selectedMonth.year, _selectedMonth.month + 1))).future);
+                        final totalExpenses = summary.values.fold<double>(0, (s, v) => s + v);
+                        final shifts = ref.read(allShiftsProvider).valueOrNull ?? [];
+                        final monthShifts = shifts.where((s) => s.startDate.month == _selectedMonth.month && s.startDate.year == _selectedMonth.year && s.status == 'closed').toList();
+                        final totalSales = monthShifts.fold<double>(0, (s, shift) => s + shift.totalSales);
+                        await PdfService.generateMonthlyReport(month: _selectedMonth.month, year: _selectedMonth.year, expenseSummary: summary, totalSales: totalSales, totalExpenses: totalExpenses);
+                      } catch (e) {
+                        if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to generate report: $e')));
+                      }
                     },
                     icon: const Icon(Icons.picture_as_pdf),
                     label: const Text('Generate Monthly Report'),
@@ -123,11 +132,11 @@ class _PdfReportScreenState extends ConsumerState<PdfReportScreen> {
                 ListTile(
                   contentPadding: EdgeInsets.zero,
                   leading: const Icon(Icons.calendar_month),
-                  title: Text(DateFormat('MMMM yyyy').format(_selectedMonth)),
+                  title: Text(DateFormat('MMMM yyyy').format(_expenseSelectedMonth)),
                   trailing: const Icon(Icons.edit_calendar),
                   onTap: () async {
-                    final date = await showDatePicker(context: context, initialDate: _selectedMonth, firstDate: DateTime(2020), lastDate: DateTime.now());
-                    if (date != null) setState(() => _selectedMonth = date);
+                    final date = await showDatePicker(context: context, initialDate: _expenseSelectedMonth, firstDate: DateTime(2020), lastDate: DateTime.now());
+                    if (date != null) setState(() => _expenseSelectedMonth = date);
                   },
                 ),
                 const SizedBox(height: 12),
@@ -135,9 +144,13 @@ class _PdfReportScreenState extends ConsumerState<PdfReportScreen> {
                   width: double.infinity,
                   child: FilledButton.icon(
                     onPressed: () async {
-                      final summary = await ref.read(expenseSummaryProvider((start: DateTime(_selectedMonth.year, _selectedMonth.month), end: DateTime(_selectedMonth.year, _selectedMonth.month + 1))).future);
-                      final totalExpenses = summary.values.fold<double>(0, (s, v) => s + v);
-                      await PdfService.generateMonthlyReport(month: _selectedMonth.month, year: _selectedMonth.year, expenseSummary: summary, totalSales: 0, totalExpenses: totalExpenses);
+                      try {
+                        final summary = await ref.read(expenseSummaryProvider((start: DateTime(_expenseSelectedMonth.year, _expenseSelectedMonth.month), end: DateTime(_expenseSelectedMonth.year, _expenseSelectedMonth.month + 1))).future);
+                        final totalExpenses = summary.values.fold<double>(0, (s, v) => s + v);
+                        await PdfService.generateMonthlyReport(month: _expenseSelectedMonth.month, year: _expenseSelectedMonth.year, expenseSummary: summary, totalSales: 0, totalExpenses: totalExpenses);
+                      } catch (e) {
+                        if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to generate report: $e')));
+                      }
                     },
                     icon: const Icon(Icons.picture_as_pdf),
                     label: const Text('Generate Expense Report'),

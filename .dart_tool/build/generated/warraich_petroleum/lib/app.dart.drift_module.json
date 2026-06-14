@@ -1,0 +1,13 @@
+{
+  "elements": {},
+  "imports": [
+    "package:flutter/material.dart",
+    "package:flutter_riverpod/flutter_riverpod.dart",
+    "package:dynamic_color/dynamic_color.dart",
+    "package:warraich_petroleum/theme/app_theme.dart",
+    "package:warraich_petroleum/providers/auth_provider.dart",
+    "package:warraich_petroleum/providers/theme_provider.dart",
+    "package:warraich_petroleum/screens/lock_screen.dart",
+    "package:warraich_petroleum/screens/home_shell.dart"
+  ]
+}

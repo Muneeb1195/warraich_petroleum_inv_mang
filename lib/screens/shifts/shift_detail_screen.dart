@@ -256,14 +256,14 @@ class _ShiftDetailScreenState extends ConsumerState<ShiftDetailScreen> {
   void _confirmDeleteSale(BuildContext context, int saleId) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (ctx) => AlertDialog(
         title: const Text('Delete Entry?'),
         content: const Text('This entry will be permanently removed.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           FilledButton(
             onPressed: () async {
-              Navigator.pop(context);
+              Navigator.pop(ctx);
               await ref.read(shiftNotifierProvider.notifier).deleteSaleFromShift(saleId);
               ref.invalidate(shiftSalesProvider(widget.shiftId));
               if (context.mounted) {
@@ -280,19 +280,22 @@ class _ShiftDetailScreenState extends ConsumerState<ShiftDetailScreen> {
   void _confirmCloseShift(BuildContext context) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (ctx) => AlertDialog(
         title: const Text('Close Shift?'),
         content: const Text('This action is irreversible. All sales records will be finalized and inventory will be deducted.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           FilledButton(
             onPressed: () async {
-              Navigator.pop(context);
+              Navigator.pop(ctx);
               await ref.read(shiftNotifierProvider.notifier).closeShift(widget.shiftId, null);
               if (context.mounted) {
                 ref.invalidate(shiftSalesProvider(widget.shiftId));
                 ref.invalidate(todaySummaryProvider);
                 ref.invalidate(weeklySalesProvider);
+                ref.invalidate(weeklyExpensesProvider);
+                ref.invalidate(weeklyProfitProvider);
+                ref.invalidate(monthlySummaryProvider);
                 ref.invalidate(allInventoryProvider);
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Shift closed')));
@@ -364,6 +367,7 @@ class _AddFuelSheetState extends ConsumerState<_AddFuelSheet> {
   final _openingController = TextEditingController();
   final _closingController = TextEditingController();
   final _amountController = TextEditingController();
+  bool _isSubmitting = false;
 
   bool get _isEditing => widget.existingSale != null;
 
@@ -391,7 +395,14 @@ class _AddFuelSheetState extends ConsumerState<_AddFuelSheet> {
 
   double get _totalAmount => _quantity * _pricePerUnit;
 
-  bool get _exceedsInventory => _quantity > _availableStock && _availableStock > 0;
+  bool get _exceedsInventory {
+    if (_selectedProductId == null || _availableStock <= 0) return false;
+    final existingSales = ref.watch(shiftSalesProvider(widget.shiftId)).valueOrNull ?? [];
+    final existingQty = existingSales
+        .where((row) => row.product.id == _selectedProductId && (!_isEditing || row.sale.id != widget.existingSale?.sale.id))
+        .fold<double>(0, (sum, row) => sum + row.sale.quantitySold);
+    return (existingQty + _quantity) > _availableStock;
+  }
 
   void _updateAmount() {
     if (_totalAmount > 0) {
@@ -543,9 +554,10 @@ class _AddFuelSheetState extends ConsumerState<_AddFuelSheet> {
             ),
             const SizedBox(height: 20),
             FilledButton(
-              onPressed: (_selectedProductId == null || _quantity <= 0 || _exceedsInventory)
+              onPressed: (_selectedProductId == null || _quantity <= 0 || _exceedsInventory || _isSubmitting)
                   ? null
                   : () async {
+                      setState(() => _isSubmitting = true);
                       final amount = double.tryParse(_amountController.text) ?? _totalAmount;
                       final cash = _paymentMethod == 'cash' ? amount : 0.0;
                       final card = (_paymentMethod == 'card' || _paymentMethod == 'raast') ? amount : 0.0;
@@ -578,7 +590,7 @@ class _AddFuelSheetState extends ConsumerState<_AddFuelSheet> {
                       ref.invalidate(shiftSalesProvider(widget.shiftId));
                       if (context.mounted) Navigator.pop(context);
                     },
-              child: Text(_isEditing ? 'Update Entry' : 'Add Entry'),
+              child: _isSubmitting ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2)) : Text(_isEditing ? 'Update Entry' : 'Add Entry'),
             ),
             const SizedBox(height: 16),
           ],

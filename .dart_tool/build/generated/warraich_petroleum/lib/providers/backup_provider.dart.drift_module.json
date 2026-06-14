@@ -1,0 +1,8 @@
+{
+  "elements": {},
+  "imports": [
+    "package:flutter_riverpod/flutter_riverpod.dart",
+    "package:warraich_petroleum/services/backup_service.dart",
+    "package:warraich_petroleum/providers/database_provider.dart"
+  ]
+}

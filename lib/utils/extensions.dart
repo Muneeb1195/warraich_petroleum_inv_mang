@@ -22,8 +22,3 @@ extension DateTimeExtension on DateTime {
   DateTime get startOfMonth => DateTime(year, month);
   DateTime get endOfMonth => DateTime(year, month + 1, 0, 23, 59, 59);
 }
-
-extension DoubleExtension on double {
-  String get formatted => toStringAsFixed(2);
-  String get formattedWithCurrency => 'Rs. ${toStringAsFixed(2)}';
-}

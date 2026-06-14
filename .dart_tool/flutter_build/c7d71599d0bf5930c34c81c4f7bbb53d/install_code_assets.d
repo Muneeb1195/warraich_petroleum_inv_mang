@@ -1,0 +1,1 @@
+ /home/muneeb/Projects/com-warraich-petroleum/.dart_tool/flutter_build/c7d71599d0bf5930c34c81c4f7bbb53d/native_assets.json /home/muneeb/Projects/com-warraich-petroleum/build/native_assets/linux/libsqlite3.so:  /home/muneeb/Projects/com-warraich-petroleum/.dart_tool/hooks_runner/shared/sqlite3/build/download-fd28d20/libsqlite3.so

@@ -1,0 +1,254 @@
+{
+  "elements": {
+    "expenses": {
+      "id": {
+        "library_uri": "package:warraich_petroleum/database/tables/expenses_table.dart",
+        "name": "expenses"
+      },
+      "declaration": {
+        "source_uri": "package:warraich_petroleum/database/tables/expenses_table.dart",
+        "offset": 101,
+        "name": "Expenses"
+      },
+      "references": [
+        {
+          "library_uri": "package:warraich_petroleum/database/tables/shifts_table.dart",
+          "name": "shifts"
+        },
+        {
+          "library_uri": "package:warraich_petroleum/database/tables/employees_table.dart",
+          "name": "employees"
+        }
+      ],
+      "type": "table",
+      "columns": [
+        {
+          "sqlType": {
+            "builtin": "int"
+          },
+          "nullable": false,
+          "nameInSql": "id",
+          "nameInDart": "id",
+          "declaration": {
+            "source_uri": "package:warraich_petroleum/database/tables/expenses_table.dart",
+            "offset": 142,
+            "name": "id"
+          },
+          "typeConverter": null,
+          "clientDefaultCode": null,
+          "defaultArgument": null,
+          "overriddenJsonName": null,
+          "referenceName": null,
+          "documentationComment": null,
+          "constraints": [
+            {
+              "type": "primary",
+              "is_auto_increment": true
+            }
+          ],
+          "customConstraints": null
+        },
+        {
+          "sqlType": {
+            "builtin": "string"
+          },
+          "nullable": false,
+          "nameInSql": "category",
+          "nameInDart": "category",
+          "declaration": {
+            "source_uri": "package:warraich_petroleum/database/tables/expenses_table.dart",
+            "offset": 194,
+            "name": "category"
+          },
+          "typeConverter": null,
+          "clientDefaultCode": null,
+          "defaultArgument": null,
+          "overriddenJsonName": null,
+          "referenceName": null,
+          "documentationComment": null,
+          "constraints": [],
+          "customConstraints": null
+        },
+        {
+          "sqlType": {
+            "builtin": "double"
+          },
+          "nullable": false,
+          "nameInSql": "amount",
+          "nameInDart": "amount",
+          "declaration": {
+            "source_uri": "package:warraich_petroleum/database/tables/expenses_table.dart",
+            "offset": 300,
+            "name": "amount"
+          },
+          "typeConverter": null,
+          "clientDefaultCode": null,
+          "defaultArgument": null,
+          "overriddenJsonName": null,
+          "referenceName": null,
+          "documentationComment": null,
+          "constraints": [],
+          "customConstraints": null
+        },
+        {
+          "sqlType": {
+            "builtin": "string"
+          },
+          "nullable": true,
+          "nameInSql": "description",
+          "nameInDart": "description",
+          "declaration": {
+            "source_uri": "package:warraich_petroleum/database/tables/expenses_table.dart",
+            "offset": 337,
+            "name": "description"
+          },
+          "typeConverter": null,
+          "clientDefaultCode": null,
+          "defaultArgument": null,
+          "overriddenJsonName": null,
+          "referenceName": null,
+          "documentationComment": null,
+          "constraints": [],
+          "customConstraints": null
+        },
+        {
+          "sqlType": {
+            "builtin": "dateTime"
+          },
+          "nullable": false,
+          "nameInSql": "date",
+          "nameInDart": "date",
+          "declaration": {
+            "source_uri": "package:warraich_petroleum/database/tables/expenses_table.dart",
+            "offset": 394,
+            "name": "date"
+          },
+          "typeConverter": null,
+          "clientDefaultCode": null,
+          "defaultArgument": null,
+          "overriddenJsonName": null,
+          "referenceName": null,
+          "documentationComment": null,
+          "constraints": [],
+          "customConstraints": null
+        },
+        {
+          "sqlType": {
+            "builtin": "int"
+          },
+          "nullable": true,
+          "nameInSql": "shift_id",
+          "nameInDart": "shiftId",
+          "declaration": {
+            "source_uri": "package:warraich_petroleum/database/tables/expenses_table.dart",
+            "offset": 432,
+            "name": "shiftId"
+          },
+          "typeConverter": null,
+          "clientDefaultCode": null,
+          "defaultArgument": null,
+          "overriddenJsonName": null,
+          "referenceName": null,
+          "documentationComment": null,
+          "constraints": [
+            {
+              "type": "foreign_key",
+              "column": {
+                "table": {
+                  "library_uri": "package:warraich_petroleum/database/tables/shifts_table.dart",
+                  "name": "shifts"
+                },
+                "name": "id"
+              },
+              "onUpdate": null,
+              "onDelete": null,
+              "initiallyDeferred": false
+            }
+          ],
+          "customConstraints": null
+        },
+        {
+          "sqlType": {
+            "builtin": "int"
+          },
+          "nullable": true,
+          "nameInSql": "created_by",
+          "nameInDart": "createdBy",
+          "declaration": {
+            "source_uri": "package:warraich_petroleum/database/tables/expenses_table.dart",
+            "offset": 507,
+            "name": "createdBy"
+          },
+          "typeConverter": null,
+          "clientDefaultCode": null,
+          "defaultArgument": null,
+          "overriddenJsonName": null,
+          "referenceName": null,
+          "documentationComment": null,
+          "constraints": [
+            {
+              "type": "foreign_key",
+              "column": {
+                "table": {
+                  "library_uri": "package:warraich_petroleum/database/tables/employees_table.dart",
+                  "name": "employees"
+                },
+                "name": "id"
+              },
+              "onUpdate": null,
+              "onDelete": null,
+              "initiallyDeferred": false
+            }
+          ],
+          "customConstraints": null
+        },
+        {
+          "sqlType": {
+            "builtin": "dateTime"
+          },
+          "nullable": false,
+          "nameInSql": "created_at",
+          "nameInDart": "createdAt",
+          "declaration": {
+            "source_uri": "package:warraich_petroleum/database/tables/expenses_table.dart",
+            "offset": 592,
+            "name": "createdAt"
+          },
+          "typeConverter": null,
+          "clientDefaultCode": null,
+          "defaultArgument": {
+            "elements": [
+              {
+                "lexeme": "currentDateAndTime",
+                "import_uri": "package:drift/src/runtime/query_builder/query_builder.dart"
+              }
+            ]
+          },
+          "overriddenJsonName": null,
+          "referenceName": null,
+          "documentationComment": null,
+          "constraints": [],
+          "customConstraints": null
+        }
+      ],
+      "existing_data_class": null,
+      "table_constraints": [],
+      "custom_parent_class": null,
+      "interfaces_for_row_class": [],
+      "fixed_entity_info_name": null,
+      "base_dart_name": "Expenses",
+      "row_class_name": "Expense",
+      "companion_class_name": null,
+      "without_rowid": false,
+      "strict": false,
+      "write_default_constraints": true,
+      "custom_constraints": [],
+      "attached_indices": []
+    }
+  },
+  "imports": [
+    "package:drift/drift.dart",
+    "package:warraich_petroleum/database/tables/shifts_table.dart",
+    "package:warraich_petroleum/database/tables/employees_table.dart"
+  ]
+}

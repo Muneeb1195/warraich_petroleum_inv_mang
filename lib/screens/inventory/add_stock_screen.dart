@@ -58,7 +58,7 @@ class _AddStockScreenState extends ConsumerState<AddStockScreen> {
               onChanged: (value) {
                 setState(() => _selectedProductId = value);
                 if (value != null) {
-                  final product = products.firstWhere((p) => p.id == value);
+                  final product = products.firstWhere((p) => p.id == value, orElse: () => products.first);
                   _costController.text = product.costPerUnit.toString();
                 }
               },

@@ -17,7 +17,7 @@ String formatMoney(double value) {
   final isNegative = value < 0;
   final absVal = value.abs();
   String formatted;
-  if (absVal >= 1000000) {
+  if (absVal >= 999500) {
     formatted = 'Rs. ${(absVal / 1000000).toStringAsFixed(1)}M';
   } else if (absVal >= 1000) {
     formatted = 'Rs. ${(absVal / 1000).toStringAsFixed(1)}k';

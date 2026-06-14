@@ -139,6 +139,10 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                           shiftId: activeShiftData?.id,
                         );
                     if (context.mounted) {
+                      ref.invalidate(todaySummaryProvider);
+                      ref.invalidate(weeklyExpensesProvider);
+                      ref.invalidate(weeklyProfitProvider);
+                      ref.invalidate(monthlySummaryProvider);
                       Navigator.pop(context);
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('Expense added')),

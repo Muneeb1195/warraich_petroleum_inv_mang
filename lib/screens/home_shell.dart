@@ -150,13 +150,44 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     }
 
     return Scaffold(
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            DrawerHeader(
+              decoration: BoxDecoration(color: colorScheme.primaryContainer),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Icon(Icons.local_gas_station, size: 36, color: colorScheme.onPrimaryContainer),
+                  const SizedBox(height: 8),
+                  Text('Warraich Petroleum', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: colorScheme.onPrimaryContainer)),
+                ],
+              ),
+            ),
+            _DrawerItem(icon: Icons.people, title: 'Employees', onTap: () { Navigator.pop(context); Navigator.push(context, MaterialPageRoute(builder: (_) => const EmployeesScreen())); }),
+            _DrawerItem(icon: Icons.payments, title: 'Payroll', onTap: () { Navigator.pop(context); Navigator.push(context, MaterialPageRoute(builder: (_) => const PayrollScreen())); }),
+            _DrawerItem(icon: Icons.history, title: 'Sales History', onTap: () { Navigator.pop(context); Navigator.push(context, MaterialPageRoute(builder: (_) => const SalesHistoryScreen())); }),
+            _DrawerItem(icon: Icons.picture_as_pdf, title: 'Reports', onTap: () { Navigator.pop(context); Navigator.push(context, MaterialPageRoute(builder: (_) => const PdfReportScreen())); }),
+            const Divider(),
+            _DrawerItem(icon: Icons.settings, title: 'Settings', onTap: () { Navigator.pop(context); Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen())); }),
+          ],
+        ),
+      ),
       body: IndexedStack(
         index: _currentIndex,
         children: _mobileScreens,
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
-        onDestinationSelected: (index) => setState(() => _currentIndex = index),
+        onDestinationSelected: (index) {
+          if (index == 4) {
+            Scaffold.of(context).openDrawer();
+          } else {
+            setState(() => _currentIndex = index);
+          }
+        },
         destinations: [
           const NavigationDestination(
             icon: Icon(Icons.dashboard_outlined),
@@ -195,4 +226,17 @@ class _HomeShellState extends ConsumerState<HomeShell> {
   }
 
   ColorScheme get colorScheme => Theme.of(context).colorScheme;
+}
+
+class _DrawerItem extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final VoidCallback onTap;
+
+  const _DrawerItem({required this.icon, required this.title, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(leading: Icon(icon), title: Text(title), onTap: onTap);
+  }
 }

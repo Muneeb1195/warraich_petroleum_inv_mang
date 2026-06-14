@@ -129,11 +129,11 @@ class DashboardScreen extends ConsumerWidget {
               const SizedBox(height: 16),
               Row(
                 children: [
-                  Expanded(child: _StatCard(title: 'Sales', value: formatMoney(summary['sales']!), icon: Icons.trending_up, color: colorScheme.primary)),
+                  Expanded(child: _StatCard(title: 'Sales', value: formatMoney(summary['sales'] ?? 0), icon: Icons.trending_up, color: colorScheme.primary)),
                   const SizedBox(width: 8),
-                  Expanded(child: _StatCard(title: 'Expenses', value: formatMoney(summary['expenses']!), icon: Icons.trending_down, color: colorScheme.error)),
+                  Expanded(child: _StatCard(title: 'Expenses', value: formatMoney(summary['expenses'] ?? 0), icon: Icons.trending_down, color: colorScheme.error)),
                   const SizedBox(width: 8),
-                  Expanded(child: _StatCard(title: 'Profit', value: formatMoney(summary['profit']!), icon: Icons.account_balance_wallet, color: summary['profit']! >= 0 ? Colors.green : colorScheme.error)),
+                  Expanded(child: _StatCard(title: 'Profit', value: formatMoney(summary['profit'] ?? 0), icon: Icons.account_balance_wallet, color: (summary['profit'] ?? 0) >= 0 ? Colors.green : colorScheme.error)),
                 ],
               ),
             ],
@@ -157,11 +157,11 @@ class DashboardScreen extends ConsumerWidget {
               const SizedBox(height: 16),
               Row(
                 children: [
-                  Expanded(child: _StatCard(title: 'Sales', value: formatMoney(summary['sales']!), icon: Icons.trending_up, color: colorScheme.primary)),
+                  Expanded(child: _StatCard(title: 'Sales', value: formatMoney(summary['sales'] ?? 0), icon: Icons.trending_up, color: colorScheme.primary)),
                   const SizedBox(width: 8),
-                  Expanded(child: _StatCard(title: 'Expenses', value: formatMoney(summary['expenses']!), icon: Icons.trending_down, color: colorScheme.error)),
+                  Expanded(child: _StatCard(title: 'Expenses', value: formatMoney(summary['expenses'] ?? 0), icon: Icons.trending_down, color: colorScheme.error)),
                   const SizedBox(width: 8),
-                  Expanded(child: _StatCard(title: 'Profit', value: formatMoney(summary['profit']!), icon: Icons.account_balance_wallet, color: summary['profit']! >= 0 ? Colors.green : colorScheme.error)),
+                  Expanded(child: _StatCard(title: 'Profit', value: formatMoney(summary['profit'] ?? 0), icon: Icons.account_balance_wallet, color: (summary['profit'] ?? 0) >= 0 ? Colors.green : colorScheme.error)),
                 ],
               ),
             ],

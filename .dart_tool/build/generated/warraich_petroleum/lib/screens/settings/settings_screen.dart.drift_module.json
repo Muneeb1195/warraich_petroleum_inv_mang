@@ -1,0 +1,15 @@
+{
+  "elements": {},
+  "imports": [
+    "package:flutter/material.dart",
+    "package:flutter_riverpod/flutter_riverpod.dart",
+    "package:warraich_petroleum/providers/theme_provider.dart",
+    "package:warraich_petroleum/screens/employees/employees_screen.dart",
+    "package:warraich_petroleum/screens/payroll/payroll_screen.dart",
+    "package:warraich_petroleum/screens/history/sales_history_screen.dart",
+    "package:warraich_petroleum/screens/reports/pdf_report_screen.dart",
+    "package:warraich_petroleum/screens/settings/backup_screen.dart",
+    "package:warraich_petroleum/screens/settings/app_lock_screen.dart",
+    "package:warraich_petroleum/screens/settings/fuel_prices_screen.dart"
+  ]
+}

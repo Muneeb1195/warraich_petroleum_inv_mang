@@ -58,6 +58,8 @@ class ShiftNotifier extends StateNotifier<AsyncValue<void>> {
   Future<void> startShift(String type, {DateTime? dateTime}) async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
+      final active = await _dao.getActiveShift();
+      if (active != null) throw Exception('An active shift already exists');
       await _dao.createShift(ShiftsCompanion.insert(
         type: type,
         startDate: dateTime ?? DateTime.now(),
@@ -76,7 +78,7 @@ class ShiftNotifier extends StateNotifier<AsyncValue<void>> {
     double credit,
   ) async {
     final quantity = closingReading - openingReading;
-    final totalAmount = quantity * pricePerUnit;
+    final totalAmount = cash + card + credit;
     state = await AsyncValue.guard(() async {
       await _dao.addSaleToShift(ShiftSalesCompanion.insert(
         shiftId: shiftId,
@@ -104,7 +106,7 @@ class ShiftNotifier extends StateNotifier<AsyncValue<void>> {
     double credit,
   ) async {
     final quantity = closingReading - openingReading;
-    final totalAmount = quantity * pricePerUnit;
+    final totalAmount = cash + card + credit;
     state = await AsyncValue.guard(() async {
       await _dao.updateSaleInShift(saleId, ShiftSalesCompanion(
         shiftId: Value(shiftId),
@@ -129,6 +131,9 @@ class ShiftNotifier extends StateNotifier<AsyncValue<void>> {
   Future<void> closeShift(int shiftId, int? closedBy) async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
+      final shift = await _dao.getShiftById(shiftId);
+      if (shift == null || shift.status == 'closed') return;
+
       await _db.transaction(() async {
         final sales = await _dao.getShiftSales(shiftId);
         final totalSales = sales.fold<double>(0.0, (sum, row) => sum + row.sale.totalAmount);

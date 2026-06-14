@@ -1,0 +1,9 @@
+{
+  "elements": {},
+  "imports": [
+    "package:flutter/material.dart",
+    "package:flutter_riverpod/flutter_riverpod.dart",
+    "package:window_manager/window_manager.dart",
+    "package:warraich_petroleum/app.dart"
+  ]
+}

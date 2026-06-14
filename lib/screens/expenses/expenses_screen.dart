@@ -85,6 +85,9 @@ class ExpensesScreen extends ConsumerWidget {
                               Navigator.pop(ctx);
                               await ref.read(expenseNotifierProvider.notifier).deleteExpense(expense.id);
                               ref.invalidate(todaySummaryProvider);
+                              ref.invalidate(weeklyExpensesProvider);
+                              ref.invalidate(weeklyProfitProvider);
+                              ref.invalidate(monthlySummaryProvider);
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Expense deleted')));
                               }
