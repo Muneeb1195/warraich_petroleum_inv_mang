@@ -51,6 +51,10 @@ class PayrollDao extends DatabaseAccessor<AppDatabase> with _$PayrollDaoMixin {
         .get();
   }
 
+  Future<List<PayrollData>> getAllPayroll() async {
+    return select(payroll).get();
+  }
+
   Stream<List<PayrollRow>> watchPayroll(int month, int year) {
     final query = select(payroll).join([
       innerJoin(employees, employees.id.equalsExp(payroll.employeeId)),

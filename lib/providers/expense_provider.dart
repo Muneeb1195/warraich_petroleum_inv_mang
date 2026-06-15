@@ -44,6 +44,10 @@ class ExpenseNotifier extends StateNotifier<AsyncValue<void>> {
       );
     });
     if (id > 0) {
+      final saved = await _repo.getExpenseById(id);
+      final nowStr = saved != null
+          ? saved.updatedAt.toIso8601String()
+          : DateTime.now().toIso8601String();
       await _sync?.syncRecord('expenses', id.toString(), {
         'id': id,
         'category': category,
@@ -52,7 +56,7 @@ class ExpenseNotifier extends StateNotifier<AsyncValue<void>> {
         'date': date.toIso8601String(),
         'shiftId': shiftId,
         'createdBy': createdBy,
-        'updatedAt': DateTime.now().toIso8601String(),
+        'updatedAt': nowStr,
       });
     }
   }
@@ -74,6 +78,10 @@ class ExpenseNotifier extends StateNotifier<AsyncValue<void>> {
       shiftId: shiftId,
     ));
     if (_sync != null) {
+      final saved = await _repo.getExpenseById(id);
+      final nowStr = saved != null
+          ? saved.updatedAt.toIso8601String()
+          : DateTime.now().toIso8601String();
       await _sync.syncRecord('expenses', id.toString(), {
         'id': id,
         'category': category,
@@ -81,7 +89,7 @@ class ExpenseNotifier extends StateNotifier<AsyncValue<void>> {
         'description': description,
         'date': date.toIso8601String(),
         'shiftId': shiftId,
-        'updatedAt': DateTime.now().toIso8601String(),
+        'updatedAt': nowStr,
       });
     }
   }

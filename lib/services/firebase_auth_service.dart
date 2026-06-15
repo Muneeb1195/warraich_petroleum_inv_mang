@@ -19,6 +19,7 @@ class FirebaseAuthService {
   String? _idToken;
   String? _refreshToken;
   String? _uid;
+  DateTime? _tokenExpiresAt;
 
   final _authStateController = StreamController<bool>.broadcast();
   Stream<bool> get authStateChanges => _authStateController.stream;
@@ -144,6 +145,12 @@ class FirebaseAuthService {
       _idToken = data['idToken'] as String?;
       _refreshToken = data['refreshToken'] as String?;
       _uid = data['localId'] as String?;
+      final expiresIn = data['expiresIn'] as String?;
+      if (expiresIn != null) {
+        _tokenExpiresAt = DateTime.now().add(Duration(seconds: int.parse(expiresIn)));
+      } else {
+        _tokenExpiresAt = DateTime.now().add(const Duration(hours: 1));
+      }
       log('google_auth: exchange OK, uid=$_uid idToken=${_idToken?.substring(0, 20)}...');
       return _uid != null;
     } catch (e) {
@@ -169,6 +176,12 @@ class FirebaseAuthService {
         _idToken = data['id_token'] as String?;
         _refreshToken = data['refresh_token'] as String?;
         _uid = data['user_id'] as String?;
+        final expiresIn = data['expires_in'] as String?;
+        if (expiresIn != null) {
+          _tokenExpiresAt = DateTime.now().add(Duration(seconds: int.parse(expiresIn)));
+        } else {
+          _tokenExpiresAt = DateTime.now().add(const Duration(hours: 1));
+        }
         const storage = FlutterSecureStorage();
         if (_refreshToken != null) {
           await storage.write(key: 'firebase_refresh_token', value: _refreshToken);
@@ -203,6 +216,15 @@ class FirebaseAuthService {
     String path, {
     Object? body,
   }) async {
+    if (_idToken != null && _tokenExpiresAt != null &&
+        DateTime.now().isAfter(_tokenExpiresAt!.subtract(const Duration(minutes: 5)))) {
+      final refreshed = await _refreshIdToken();
+      if (!refreshed) {
+        log('sync_req: token refresh failed, clearing auth state');
+        return {};
+      }
+    }
+
     final url = _idToken != null
         ? '$_databaseURL/$path.json?auth=$_idToken'
         : '$_databaseURL/$path.json';
@@ -244,8 +266,9 @@ class FirebaseAuthService {
           'RTDB $method $path failed: ${response.statusCode} ${response.body}');
     }
     final decoded = jsonDecode(response.body);
+    if (decoded is Map<String, dynamic>) return decoded;
     if (decoded == null) return {};
-    return decoded as Map<String, dynamic>;
+    return {};
   }
 
   Future<bool> trySilentSignIn() async {

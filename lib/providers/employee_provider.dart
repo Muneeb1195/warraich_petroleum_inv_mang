@@ -38,6 +38,10 @@ class EmployeeNotifier extends StateNotifier<AsyncValue<void>> {
       );
     });
     if (id > 0) {
+      final saved = await _repo.getEmployeeById(id);
+      final nowStr = saved != null
+          ? saved.updatedAt.toIso8601String()
+          : DateTime.now().toIso8601String();
       await _sync?.syncRecord('employees', id.toString(), {
         'id': id,
         'name': name,
@@ -46,7 +50,7 @@ class EmployeeNotifier extends StateNotifier<AsyncValue<void>> {
         'defaultShift': defaultShift,
         'salary': salary,
         'isActive': true,
-        'updatedAt': DateTime.now().toIso8601String(),
+        'updatedAt': nowStr,
       });
     }
   }
@@ -72,7 +76,21 @@ class EmployeeNotifier extends StateNotifier<AsyncValue<void>> {
 
   Future<void> deactivateEmployee(int id) async {
     state = await AsyncValue.guard(() => _repo.deactivateEmployee(id));
-    await _sync?.deleteRecord('employees', id.toString());
+    if (_sync != null) {
+      final employee = await _repo.getEmployeeById(id);
+      if (employee != null) {
+        await _sync.syncRecord('employees', id.toString(), {
+          'id': employee.id,
+          'name': employee.name,
+          'phone': employee.phone,
+          'role': employee.role,
+          'defaultShift': employee.defaultShift,
+          'salary': employee.salary,
+          'isActive': false,
+          'updatedAt': employee.updatedAt.toIso8601String(),
+        });
+      }
+    }
   }
 }
 

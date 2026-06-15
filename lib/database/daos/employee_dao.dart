@@ -18,14 +18,16 @@ class EmployeeDao extends DatabaseAccessor<AppDatabase> with _$EmployeeDaoMixin 
     return (select(employees)..where((e) => e.isActive.equals(true))).get();
   }
 
+  Future<List<Employee>> getAllEmployeesIncludingInactive() async {
+    return select(employees).get();
+  }
+
   Stream<List<Employee>> watchAllEmployees() {
     return (select(employees)..where((e) => e.isActive.equals(true))).watch();
   }
 
   Future<void> updateEmployee(int id, EmployeesCompanion data) async {
-    await (update(employees)..where((e) => e.id.equals(id))).write(
-      data.copyWith(updatedAt: Value(DateTime.now())),
-    );
+    await (update(employees)..where((e) => e.id.equals(id))).write(data);
   }
 
   Future<void> deactivateEmployee(int id) async {

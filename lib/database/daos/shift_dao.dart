@@ -47,9 +47,7 @@ class ShiftDao extends DatabaseAccessor<AppDatabase> with _$ShiftDaoMixin {
   Future<int> addSaleToShift(ShiftSalesCompanion sale) => into(shiftSales).insert(sale);
 
   Future<void> updateSaleInShift(int saleId, ShiftSalesCompanion sale) async {
-    await (update(shiftSales)..where((s) => s.id.equals(saleId))).write(
-      sale.copyWith(updatedAt: Value(DateTime.now())),
-    );
+    await (update(shiftSales)..where((s) => s.id.equals(saleId))).write(sale);
   }
 
   Future<int> getProductIdForSale(int saleId) async {

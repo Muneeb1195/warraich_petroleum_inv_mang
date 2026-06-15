@@ -104,7 +104,10 @@ class ShiftNotifier extends StateNotifier<AsyncValue<void>> {
       );
     });
     if (id > 0) {
-      final now = DateTime.now();
+      final sale = await _repo.getSaleById(id);
+      final nowStr = sale != null
+          ? sale.updatedAt.toIso8601String()
+          : DateTime.now().toIso8601String();
       await _sync?.syncRecord('shift_sales', id.toString(), {
         'id': id,
         'shiftId': shiftId,
@@ -116,7 +119,7 @@ class ShiftNotifier extends StateNotifier<AsyncValue<void>> {
         'cashCollected': cash,
         'cardCollected': card,
         'creditCollected': credit,
-        'updatedAt': now.toIso8601String(),
+        'updatedAt': nowStr,
       });
     }
   }
@@ -141,7 +144,10 @@ class ShiftNotifier extends StateNotifier<AsyncValue<void>> {
       pricePerUnit, cash, card, credit,
     ));
     if (_sync != null) {
-      final now = DateTime.now();
+      final sale = await _repo.getSaleById(saleId);
+      final nowStr = sale != null
+          ? sale.updatedAt.toIso8601String()
+          : DateTime.now().toIso8601String();
       await _sync.syncRecord('shift_sales', saleId.toString(), {
         'id': saleId,
         'shiftId': shiftId,
@@ -153,7 +159,7 @@ class ShiftNotifier extends StateNotifier<AsyncValue<void>> {
         'cashCollected': cash,
         'cardCollected': card,
         'creditCollected': credit,
-        'updatedAt': now.toIso8601String(),
+        'updatedAt': nowStr,
       });
     }
   }

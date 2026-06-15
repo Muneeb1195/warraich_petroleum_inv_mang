@@ -47,9 +47,7 @@ class ExpenseDao extends DatabaseAccessor<AppDatabase> with _$ExpenseDaoMixin {
   }
 
   Future<void> updateExpense(int id, ExpensesCompanion expense) async {
-    await (update(expenses)..where((e) => e.id.equals(id))).write(
-      expense.copyWith(updatedAt: Value(DateTime.now())),
-    );
+    await (update(expenses)..where((e) => e.id.equals(id))).write(expense);
   }
 
   Future<Expense?> getExpenseById(int id) async {

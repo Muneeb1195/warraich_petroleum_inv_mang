@@ -45,6 +45,8 @@ class ExpenseRepository {
     await _dao.deleteExpense(id);
   }
 
+  Future<Expense?> getExpenseById(int id) => _dao.getExpenseById(id);
+
   Stream<List<Expense>> watchAll() => _dao.watchAllExpenses();
 
   Future<Map<String, double>> getSummaryByCategory(DateTime start, DateTime end) =>

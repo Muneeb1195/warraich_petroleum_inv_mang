@@ -12,6 +12,10 @@ class ProductDao extends DatabaseAccessor<AppDatabase> with _$ProductDaoMixin {
     return (select(products)..where((p) => p.isActive.equals(true))).get();
   }
 
+  Future<List<Product>> getAllProductsIncludingInactive() async {
+    return select(products).get();
+  }
+
   Stream<List<Product>> watchAllProducts() {
     return (select(products)..where((p) => p.isActive.equals(true))).watch();
   }

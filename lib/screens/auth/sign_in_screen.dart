@@ -42,8 +42,11 @@ class SignInScreen extends ConsumerWidget {
                   final auth = ref.read(firebaseAuthServiceProvider);
                   final signedIn = await auth.signInWithGoogle();
                   if (signedIn && context.mounted) {
-                    // Wait for auth state to propagate, then trigger full sync
-                    await Future.microtask(() {});
+                    final deadline = DateTime.now().add(const Duration(seconds: 10));
+                    while (ref.read(firebaseAuthUidProvider) == null &&
+                        DateTime.now().isBefore(deadline)) {
+                      await Future.delayed(const Duration(milliseconds: 50));
+                    }
                     ref.invalidate(syncInitializerProvider);
                     await ref.read(syncInitializerProvider.future);
                     ref.read(authStateProvider.notifier).unlock();
