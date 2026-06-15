@@ -2,7 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
-import 'package:google_sign_in_all_platforms/google_sign_in_all_platforms.dart';
+import 'package:google_sign_in_all_platforms/google_sign_in_all_platforms.dart' as gsap;
+import 'package:google_sign_in/google_sign_in.dart' as gs;
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import '../config/app_config.dart';
@@ -12,31 +13,93 @@ class BackupService {
   static const _folderName = 'WarraichPetroleum';
   static const _httpTimeout = Duration(seconds: 60);
 
-  late final GoogleSignIn _googleSignIn = GoogleSignIn(
-    params: const GoogleSignInParams(
-      clientId: AppConfig.googleClientId,
-      clientSecret: AppConfig.googleClientSecret,
-      scopes: [
+  gsap.GoogleSignIn? _desktopSignIn;
+  gsap.GoogleSignInCredentials? _credentials;
+  gs.GoogleSignInAccount? _androidAccount;
+  bool _androidInitialized = false;
+
+  gsap.GoogleSignIn get _getDesktopSignIn =>
+      _desktopSignIn ??= gsap.GoogleSignIn(
+        params: gsap.GoogleSignInParams(
+          clientId: AppConfig.googleClientId,
+          clientSecret: AppConfig.googleClientSecret,
+          scopes: [
+            'https://www.googleapis.com/auth/drive.file',
+            'https://www.googleapis.com/auth/drive.appdata',
+          ],
+        ),
+      );
+
+  Future<void> _initAndroid() async {
+    if (!_androidInitialized) {
+      await gs.GoogleSignIn.instance.initialize();
+      _androidInitialized = true;
+    }
+  }
+
+  Future<String?> _getAndroidToken() async {
+    if (_androidAccount == null) return null;
+    try {
+      final authz = await _androidAccount!.authorizationClient.authorizeScopes([
         'https://www.googleapis.com/auth/drive.file',
         'https://www.googleapis.com/auth/drive.appdata',
-      ],
-    ),
-  );
-
-  GoogleSignInCredentials? _credentials;
+      ]);
+      return authz.accessToken;
+    } catch (_) {
+      return null;
+    }
+  }
 
   Future<Map<String, String>> _getHeaders() async {
     try {
-      _credentials ??= await _googleSignIn.silentSignIn();
-      _credentials ??= await _googleSignIn.signIn();
+      if (Platform.isAndroid) {
+        await _initAndroid();
+        final token = await _getAndroidToken();
+        if (token != null) {
+          return {'Authorization': 'Bearer $token', 'Content-Type': 'application/json'};
+        }
+      } else {
+        _credentials ??= await _getDesktopSignIn.silentSignIn();
+        if (_credentials != null) {
+          return {'Authorization': 'Bearer ${_credentials!.accessToken}', 'Content-Type': 'application/json'};
+        }
+      }
+    } catch (_) {}
+    return {};
+  }
+
+  Future<bool> signIn() async {
+    try {
+      if (Platform.isAndroid) {
+        await _initAndroid();
+        _androidAccount = await gs.GoogleSignIn.instance.authenticate();
+        if (_androidAccount != null) {
+          final token = await _getAndroidToken();
+          return token != null;
+        }
+        return false;
+      } else {
+        _credentials = await _getDesktopSignIn.signIn();
+        return _credentials != null;
+      }
     } catch (e) {
-      return {};
+      return false;
     }
-    if (_credentials == null) return {};
-    return {
-      'Authorization': 'Bearer ${_credentials!.accessToken}',
-      'Content-Type': 'application/json',
-    };
+  }
+
+  Future<void> signOut() async {
+    try {
+      if (Platform.isAndroid) {
+        await gs.GoogleSignIn.instance.signOut();
+        _androidAccount = null;
+      } else {
+        await _getDesktopSignIn.signOut();
+        _credentials = null;
+      }
+    } catch (_) {
+      _androidAccount = null;
+      _credentials = null;
+    }
   }
 
   Future<String?> _getFolderId() async {
@@ -236,24 +299,6 @@ class BackupService {
         return true;
       }
       return false;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  Future<void> signOut() async {
-    try {
-      await _googleSignIn.signOut();
-      _credentials = null;
-    } catch (e) {
-      _credentials = null;
-    }
-  }
-
-  Future<bool> signIn() async {
-    try {
-      _credentials = await _googleSignIn.signIn();
-      return _credentials != null;
     } catch (e) {
       return false;
     }
