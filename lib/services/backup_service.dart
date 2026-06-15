@@ -307,11 +307,20 @@ class BackupService {
       log('backup: restoreFromId status=${downloadResponse.statusCode}');
       if (downloadResponse.statusCode == 200) {
         final dir = await getApplicationDocumentsDirectory();
-        final file = File(p.join(dir.path, 'warraich_petroleum.db'));
+        final dbPath = p.join(dir.path, 'warraich_petroleum.db');
+        // Delete WAL/SHM sidecar files before overwriting
+        try {
+          await File('$dbPath-wal').delete();
+        } catch (_) {}
+        try {
+          await File('$dbPath-shm').delete();
+        } catch (_) {}
+        final file = File(dbPath);
         await file.writeAsBytes(downloadResponse.bodyBytes);
         log('backup: restoreFromId wrote ${downloadResponse.bodyBytes.length} bytes');
         return true;
       }
+      log('backup: restoreFromId HTTP ${downloadResponse.statusCode}: ${downloadResponse.body}');
       return false;
     } catch (e) {
       log('backup: restoreFromId error: $e');
@@ -353,9 +362,16 @@ class BackupService {
       if (files.isEmpty) return null;
 
       final latest = files.first;
-      final dbFile = File(p.join(dir.path, 'warraich_petroleum.db'));
-      await latest.copy(dbFile.path);
-      return dbFile;
+      final dbPath = p.join(dir.path, 'warraich_petroleum.db');
+      // Delete WAL/SHM sidecar files before overwriting
+      try {
+        await File('$dbPath-wal').delete();
+      } catch (_) {}
+      try {
+        await File('$dbPath-shm').delete();
+      } catch (_) {}
+      await latest.copy(dbPath);
+      return File(dbPath);
     } catch (e) {
       return null;
     }

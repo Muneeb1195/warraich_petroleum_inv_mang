@@ -145,14 +145,21 @@ class BackupNotifier extends StateNotifier<AsyncValue<void>> {
     if (state.isLoading) return false;
     state = const AsyncValue.loading();
     try {
+      // Close DB and clean up WAL/SHM files
       try {
         final db = _ref.read(databaseProvider);
         await db.close();
       } catch (_) {}
+      try {
+        final dir = await getApplicationDocumentsDirectory();
+        final dbPath = p.join(dir.path, 'warraich_petroleum.db');
+        await File('$dbPath-wal').delete();
+        await File('$dbPath-shm').delete();
+      } catch (_) {}
 
       final result = await _service.restoreFromId(fileId);
 
-      // Always recreate DB connection since we closed it above
+      // Always recreate DB connection
       _ref.invalidate(databaseProvider);
 
       state = result
