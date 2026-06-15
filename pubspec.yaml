@@ -46,6 +46,8 @@ dependencies:
   package_info_plus: ^10.1.0
   riverpod_generator: ^4.0.4
   riverpod_annotation: ^4.0.3
+  google_sign_in_all_platforms_desktop: ^0.2.0
+  google_sign_in: ^7.2.0
 
 dev_dependencies:
   flutter_test:
