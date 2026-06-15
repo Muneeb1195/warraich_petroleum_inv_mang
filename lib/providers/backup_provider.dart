@@ -145,11 +145,12 @@ class BackupNotifier extends StateNotifier<AsyncValue<void>> {
     if (state.isLoading) return false;
     state = const AsyncValue.loading();
     try {
-      // Close DB and clean up WAL/SHM files
+      // Close DB with timeout — don't let it hang forever
       try {
         final db = _ref.read(databaseProvider);
-        await db.close();
+        await db.close().timeout(const Duration(seconds: 5));
       } catch (_) {}
+      // Clean up WAL/SHM files
       try {
         final dir = await getApplicationDocumentsDirectory();
         final dbPath = p.join(dir.path, 'warraich_petroleum.db');
@@ -192,9 +193,17 @@ class BackupNotifier extends StateNotifier<AsyncValue<void>> {
     if (state.isLoading) return false;
     state = const AsyncValue.loading();
     try {
+      // Close DB with timeout
       try {
         final db = _ref.read(databaseProvider);
-        await db.close();
+        await db.close().timeout(const Duration(seconds: 5));
+      } catch (_) {}
+      // Clean up WAL/SHM
+      try {
+        final dir = await getApplicationDocumentsDirectory();
+        final dbPath = p.join(dir.path, 'warraich_petroleum.db');
+        await File('$dbPath-wal').delete();
+        await File('$dbPath-shm').delete();
       } catch (_) {}
 
       File? result;
@@ -202,7 +211,7 @@ class BackupNotifier extends StateNotifier<AsyncValue<void>> {
         result = await _service.localRestore();
       } catch (_) {}
 
-      // Always recreate DB connection since we closed it above
+      // Always recreate DB connection
       _ref.invalidate(databaseProvider);
 
       state = result != null
