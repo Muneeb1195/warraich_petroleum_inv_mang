@@ -52,10 +52,15 @@ class BackupNotifier extends StateNotifier<AsyncValue<void>> {
 
       final dir = await getApplicationDocumentsDirectory();
       final dbFile = File(p.join(dir.path, 'warraich_petroleum.db'));
+      if (!dbFile.existsSync()) return;
 
-      // WAL checkpoint to flush pending writes — no need to close the connection
-      final db = _ref.read(databaseProvider);
-      await db.customStatement('PRAGMA wal_checkpoint(TRUNCATE)');
+      // WAL checkpoint — wrapped in try-catch in case DB is corrupted
+      try {
+        final db = _ref.read(databaseProvider);
+        await db.customStatement('PRAGMA wal_checkpoint(TRUNCATE)');
+      } catch (_) {
+        return; // Skip backup if DB is in bad state
+      }
 
       final cloudResult = await _service.backupDatabase(dbFile);
       if (cloudResult) {
@@ -86,6 +91,7 @@ class BackupNotifier extends StateNotifier<AsyncValue<void>> {
   }
 
   Future<bool> backupDatabase(File dbFile) async {
+    if (state.isLoading) return false;
     state = const AsyncValue.loading();
     try {
       final db = _ref.read(databaseProvider);
@@ -136,24 +142,32 @@ class BackupNotifier extends StateNotifier<AsyncValue<void>> {
   }
 
   Future<bool> restoreCloudBackup(String fileId) async {
+    if (state.isLoading) return false;
     state = const AsyncValue.loading();
     try {
-      final db = _ref.read(databaseProvider);
-      await db.close();
-    } catch (_) {}
+      try {
+        final db = _ref.read(databaseProvider);
+        await db.close();
+      } catch (_) {}
 
-    final result = await _service.restoreFromId(fileId);
+      final result = await _service.restoreFromId(fileId);
 
-    // Always recreate DB connection since we closed it above
-    _ref.invalidate(databaseProvider);
+      // Always recreate DB connection since we closed it above
+      _ref.invalidate(databaseProvider);
 
-    state = result
-        ? const AsyncValue.data(null)
-        : const AsyncValue.error('Cloud restore failed', StackTrace.empty);
-    return result;
+      state = result
+          ? const AsyncValue.data(null)
+          : const AsyncValue.error('Cloud restore failed', StackTrace.empty);
+      return result;
+    } catch (e) {
+      _ref.invalidate(databaseProvider);
+      state = const AsyncValue.error('Cloud restore failed', StackTrace.empty);
+      return false;
+    }
   }
 
   Future<bool> localBackup(File dbFile) async {
+    if (state.isLoading) return false;
     state = const AsyncValue.loading();
     try {
       final db = _ref.read(databaseProvider);
@@ -168,24 +182,31 @@ class BackupNotifier extends StateNotifier<AsyncValue<void>> {
   }
 
   Future<bool> localRestore() async {
+    if (state.isLoading) return false;
     state = const AsyncValue.loading();
     try {
-      final db = _ref.read(databaseProvider);
-      await db.close();
-    } catch (_) {}
+      try {
+        final db = _ref.read(databaseProvider);
+        await db.close();
+      } catch (_) {}
 
-    File? result;
-    try {
-      result = await _service.localRestore();
-    } catch (_) {}
+      File? result;
+      try {
+        result = await _service.localRestore();
+      } catch (_) {}
 
-    // Always recreate DB connection since we closed it above
-    _ref.invalidate(databaseProvider);
+      // Always recreate DB connection since we closed it above
+      _ref.invalidate(databaseProvider);
 
-    state = result != null
-        ? const AsyncValue.data(null)
-        : const AsyncValue.error('Local restore failed', StackTrace.empty);
-    return result != null;
+      state = result != null
+          ? const AsyncValue.data(null)
+          : const AsyncValue.error('Local restore failed', StackTrace.empty);
+      return result != null;
+    } catch (e) {
+      _ref.invalidate(databaseProvider);
+      state = const AsyncValue.error('Local restore failed', StackTrace.empty);
+      return false;
+    }
   }
 }
 
