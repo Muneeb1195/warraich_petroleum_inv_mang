@@ -43,7 +43,8 @@ jobs:
         run: |
           flutter build apk --release --target-platform android-arm64 \
             --dart-define=GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }} \
-            --dart-define=GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
+            --dart-define=GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }} \
+            --dart-define=FIREBASE_API_KEY=${{ secrets.FIREBASE_API_KEY }}
 
       - name: Upload APK to Release
         uses: softprops/action-gh-release@v2
@@ -76,7 +77,8 @@ jobs:
         run: |
           flutter build linux --release \
             --dart-define=GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }} \
-            --dart-define=GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
+            --dart-define=GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }} \
+            --dart-define=FIREBASE_API_KEY=${{ secrets.FIREBASE_API_KEY }}
 
       - name: Package Linux Build
         run: tar -czf linux-desktop.tar.gz -C build/linux/x64/release/bundle .
@@ -109,7 +111,8 @@ jobs:
         run: |
           flutter build windows --release \
             --dart-define=GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }} \
-            --dart-define=GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
+            --dart-define=GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }} \
+            --dart-define=FIREBASE_API_KEY=${{ secrets.FIREBASE_API_KEY }}
 
       - name: Package Windows Build
         shell: bash
