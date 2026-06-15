@@ -7,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 
 import 'tables/tables.dart';
 import 'daos/daos.dart';
+export 'daos/daos.dart';
 
 part 'app_database.g.dart';
 
@@ -34,7 +35,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase({QueryExecutor? executor}) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -53,8 +54,39 @@ class AppDatabase extends _$AppDatabase {
           if (from < 3) {
             await m.addColumn(inventory, inventory.maxStock);
           }
+          if (from < 4) {
+            await _ensureUpdatedAtColumns(m);
+          }
+          if (from < 5) {
+            await _ensureUpdatedAtColumns(m);
+          }
         },
       );
+
+  Future<void> _ensureUpdatedAtColumns(Migrator m) async {
+    for (final col in [
+      (shifts as TableInfo, shifts.updatedAt),
+      (shiftSales as TableInfo, shiftSales.updatedAt),
+      (expenses as TableInfo, expenses.updatedAt),
+      (products as TableInfo, products.updatedAt),
+      (employees as TableInfo, employees.updatedAt),
+      (payroll as TableInfo, payroll.updatedAt),
+    ]) {
+      final name = col.$1.actualTableName;
+      final has = await (m.database.customSelect(
+        'PRAGMA table_info($name)',
+      )).get().then((rows) =>
+          rows.any((r) => r.data['name'] == 'updated_at'));
+      if (!has) {
+        // Use raw SQL with constant default — SQLite rejects
+        // non-constant defaults (like CAST(strftime(...))) in
+        // ALTER TABLE ADD COLUMN.
+        await m.database.customStatement(
+          'ALTER TABLE $name ADD COLUMN updated_at INTEGER NOT NULL DEFAULT 0',
+        );
+      }
+    }
+  }
 
   Future<void> _seedProducts() async {
     await transaction(() async {

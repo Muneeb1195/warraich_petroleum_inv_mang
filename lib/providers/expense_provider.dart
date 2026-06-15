@@ -1,25 +1,28 @@
-import 'package:drift/drift.dart' show Value;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import '../database/app_database.dart';
-import '../database/daos/expense_dao.dart';
+import '../repositories/expense_repository.dart';
+import '../services/sync_service.dart';
 import 'database_provider.dart';
+import 'sync_provider.dart';
 
-final expenseDaoProvider = Provider<ExpenseDao>((ref) {
-  return ref.watch(databaseProvider).expenseDao;
+final expenseRepositoryProvider = Provider<ExpenseRepository>((ref) {
+  return ExpenseRepository(ref.watch(databaseProvider).expenseDao);
 });
 
 final allExpensesProvider = StreamProvider<List<Expense>>((ref) {
-  return ref.watch(expenseDaoProvider).watchAllExpenses();
+  return ref.watch(expenseRepositoryProvider).watchAll();
 });
 
 final expenseSummaryProvider = FutureProvider.family<Map<String, double>, ({DateTime start, DateTime end})>((ref, dates) {
-  return ref.watch(expenseDaoProvider).getExpenseSummaryByCategory(dates.start, dates.end);
+  return ref.watch(expenseRepositoryProvider).getSummaryByCategory(dates.start, dates.end);
 });
 
 class ExpenseNotifier extends StateNotifier<AsyncValue<void>> {
-  final ExpenseDao _dao;
+  final ExpenseRepository _repo;
+  final SyncService? _sync;
 
-  ExpenseNotifier(this._dao) : super(const AsyncValue.data(null));
+  ExpenseNotifier(this._repo, this._sync) : super(const AsyncValue.data(null));
 
   Future<void> addExpense({
     required String category,
@@ -29,25 +32,69 @@ class ExpenseNotifier extends StateNotifier<AsyncValue<void>> {
     int? shiftId,
     int? createdBy,
   }) async {
+    int id = 0;
     state = await AsyncValue.guard(() async {
-      await _dao.addExpense(ExpensesCompanion.insert(
+      id = await _repo.addExpense(
         category: category,
         amount: amount,
-        description: Value(description),
+        description: description,
         date: date,
-        shiftId: Value(shiftId),
-        createdBy: Value(createdBy),
-      ));
+        shiftId: shiftId,
+        createdBy: createdBy,
+      );
     });
+    if (id > 0) {
+      await _sync?.syncRecord('expenses', id.toString(), {
+        'id': id,
+        'category': category,
+        'amount': amount,
+        'description': description,
+        'date': date.toIso8601String(),
+        'shiftId': shiftId,
+        'createdBy': createdBy,
+        'updatedAt': DateTime.now().toIso8601String(),
+      });
+    }
+  }
+
+  Future<void> updateExpense({
+    required int id,
+    required String category,
+    required double amount,
+    String? description,
+    required DateTime date,
+    int? shiftId,
+  }) async {
+    state = await AsyncValue.guard(() => _repo.updateExpense(
+      id: id,
+      category: category,
+      amount: amount,
+      description: description,
+      date: date,
+      shiftId: shiftId,
+    ));
+    if (_sync != null) {
+      await _sync.syncRecord('expenses', id.toString(), {
+        'id': id,
+        'category': category,
+        'amount': amount,
+        'description': description,
+        'date': date.toIso8601String(),
+        'shiftId': shiftId,
+        'updatedAt': DateTime.now().toIso8601String(),
+      });
+    }
   }
 
   Future<void> deleteExpense(int id) async {
-    state = await AsyncValue.guard(() async {
-      await _dao.deleteExpense(id);
-    });
+    state = await AsyncValue.guard(() => _repo.deleteExpense(id));
+    await _sync?.deleteRecord('expenses', id.toString());
   }
 }
 
 final expenseNotifierProvider = StateNotifierProvider<ExpenseNotifier, AsyncValue<void>>((ref) {
-  return ExpenseNotifier(ref.watch(expenseDaoProvider));
+  return ExpenseNotifier(
+    ref.watch(expenseRepositoryProvider),
+    ref.read(syncServiceProvider),
+  );
 });

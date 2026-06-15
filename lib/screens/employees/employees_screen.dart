@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/employee_provider.dart';
 import '../../utils/constants.dart';
+import '../../utils/error_utils.dart';
 
 class EmployeesScreen extends ConsumerWidget {
   const EmployeesScreen({super.key});
@@ -37,12 +38,15 @@ class EmployeesScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Employees')),
+      body: RefreshIndicator(
+        onRefresh: () async { ref.invalidate(allEmployeesProvider); },
+        child: _isWide(context) ? Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 1000), child: body)) : body,
+      ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AddEmployeeScreen())),
         icon: const Icon(Icons.person_add),
         label: const Text('Add Employee'),
       ),
-      body: _isWide(context) ? Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 1000), child: body)) : body,
     );
   }
 }
@@ -130,10 +134,10 @@ class _AddEmployeeScreenState extends ConsumerState<AddEmployeeScreen> {
                   );
                   if (context.mounted) {
                     Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Employee added')));
+                    context.showSuccess('Employee added');
                   }
                 } catch (e) {
-                  if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to add employee: $e')));
+                  if (context.mounted) context.showError(e, source: 'addEmployee');
                 }
               },
               child: employeeState.isLoading ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2)) : const Text('Add Employee'),

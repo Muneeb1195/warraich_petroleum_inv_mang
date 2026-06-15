@@ -93,6 +93,18 @@ class $ProductsTable extends Products with TableInfo<$ProductsTable, Product> {
     ),
     defaultValue: const Constant(true),
   );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -102,6 +114,7 @@ class $ProductsTable extends Products with TableInfo<$ProductsTable, Product> {
     pricePerUnit,
     costPerUnit,
     isActive,
+    updatedAt,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -166,6 +179,12 @@ class $ProductsTable extends Products with TableInfo<$ProductsTable, Product> {
         isActive.isAcceptableOrUnknown(data['is_active']!, _isActiveMeta),
       );
     }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
     return context;
   }
 
@@ -203,6 +222,10 @@ class $ProductsTable extends Products with TableInfo<$ProductsTable, Product> {
         DriftSqlType.bool,
         data['${effectivePrefix}is_active'],
       )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
     );
   }
 
@@ -220,6 +243,7 @@ class Product extends DataClass implements Insertable<Product> {
   final double pricePerUnit;
   final double costPerUnit;
   final bool isActive;
+  final DateTime updatedAt;
   const Product({
     required this.id,
     required this.name,
@@ -228,6 +252,7 @@ class Product extends DataClass implements Insertable<Product> {
     required this.pricePerUnit,
     required this.costPerUnit,
     required this.isActive,
+    required this.updatedAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -239,6 +264,7 @@ class Product extends DataClass implements Insertable<Product> {
     map['price_per_unit'] = Variable<double>(pricePerUnit);
     map['cost_per_unit'] = Variable<double>(costPerUnit);
     map['is_active'] = Variable<bool>(isActive);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
   }
 
@@ -251,6 +277,7 @@ class Product extends DataClass implements Insertable<Product> {
       pricePerUnit: Value(pricePerUnit),
       costPerUnit: Value(costPerUnit),
       isActive: Value(isActive),
+      updatedAt: Value(updatedAt),
     );
   }
 
@@ -267,6 +294,7 @@ class Product extends DataClass implements Insertable<Product> {
       pricePerUnit: serializer.fromJson<double>(json['pricePerUnit']),
       costPerUnit: serializer.fromJson<double>(json['costPerUnit']),
       isActive: serializer.fromJson<bool>(json['isActive']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
   }
   @override
@@ -280,6 +308,7 @@ class Product extends DataClass implements Insertable<Product> {
       'pricePerUnit': serializer.toJson<double>(pricePerUnit),
       'costPerUnit': serializer.toJson<double>(costPerUnit),
       'isActive': serializer.toJson<bool>(isActive),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
   }
 
@@ -291,6 +320,7 @@ class Product extends DataClass implements Insertable<Product> {
     double? pricePerUnit,
     double? costPerUnit,
     bool? isActive,
+    DateTime? updatedAt,
   }) => Product(
     id: id ?? this.id,
     name: name ?? this.name,
@@ -299,6 +329,7 @@ class Product extends DataClass implements Insertable<Product> {
     pricePerUnit: pricePerUnit ?? this.pricePerUnit,
     costPerUnit: costPerUnit ?? this.costPerUnit,
     isActive: isActive ?? this.isActive,
+    updatedAt: updatedAt ?? this.updatedAt,
   );
   Product copyWithCompanion(ProductsCompanion data) {
     return Product(
@@ -313,6 +344,7 @@ class Product extends DataClass implements Insertable<Product> {
           ? data.costPerUnit.value
           : this.costPerUnit,
       isActive: data.isActive.present ? data.isActive.value : this.isActive,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
 
@@ -325,7 +357,8 @@ class Product extends DataClass implements Insertable<Product> {
           ..write('unit: $unit, ')
           ..write('pricePerUnit: $pricePerUnit, ')
           ..write('costPerUnit: $costPerUnit, ')
-          ..write('isActive: $isActive')
+          ..write('isActive: $isActive, ')
+          ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
   }
@@ -339,6 +372,7 @@ class Product extends DataClass implements Insertable<Product> {
     pricePerUnit,
     costPerUnit,
     isActive,
+    updatedAt,
   );
   @override
   bool operator ==(Object other) =>
@@ -350,7 +384,8 @@ class Product extends DataClass implements Insertable<Product> {
           other.unit == this.unit &&
           other.pricePerUnit == this.pricePerUnit &&
           other.costPerUnit == this.costPerUnit &&
-          other.isActive == this.isActive);
+          other.isActive == this.isActive &&
+          other.updatedAt == this.updatedAt);
 }
 
 class ProductsCompanion extends UpdateCompanion<Product> {
@@ -361,6 +396,7 @@ class ProductsCompanion extends UpdateCompanion<Product> {
   final Value<double> pricePerUnit;
   final Value<double> costPerUnit;
   final Value<bool> isActive;
+  final Value<DateTime> updatedAt;
   const ProductsCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
@@ -369,6 +405,7 @@ class ProductsCompanion extends UpdateCompanion<Product> {
     this.pricePerUnit = const Value.absent(),
     this.costPerUnit = const Value.absent(),
     this.isActive = const Value.absent(),
+    this.updatedAt = const Value.absent(),
   });
   ProductsCompanion.insert({
     this.id = const Value.absent(),
@@ -378,6 +415,7 @@ class ProductsCompanion extends UpdateCompanion<Product> {
     this.pricePerUnit = const Value.absent(),
     this.costPerUnit = const Value.absent(),
     this.isActive = const Value.absent(),
+    this.updatedAt = const Value.absent(),
   }) : name = Value(name),
        category = Value(category),
        unit = Value(unit);
@@ -389,6 +427,7 @@ class ProductsCompanion extends UpdateCompanion<Product> {
     Expression<double>? pricePerUnit,
     Expression<double>? costPerUnit,
     Expression<bool>? isActive,
+    Expression<DateTime>? updatedAt,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -398,6 +437,7 @@ class ProductsCompanion extends UpdateCompanion<Product> {
       if (pricePerUnit != null) 'price_per_unit': pricePerUnit,
       if (costPerUnit != null) 'cost_per_unit': costPerUnit,
       if (isActive != null) 'is_active': isActive,
+      if (updatedAt != null) 'updated_at': updatedAt,
     });
   }
 
@@ -409,6 +449,7 @@ class ProductsCompanion extends UpdateCompanion<Product> {
     Value<double>? pricePerUnit,
     Value<double>? costPerUnit,
     Value<bool>? isActive,
+    Value<DateTime>? updatedAt,
   }) {
     return ProductsCompanion(
       id: id ?? this.id,
@@ -418,6 +459,7 @@ class ProductsCompanion extends UpdateCompanion<Product> {
       pricePerUnit: pricePerUnit ?? this.pricePerUnit,
       costPerUnit: costPerUnit ?? this.costPerUnit,
       isActive: isActive ?? this.isActive,
+      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 
@@ -445,6 +487,9 @@ class ProductsCompanion extends UpdateCompanion<Product> {
     if (isActive.present) {
       map['is_active'] = Variable<bool>(isActive.value);
     }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
     return map;
   }
 
@@ -457,7 +502,8 @@ class ProductsCompanion extends UpdateCompanion<Product> {
           ..write('unit: $unit, ')
           ..write('pricePerUnit: $pricePerUnit, ')
           ..write('costPerUnit: $costPerUnit, ')
-          ..write('isActive: $isActive')
+          ..write('isActive: $isActive, ')
+          ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
   }
@@ -1473,6 +1519,18 @@ class $EmployeesTable extends Employees
     ),
     defaultValue: const Constant(true),
   );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -1483,6 +1541,7 @@ class $EmployeesTable extends Employees
     salary,
     joiningDate,
     isActive,
+    updatedAt,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1551,6 +1610,12 @@ class $EmployeesTable extends Employees
         isActive.isAcceptableOrUnknown(data['is_active']!, _isActiveMeta),
       );
     }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
     return context;
   }
 
@@ -1592,6 +1657,10 @@ class $EmployeesTable extends Employees
         DriftSqlType.bool,
         data['${effectivePrefix}is_active'],
       )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
     );
   }
 
@@ -1610,6 +1679,7 @@ class Employee extends DataClass implements Insertable<Employee> {
   final double salary;
   final DateTime joiningDate;
   final bool isActive;
+  final DateTime updatedAt;
   const Employee({
     required this.id,
     required this.name,
@@ -1619,6 +1689,7 @@ class Employee extends DataClass implements Insertable<Employee> {
     required this.salary,
     required this.joiningDate,
     required this.isActive,
+    required this.updatedAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1633,6 +1704,7 @@ class Employee extends DataClass implements Insertable<Employee> {
     map['salary'] = Variable<double>(salary);
     map['joining_date'] = Variable<DateTime>(joiningDate);
     map['is_active'] = Variable<bool>(isActive);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
   }
 
@@ -1648,6 +1720,7 @@ class Employee extends DataClass implements Insertable<Employee> {
       salary: Value(salary),
       joiningDate: Value(joiningDate),
       isActive: Value(isActive),
+      updatedAt: Value(updatedAt),
     );
   }
 
@@ -1665,6 +1738,7 @@ class Employee extends DataClass implements Insertable<Employee> {
       salary: serializer.fromJson<double>(json['salary']),
       joiningDate: serializer.fromJson<DateTime>(json['joiningDate']),
       isActive: serializer.fromJson<bool>(json['isActive']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
   }
   @override
@@ -1679,6 +1753,7 @@ class Employee extends DataClass implements Insertable<Employee> {
       'salary': serializer.toJson<double>(salary),
       'joiningDate': serializer.toJson<DateTime>(joiningDate),
       'isActive': serializer.toJson<bool>(isActive),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
   }
 
@@ -1691,6 +1766,7 @@ class Employee extends DataClass implements Insertable<Employee> {
     double? salary,
     DateTime? joiningDate,
     bool? isActive,
+    DateTime? updatedAt,
   }) => Employee(
     id: id ?? this.id,
     name: name ?? this.name,
@@ -1700,6 +1776,7 @@ class Employee extends DataClass implements Insertable<Employee> {
     salary: salary ?? this.salary,
     joiningDate: joiningDate ?? this.joiningDate,
     isActive: isActive ?? this.isActive,
+    updatedAt: updatedAt ?? this.updatedAt,
   );
   Employee copyWithCompanion(EmployeesCompanion data) {
     return Employee(
@@ -1715,6 +1792,7 @@ class Employee extends DataClass implements Insertable<Employee> {
           ? data.joiningDate.value
           : this.joiningDate,
       isActive: data.isActive.present ? data.isActive.value : this.isActive,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
 
@@ -1728,7 +1806,8 @@ class Employee extends DataClass implements Insertable<Employee> {
           ..write('defaultShift: $defaultShift, ')
           ..write('salary: $salary, ')
           ..write('joiningDate: $joiningDate, ')
-          ..write('isActive: $isActive')
+          ..write('isActive: $isActive, ')
+          ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
   }
@@ -1743,6 +1822,7 @@ class Employee extends DataClass implements Insertable<Employee> {
     salary,
     joiningDate,
     isActive,
+    updatedAt,
   );
   @override
   bool operator ==(Object other) =>
@@ -1755,7 +1835,8 @@ class Employee extends DataClass implements Insertable<Employee> {
           other.defaultShift == this.defaultShift &&
           other.salary == this.salary &&
           other.joiningDate == this.joiningDate &&
-          other.isActive == this.isActive);
+          other.isActive == this.isActive &&
+          other.updatedAt == this.updatedAt);
 }
 
 class EmployeesCompanion extends UpdateCompanion<Employee> {
@@ -1767,6 +1848,7 @@ class EmployeesCompanion extends UpdateCompanion<Employee> {
   final Value<double> salary;
   final Value<DateTime> joiningDate;
   final Value<bool> isActive;
+  final Value<DateTime> updatedAt;
   const EmployeesCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
@@ -1776,6 +1858,7 @@ class EmployeesCompanion extends UpdateCompanion<Employee> {
     this.salary = const Value.absent(),
     this.joiningDate = const Value.absent(),
     this.isActive = const Value.absent(),
+    this.updatedAt = const Value.absent(),
   });
   EmployeesCompanion.insert({
     this.id = const Value.absent(),
@@ -1786,6 +1869,7 @@ class EmployeesCompanion extends UpdateCompanion<Employee> {
     this.salary = const Value.absent(),
     this.joiningDate = const Value.absent(),
     this.isActive = const Value.absent(),
+    this.updatedAt = const Value.absent(),
   }) : name = Value(name),
        role = Value(role);
   static Insertable<Employee> custom({
@@ -1797,6 +1881,7 @@ class EmployeesCompanion extends UpdateCompanion<Employee> {
     Expression<double>? salary,
     Expression<DateTime>? joiningDate,
     Expression<bool>? isActive,
+    Expression<DateTime>? updatedAt,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -1807,6 +1892,7 @@ class EmployeesCompanion extends UpdateCompanion<Employee> {
       if (salary != null) 'salary': salary,
       if (joiningDate != null) 'joining_date': joiningDate,
       if (isActive != null) 'is_active': isActive,
+      if (updatedAt != null) 'updated_at': updatedAt,
     });
   }
 
@@ -1819,6 +1905,7 @@ class EmployeesCompanion extends UpdateCompanion<Employee> {
     Value<double>? salary,
     Value<DateTime>? joiningDate,
     Value<bool>? isActive,
+    Value<DateTime>? updatedAt,
   }) {
     return EmployeesCompanion(
       id: id ?? this.id,
@@ -1829,6 +1916,7 @@ class EmployeesCompanion extends UpdateCompanion<Employee> {
       salary: salary ?? this.salary,
       joiningDate: joiningDate ?? this.joiningDate,
       isActive: isActive ?? this.isActive,
+      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 
@@ -1859,6 +1947,9 @@ class EmployeesCompanion extends UpdateCompanion<Employee> {
     if (isActive.present) {
       map['is_active'] = Variable<bool>(isActive.value);
     }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
     return map;
   }
 
@@ -1872,7 +1963,8 @@ class EmployeesCompanion extends UpdateCompanion<Employee> {
           ..write('defaultShift: $defaultShift, ')
           ..write('salary: $salary, ')
           ..write('joiningDate: $joiningDate, ')
-          ..write('isActive: $isActive')
+          ..write('isActive: $isActive, ')
+          ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
   }
@@ -1984,6 +2076,18 @@ class $ShiftsTable extends Shifts with TableInfo<$ShiftsTable, Shift> {
       'REFERENCES employees (id)',
     ),
   );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -1995,6 +2099,7 @@ class $ShiftsTable extends Shifts with TableInfo<$ShiftsTable, Shift> {
     totalExpenses,
     notes,
     closedBy,
+    updatedAt,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -2066,6 +2171,12 @@ class $ShiftsTable extends Shifts with TableInfo<$ShiftsTable, Shift> {
         closedBy.isAcceptableOrUnknown(data['closed_by']!, _closedByMeta),
       );
     }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
     return context;
   }
 
@@ -2111,6 +2222,10 @@ class $ShiftsTable extends Shifts with TableInfo<$ShiftsTable, Shift> {
         DriftSqlType.int,
         data['${effectivePrefix}closed_by'],
       ),
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
     );
   }
 
@@ -2130,6 +2245,7 @@ class Shift extends DataClass implements Insertable<Shift> {
   final double totalExpenses;
   final String? notes;
   final int? closedBy;
+  final DateTime updatedAt;
   const Shift({
     required this.id,
     required this.type,
@@ -2140,6 +2256,7 @@ class Shift extends DataClass implements Insertable<Shift> {
     required this.totalExpenses,
     this.notes,
     this.closedBy,
+    required this.updatedAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -2159,6 +2276,7 @@ class Shift extends DataClass implements Insertable<Shift> {
     if (!nullToAbsent || closedBy != null) {
       map['closed_by'] = Variable<int>(closedBy);
     }
+    map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
   }
 
@@ -2179,6 +2297,7 @@ class Shift extends DataClass implements Insertable<Shift> {
       closedBy: closedBy == null && nullToAbsent
           ? const Value.absent()
           : Value(closedBy),
+      updatedAt: Value(updatedAt),
     );
   }
 
@@ -2197,6 +2316,7 @@ class Shift extends DataClass implements Insertable<Shift> {
       totalExpenses: serializer.fromJson<double>(json['totalExpenses']),
       notes: serializer.fromJson<String?>(json['notes']),
       closedBy: serializer.fromJson<int?>(json['closedBy']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
   }
   @override
@@ -2212,6 +2332,7 @@ class Shift extends DataClass implements Insertable<Shift> {
       'totalExpenses': serializer.toJson<double>(totalExpenses),
       'notes': serializer.toJson<String?>(notes),
       'closedBy': serializer.toJson<int?>(closedBy),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
   }
 
@@ -2225,6 +2346,7 @@ class Shift extends DataClass implements Insertable<Shift> {
     double? totalExpenses,
     Value<String?> notes = const Value.absent(),
     Value<int?> closedBy = const Value.absent(),
+    DateTime? updatedAt,
   }) => Shift(
     id: id ?? this.id,
     type: type ?? this.type,
@@ -2235,6 +2357,7 @@ class Shift extends DataClass implements Insertable<Shift> {
     totalExpenses: totalExpenses ?? this.totalExpenses,
     notes: notes.present ? notes.value : this.notes,
     closedBy: closedBy.present ? closedBy.value : this.closedBy,
+    updatedAt: updatedAt ?? this.updatedAt,
   );
   Shift copyWithCompanion(ShiftsCompanion data) {
     return Shift(
@@ -2251,6 +2374,7 @@ class Shift extends DataClass implements Insertable<Shift> {
           : this.totalExpenses,
       notes: data.notes.present ? data.notes.value : this.notes,
       closedBy: data.closedBy.present ? data.closedBy.value : this.closedBy,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
 
@@ -2265,7 +2389,8 @@ class Shift extends DataClass implements Insertable<Shift> {
           ..write('totalSales: $totalSales, ')
           ..write('totalExpenses: $totalExpenses, ')
           ..write('notes: $notes, ')
-          ..write('closedBy: $closedBy')
+          ..write('closedBy: $closedBy, ')
+          ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
   }
@@ -2281,6 +2406,7 @@ class Shift extends DataClass implements Insertable<Shift> {
     totalExpenses,
     notes,
     closedBy,
+    updatedAt,
   );
   @override
   bool operator ==(Object other) =>
@@ -2294,7 +2420,8 @@ class Shift extends DataClass implements Insertable<Shift> {
           other.totalSales == this.totalSales &&
           other.totalExpenses == this.totalExpenses &&
           other.notes == this.notes &&
-          other.closedBy == this.closedBy);
+          other.closedBy == this.closedBy &&
+          other.updatedAt == this.updatedAt);
 }
 
 class ShiftsCompanion extends UpdateCompanion<Shift> {
@@ -2307,6 +2434,7 @@ class ShiftsCompanion extends UpdateCompanion<Shift> {
   final Value<double> totalExpenses;
   final Value<String?> notes;
   final Value<int?> closedBy;
+  final Value<DateTime> updatedAt;
   const ShiftsCompanion({
     this.id = const Value.absent(),
     this.type = const Value.absent(),
@@ -2317,6 +2445,7 @@ class ShiftsCompanion extends UpdateCompanion<Shift> {
     this.totalExpenses = const Value.absent(),
     this.notes = const Value.absent(),
     this.closedBy = const Value.absent(),
+    this.updatedAt = const Value.absent(),
   });
   ShiftsCompanion.insert({
     this.id = const Value.absent(),
@@ -2328,6 +2457,7 @@ class ShiftsCompanion extends UpdateCompanion<Shift> {
     this.totalExpenses = const Value.absent(),
     this.notes = const Value.absent(),
     this.closedBy = const Value.absent(),
+    this.updatedAt = const Value.absent(),
   }) : type = Value(type),
        startDate = Value(startDate);
   static Insertable<Shift> custom({
@@ -2340,6 +2470,7 @@ class ShiftsCompanion extends UpdateCompanion<Shift> {
     Expression<double>? totalExpenses,
     Expression<String>? notes,
     Expression<int>? closedBy,
+    Expression<DateTime>? updatedAt,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -2351,6 +2482,7 @@ class ShiftsCompanion extends UpdateCompanion<Shift> {
       if (totalExpenses != null) 'total_expenses': totalExpenses,
       if (notes != null) 'notes': notes,
       if (closedBy != null) 'closed_by': closedBy,
+      if (updatedAt != null) 'updated_at': updatedAt,
     });
   }
 
@@ -2364,6 +2496,7 @@ class ShiftsCompanion extends UpdateCompanion<Shift> {
     Value<double>? totalExpenses,
     Value<String?>? notes,
     Value<int?>? closedBy,
+    Value<DateTime>? updatedAt,
   }) {
     return ShiftsCompanion(
       id: id ?? this.id,
@@ -2375,6 +2508,7 @@ class ShiftsCompanion extends UpdateCompanion<Shift> {
       totalExpenses: totalExpenses ?? this.totalExpenses,
       notes: notes ?? this.notes,
       closedBy: closedBy ?? this.closedBy,
+      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 
@@ -2408,6 +2542,9 @@ class ShiftsCompanion extends UpdateCompanion<Shift> {
     if (closedBy.present) {
       map['closed_by'] = Variable<int>(closedBy.value);
     }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
     return map;
   }
 
@@ -2422,7 +2559,8 @@ class ShiftsCompanion extends UpdateCompanion<Shift> {
           ..write('totalSales: $totalSales, ')
           ..write('totalExpenses: $totalExpenses, ')
           ..write('notes: $notes, ')
-          ..write('closedBy: $closedBy')
+          ..write('closedBy: $closedBy, ')
+          ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
   }
@@ -2559,6 +2697,18 @@ class $ShiftSalesTable extends ShiftSales
     requiredDuringInsert: false,
     defaultValue: const Constant(0),
   );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -2571,6 +2721,7 @@ class $ShiftSalesTable extends ShiftSales
     cashCollected,
     cardCollected,
     creditCollected,
+    updatedAt,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -2666,6 +2817,12 @@ class $ShiftSalesTable extends ShiftSales
         ),
       );
     }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
     return context;
   }
 
@@ -2715,6 +2872,10 @@ class $ShiftSalesTable extends ShiftSales
         DriftSqlType.double,
         data['${effectivePrefix}credit_collected'],
       )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
     );
   }
 
@@ -2735,6 +2896,7 @@ class ShiftSale extends DataClass implements Insertable<ShiftSale> {
   final double cashCollected;
   final double cardCollected;
   final double creditCollected;
+  final DateTime updatedAt;
   const ShiftSale({
     required this.id,
     required this.shiftId,
@@ -2746,6 +2908,7 @@ class ShiftSale extends DataClass implements Insertable<ShiftSale> {
     required this.cashCollected,
     required this.cardCollected,
     required this.creditCollected,
+    required this.updatedAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -2760,6 +2923,7 @@ class ShiftSale extends DataClass implements Insertable<ShiftSale> {
     map['cash_collected'] = Variable<double>(cashCollected);
     map['card_collected'] = Variable<double>(cardCollected);
     map['credit_collected'] = Variable<double>(creditCollected);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
   }
 
@@ -2775,6 +2939,7 @@ class ShiftSale extends DataClass implements Insertable<ShiftSale> {
       cashCollected: Value(cashCollected),
       cardCollected: Value(cardCollected),
       creditCollected: Value(creditCollected),
+      updatedAt: Value(updatedAt),
     );
   }
 
@@ -2794,6 +2959,7 @@ class ShiftSale extends DataClass implements Insertable<ShiftSale> {
       cashCollected: serializer.fromJson<double>(json['cashCollected']),
       cardCollected: serializer.fromJson<double>(json['cardCollected']),
       creditCollected: serializer.fromJson<double>(json['creditCollected']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
   }
   @override
@@ -2810,6 +2976,7 @@ class ShiftSale extends DataClass implements Insertable<ShiftSale> {
       'cashCollected': serializer.toJson<double>(cashCollected),
       'cardCollected': serializer.toJson<double>(cardCollected),
       'creditCollected': serializer.toJson<double>(creditCollected),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
   }
 
@@ -2824,6 +2991,7 @@ class ShiftSale extends DataClass implements Insertable<ShiftSale> {
     double? cashCollected,
     double? cardCollected,
     double? creditCollected,
+    DateTime? updatedAt,
   }) => ShiftSale(
     id: id ?? this.id,
     shiftId: shiftId ?? this.shiftId,
@@ -2835,6 +3003,7 @@ class ShiftSale extends DataClass implements Insertable<ShiftSale> {
     cashCollected: cashCollected ?? this.cashCollected,
     cardCollected: cardCollected ?? this.cardCollected,
     creditCollected: creditCollected ?? this.creditCollected,
+    updatedAt: updatedAt ?? this.updatedAt,
   );
   ShiftSale copyWithCompanion(ShiftSalesCompanion data) {
     return ShiftSale(
@@ -2862,6 +3031,7 @@ class ShiftSale extends DataClass implements Insertable<ShiftSale> {
       creditCollected: data.creditCollected.present
           ? data.creditCollected.value
           : this.creditCollected,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
 
@@ -2877,7 +3047,8 @@ class ShiftSale extends DataClass implements Insertable<ShiftSale> {
           ..write('totalAmount: $totalAmount, ')
           ..write('cashCollected: $cashCollected, ')
           ..write('cardCollected: $cardCollected, ')
-          ..write('creditCollected: $creditCollected')
+          ..write('creditCollected: $creditCollected, ')
+          ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
   }
@@ -2894,6 +3065,7 @@ class ShiftSale extends DataClass implements Insertable<ShiftSale> {
     cashCollected,
     cardCollected,
     creditCollected,
+    updatedAt,
   );
   @override
   bool operator ==(Object other) =>
@@ -2908,7 +3080,8 @@ class ShiftSale extends DataClass implements Insertable<ShiftSale> {
           other.totalAmount == this.totalAmount &&
           other.cashCollected == this.cashCollected &&
           other.cardCollected == this.cardCollected &&
-          other.creditCollected == this.creditCollected);
+          other.creditCollected == this.creditCollected &&
+          other.updatedAt == this.updatedAt);
 }
 
 class ShiftSalesCompanion extends UpdateCompanion<ShiftSale> {
@@ -2922,6 +3095,7 @@ class ShiftSalesCompanion extends UpdateCompanion<ShiftSale> {
   final Value<double> cashCollected;
   final Value<double> cardCollected;
   final Value<double> creditCollected;
+  final Value<DateTime> updatedAt;
   const ShiftSalesCompanion({
     this.id = const Value.absent(),
     this.shiftId = const Value.absent(),
@@ -2933,6 +3107,7 @@ class ShiftSalesCompanion extends UpdateCompanion<ShiftSale> {
     this.cashCollected = const Value.absent(),
     this.cardCollected = const Value.absent(),
     this.creditCollected = const Value.absent(),
+    this.updatedAt = const Value.absent(),
   });
   ShiftSalesCompanion.insert({
     this.id = const Value.absent(),
@@ -2945,6 +3120,7 @@ class ShiftSalesCompanion extends UpdateCompanion<ShiftSale> {
     this.cashCollected = const Value.absent(),
     this.cardCollected = const Value.absent(),
     this.creditCollected = const Value.absent(),
+    this.updatedAt = const Value.absent(),
   }) : shiftId = Value(shiftId),
        productId = Value(productId);
   static Insertable<ShiftSale> custom({
@@ -2958,6 +3134,7 @@ class ShiftSalesCompanion extends UpdateCompanion<ShiftSale> {
     Expression<double>? cashCollected,
     Expression<double>? cardCollected,
     Expression<double>? creditCollected,
+    Expression<DateTime>? updatedAt,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -2970,6 +3147,7 @@ class ShiftSalesCompanion extends UpdateCompanion<ShiftSale> {
       if (cashCollected != null) 'cash_collected': cashCollected,
       if (cardCollected != null) 'card_collected': cardCollected,
       if (creditCollected != null) 'credit_collected': creditCollected,
+      if (updatedAt != null) 'updated_at': updatedAt,
     });
   }
 
@@ -2984,6 +3162,7 @@ class ShiftSalesCompanion extends UpdateCompanion<ShiftSale> {
     Value<double>? cashCollected,
     Value<double>? cardCollected,
     Value<double>? creditCollected,
+    Value<DateTime>? updatedAt,
   }) {
     return ShiftSalesCompanion(
       id: id ?? this.id,
@@ -2996,6 +3175,7 @@ class ShiftSalesCompanion extends UpdateCompanion<ShiftSale> {
       cashCollected: cashCollected ?? this.cashCollected,
       cardCollected: cardCollected ?? this.cardCollected,
       creditCollected: creditCollected ?? this.creditCollected,
+      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 
@@ -3032,6 +3212,9 @@ class ShiftSalesCompanion extends UpdateCompanion<ShiftSale> {
     if (creditCollected.present) {
       map['credit_collected'] = Variable<double>(creditCollected.value);
     }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
     return map;
   }
 
@@ -3047,7 +3230,8 @@ class ShiftSalesCompanion extends UpdateCompanion<ShiftSale> {
           ..write('totalAmount: $totalAmount, ')
           ..write('cashCollected: $cashCollected, ')
           ..write('cardCollected: $cardCollected, ')
-          ..write('creditCollected: $creditCollected')
+          ..write('creditCollected: $creditCollected, ')
+          ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
   }
@@ -3151,6 +3335,18 @@ class $ExpensesTable extends Expenses with TableInfo<$ExpensesTable, Expense> {
     requiredDuringInsert: false,
     defaultValue: currentDateAndTime,
   );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -3161,6 +3357,7 @@ class $ExpensesTable extends Expenses with TableInfo<$ExpensesTable, Expense> {
     shiftId,
     createdBy,
     createdAt,
+    updatedAt,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -3228,6 +3425,12 @@ class $ExpensesTable extends Expenses with TableInfo<$ExpensesTable, Expense> {
         createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
       );
     }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
     return context;
   }
 
@@ -3269,6 +3472,10 @@ class $ExpensesTable extends Expenses with TableInfo<$ExpensesTable, Expense> {
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
       )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
     );
   }
 
@@ -3287,6 +3494,7 @@ class Expense extends DataClass implements Insertable<Expense> {
   final int? shiftId;
   final int? createdBy;
   final DateTime createdAt;
+  final DateTime updatedAt;
   const Expense({
     required this.id,
     required this.category,
@@ -3296,6 +3504,7 @@ class Expense extends DataClass implements Insertable<Expense> {
     this.shiftId,
     this.createdBy,
     required this.createdAt,
+    required this.updatedAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -3314,6 +3523,7 @@ class Expense extends DataClass implements Insertable<Expense> {
       map['created_by'] = Variable<int>(createdBy);
     }
     map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
   }
 
@@ -3333,6 +3543,7 @@ class Expense extends DataClass implements Insertable<Expense> {
           ? const Value.absent()
           : Value(createdBy),
       createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
     );
   }
 
@@ -3350,6 +3561,7 @@ class Expense extends DataClass implements Insertable<Expense> {
       shiftId: serializer.fromJson<int?>(json['shiftId']),
       createdBy: serializer.fromJson<int?>(json['createdBy']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
   }
   @override
@@ -3364,6 +3576,7 @@ class Expense extends DataClass implements Insertable<Expense> {
       'shiftId': serializer.toJson<int?>(shiftId),
       'createdBy': serializer.toJson<int?>(createdBy),
       'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
   }
 
@@ -3376,6 +3589,7 @@ class Expense extends DataClass implements Insertable<Expense> {
     Value<int?> shiftId = const Value.absent(),
     Value<int?> createdBy = const Value.absent(),
     DateTime? createdAt,
+    DateTime? updatedAt,
   }) => Expense(
     id: id ?? this.id,
     category: category ?? this.category,
@@ -3385,6 +3599,7 @@ class Expense extends DataClass implements Insertable<Expense> {
     shiftId: shiftId.present ? shiftId.value : this.shiftId,
     createdBy: createdBy.present ? createdBy.value : this.createdBy,
     createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
   );
   Expense copyWithCompanion(ExpensesCompanion data) {
     return Expense(
@@ -3398,6 +3613,7 @@ class Expense extends DataClass implements Insertable<Expense> {
       shiftId: data.shiftId.present ? data.shiftId.value : this.shiftId,
       createdBy: data.createdBy.present ? data.createdBy.value : this.createdBy,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
 
@@ -3411,7 +3627,8 @@ class Expense extends DataClass implements Insertable<Expense> {
           ..write('date: $date, ')
           ..write('shiftId: $shiftId, ')
           ..write('createdBy: $createdBy, ')
-          ..write('createdAt: $createdAt')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
   }
@@ -3426,6 +3643,7 @@ class Expense extends DataClass implements Insertable<Expense> {
     shiftId,
     createdBy,
     createdAt,
+    updatedAt,
   );
   @override
   bool operator ==(Object other) =>
@@ -3438,7 +3656,8 @@ class Expense extends DataClass implements Insertable<Expense> {
           other.date == this.date &&
           other.shiftId == this.shiftId &&
           other.createdBy == this.createdBy &&
-          other.createdAt == this.createdAt);
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
 }
 
 class ExpensesCompanion extends UpdateCompanion<Expense> {
@@ -3450,6 +3669,7 @@ class ExpensesCompanion extends UpdateCompanion<Expense> {
   final Value<int?> shiftId;
   final Value<int?> createdBy;
   final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
   const ExpensesCompanion({
     this.id = const Value.absent(),
     this.category = const Value.absent(),
@@ -3459,6 +3679,7 @@ class ExpensesCompanion extends UpdateCompanion<Expense> {
     this.shiftId = const Value.absent(),
     this.createdBy = const Value.absent(),
     this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
   });
   ExpensesCompanion.insert({
     this.id = const Value.absent(),
@@ -3469,6 +3690,7 @@ class ExpensesCompanion extends UpdateCompanion<Expense> {
     this.shiftId = const Value.absent(),
     this.createdBy = const Value.absent(),
     this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
   }) : category = Value(category),
        amount = Value(amount),
        date = Value(date);
@@ -3481,6 +3703,7 @@ class ExpensesCompanion extends UpdateCompanion<Expense> {
     Expression<int>? shiftId,
     Expression<int>? createdBy,
     Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -3491,6 +3714,7 @@ class ExpensesCompanion extends UpdateCompanion<Expense> {
       if (shiftId != null) 'shift_id': shiftId,
       if (createdBy != null) 'created_by': createdBy,
       if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
     });
   }
 
@@ -3503,6 +3727,7 @@ class ExpensesCompanion extends UpdateCompanion<Expense> {
     Value<int?>? shiftId,
     Value<int?>? createdBy,
     Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
   }) {
     return ExpensesCompanion(
       id: id ?? this.id,
@@ -3513,6 +3738,7 @@ class ExpensesCompanion extends UpdateCompanion<Expense> {
       shiftId: shiftId ?? this.shiftId,
       createdBy: createdBy ?? this.createdBy,
       createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 
@@ -3543,6 +3769,9 @@ class ExpensesCompanion extends UpdateCompanion<Expense> {
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
     return map;
   }
 
@@ -3556,7 +3785,8 @@ class ExpensesCompanion extends UpdateCompanion<Expense> {
           ..write('date: $date, ')
           ..write('shiftId: $shiftId, ')
           ..write('createdBy: $createdBy, ')
-          ..write('createdAt: $createdAt')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
   }
@@ -3701,6 +3931,18 @@ class $PayrollTable extends Payroll with TableInfo<$PayrollTable, PayrollData> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -3715,6 +3957,7 @@ class $PayrollTable extends Payroll with TableInfo<$PayrollTable, PayrollData> {
     isPaid,
     paidDate,
     notes,
+    updatedAt,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -3807,6 +4050,12 @@ class $PayrollTable extends Payroll with TableInfo<$PayrollTable, PayrollData> {
         notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
       );
     }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
     return context;
   }
 
@@ -3864,6 +4113,10 @@ class $PayrollTable extends Payroll with TableInfo<$PayrollTable, PayrollData> {
         DriftSqlType.string,
         data['${effectivePrefix}notes'],
       ),
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
     );
   }
 
@@ -3886,6 +4139,7 @@ class PayrollData extends DataClass implements Insertable<PayrollData> {
   final bool isPaid;
   final DateTime? paidDate;
   final String? notes;
+  final DateTime updatedAt;
   const PayrollData({
     required this.id,
     required this.employeeId,
@@ -3899,6 +4153,7 @@ class PayrollData extends DataClass implements Insertable<PayrollData> {
     required this.isPaid,
     this.paidDate,
     this.notes,
+    required this.updatedAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -3919,6 +4174,7 @@ class PayrollData extends DataClass implements Insertable<PayrollData> {
     if (!nullToAbsent || notes != null) {
       map['notes'] = Variable<String>(notes);
     }
+    map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
   }
 
@@ -3940,6 +4196,7 @@ class PayrollData extends DataClass implements Insertable<PayrollData> {
       notes: notes == null && nullToAbsent
           ? const Value.absent()
           : Value(notes),
+      updatedAt: Value(updatedAt),
     );
   }
 
@@ -3961,6 +4218,7 @@ class PayrollData extends DataClass implements Insertable<PayrollData> {
       isPaid: serializer.fromJson<bool>(json['isPaid']),
       paidDate: serializer.fromJson<DateTime?>(json['paidDate']),
       notes: serializer.fromJson<String?>(json['notes']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
   }
   @override
@@ -3979,6 +4237,7 @@ class PayrollData extends DataClass implements Insertable<PayrollData> {
       'isPaid': serializer.toJson<bool>(isPaid),
       'paidDate': serializer.toJson<DateTime?>(paidDate),
       'notes': serializer.toJson<String?>(notes),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
   }
 
@@ -3995,6 +4254,7 @@ class PayrollData extends DataClass implements Insertable<PayrollData> {
     bool? isPaid,
     Value<DateTime?> paidDate = const Value.absent(),
     Value<String?> notes = const Value.absent(),
+    DateTime? updatedAt,
   }) => PayrollData(
     id: id ?? this.id,
     employeeId: employeeId ?? this.employeeId,
@@ -4008,6 +4268,7 @@ class PayrollData extends DataClass implements Insertable<PayrollData> {
     isPaid: isPaid ?? this.isPaid,
     paidDate: paidDate.present ? paidDate.value : this.paidDate,
     notes: notes.present ? notes.value : this.notes,
+    updatedAt: updatedAt ?? this.updatedAt,
   );
   PayrollData copyWithCompanion(PayrollCompanion data) {
     return PayrollData(
@@ -4029,6 +4290,7 @@ class PayrollData extends DataClass implements Insertable<PayrollData> {
       isPaid: data.isPaid.present ? data.isPaid.value : this.isPaid,
       paidDate: data.paidDate.present ? data.paidDate.value : this.paidDate,
       notes: data.notes.present ? data.notes.value : this.notes,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
 
@@ -4046,7 +4308,8 @@ class PayrollData extends DataClass implements Insertable<PayrollData> {
           ..write('netPay: $netPay, ')
           ..write('isPaid: $isPaid, ')
           ..write('paidDate: $paidDate, ')
-          ..write('notes: $notes')
+          ..write('notes: $notes, ')
+          ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
   }
@@ -4065,6 +4328,7 @@ class PayrollData extends DataClass implements Insertable<PayrollData> {
     isPaid,
     paidDate,
     notes,
+    updatedAt,
   );
   @override
   bool operator ==(Object other) =>
@@ -4081,7 +4345,8 @@ class PayrollData extends DataClass implements Insertable<PayrollData> {
           other.netPay == this.netPay &&
           other.isPaid == this.isPaid &&
           other.paidDate == this.paidDate &&
-          other.notes == this.notes);
+          other.notes == this.notes &&
+          other.updatedAt == this.updatedAt);
 }
 
 class PayrollCompanion extends UpdateCompanion<PayrollData> {
@@ -4097,6 +4362,7 @@ class PayrollCompanion extends UpdateCompanion<PayrollData> {
   final Value<bool> isPaid;
   final Value<DateTime?> paidDate;
   final Value<String?> notes;
+  final Value<DateTime> updatedAt;
   const PayrollCompanion({
     this.id = const Value.absent(),
     this.employeeId = const Value.absent(),
@@ -4110,6 +4376,7 @@ class PayrollCompanion extends UpdateCompanion<PayrollData> {
     this.isPaid = const Value.absent(),
     this.paidDate = const Value.absent(),
     this.notes = const Value.absent(),
+    this.updatedAt = const Value.absent(),
   });
   PayrollCompanion.insert({
     this.id = const Value.absent(),
@@ -4124,6 +4391,7 @@ class PayrollCompanion extends UpdateCompanion<PayrollData> {
     this.isPaid = const Value.absent(),
     this.paidDate = const Value.absent(),
     this.notes = const Value.absent(),
+    this.updatedAt = const Value.absent(),
   }) : employeeId = Value(employeeId),
        month = Value(month),
        year = Value(year),
@@ -4142,6 +4410,7 @@ class PayrollCompanion extends UpdateCompanion<PayrollData> {
     Expression<bool>? isPaid,
     Expression<DateTime>? paidDate,
     Expression<String>? notes,
+    Expression<DateTime>? updatedAt,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -4156,6 +4425,7 @@ class PayrollCompanion extends UpdateCompanion<PayrollData> {
       if (isPaid != null) 'is_paid': isPaid,
       if (paidDate != null) 'paid_date': paidDate,
       if (notes != null) 'notes': notes,
+      if (updatedAt != null) 'updated_at': updatedAt,
     });
   }
 
@@ -4172,6 +4442,7 @@ class PayrollCompanion extends UpdateCompanion<PayrollData> {
     Value<bool>? isPaid,
     Value<DateTime?>? paidDate,
     Value<String?>? notes,
+    Value<DateTime>? updatedAt,
   }) {
     return PayrollCompanion(
       id: id ?? this.id,
@@ -4186,6 +4457,7 @@ class PayrollCompanion extends UpdateCompanion<PayrollData> {
       isPaid: isPaid ?? this.isPaid,
       paidDate: paidDate ?? this.paidDate,
       notes: notes ?? this.notes,
+      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 
@@ -4228,6 +4500,9 @@ class PayrollCompanion extends UpdateCompanion<PayrollData> {
     if (notes.present) {
       map['notes'] = Variable<String>(notes.value);
     }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
     return map;
   }
 
@@ -4245,7 +4520,8 @@ class PayrollCompanion extends UpdateCompanion<PayrollData> {
           ..write('netPay: $netPay, ')
           ..write('isPaid: $isPaid, ')
           ..write('paidDate: $paidDate, ')
-          ..write('notes: $notes')
+          ..write('notes: $notes, ')
+          ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
   }
@@ -4503,6 +4779,7 @@ typedef $$ProductsTableCreateCompanionBuilder =
       Value<double> pricePerUnit,
       Value<double> costPerUnit,
       Value<bool> isActive,
+      Value<DateTime> updatedAt,
     });
 typedef $$ProductsTableUpdateCompanionBuilder =
     ProductsCompanion Function({
@@ -4513,6 +4790,7 @@ typedef $$ProductsTableUpdateCompanionBuilder =
       Value<double> pricePerUnit,
       Value<double> costPerUnit,
       Value<bool> isActive,
+      Value<DateTime> updatedAt,
     });
 
 final class $$ProductsTableReferences
@@ -4622,6 +4900,11 @@ class $$ProductsTableFilterComposer
 
   ColumnFilters<bool> get isActive => $composableBuilder(
     column: $table.isActive,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -4745,6 +5028,11 @@ class $$ProductsTableOrderingComposer
     column: $table.isActive,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$ProductsTableAnnotationComposer
@@ -4780,6 +5068,9 @@ class $$ProductsTableAnnotationComposer
 
   GeneratedColumn<bool> get isActive =>
       $composableBuilder(column: $table.isActive, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 
   Expression<T> inventoryRefs<T extends Object>(
     Expression<T> Function($$InventoryTableAnnotationComposer a) f,
@@ -4897,6 +5188,7 @@ class $$ProductsTableTableManager
                 Value<double> pricePerUnit = const Value.absent(),
                 Value<double> costPerUnit = const Value.absent(),
                 Value<bool> isActive = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
               }) => ProductsCompanion(
                 id: id,
                 name: name,
@@ -4905,6 +5197,7 @@ class $$ProductsTableTableManager
                 pricePerUnit: pricePerUnit,
                 costPerUnit: costPerUnit,
                 isActive: isActive,
+                updatedAt: updatedAt,
               ),
           createCompanionCallback:
               ({
@@ -4915,6 +5208,7 @@ class $$ProductsTableTableManager
                 Value<double> pricePerUnit = const Value.absent(),
                 Value<double> costPerUnit = const Value.absent(),
                 Value<bool> isActive = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
               }) => ProductsCompanion.insert(
                 id: id,
                 name: name,
@@ -4923,6 +5217,7 @@ class $$ProductsTableTableManager
                 pricePerUnit: pricePerUnit,
                 costPerUnit: costPerUnit,
                 isActive: isActive,
+                updatedAt: updatedAt,
               ),
           withReferenceMapper: (p0) => p0
               .map(
@@ -5773,6 +6068,7 @@ typedef $$EmployeesTableCreateCompanionBuilder =
       Value<double> salary,
       Value<DateTime> joiningDate,
       Value<bool> isActive,
+      Value<DateTime> updatedAt,
     });
 typedef $$EmployeesTableUpdateCompanionBuilder =
     EmployeesCompanion Function({
@@ -5784,6 +6080,7 @@ typedef $$EmployeesTableUpdateCompanionBuilder =
       Value<double> salary,
       Value<DateTime> joiningDate,
       Value<bool> isActive,
+      Value<DateTime> updatedAt,
     });
 
 final class $$EmployeesTableReferences
@@ -5893,6 +6190,11 @@ class $$EmployeesTableFilterComposer
 
   ColumnFilters<bool> get isActive => $composableBuilder(
     column: $table.isActive,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -6020,6 +6322,11 @@ class $$EmployeesTableOrderingComposer
     column: $table.isActive,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$EmployeesTableAnnotationComposer
@@ -6058,6 +6365,9 @@ class $$EmployeesTableAnnotationComposer
 
   GeneratedColumn<bool> get isActive =>
       $composableBuilder(column: $table.isActive, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 
   Expression<T> shiftsRefs<T extends Object>(
     Expression<T> Function($$ShiftsTableAnnotationComposer a) f,
@@ -6175,6 +6485,7 @@ class $$EmployeesTableTableManager
                 Value<double> salary = const Value.absent(),
                 Value<DateTime> joiningDate = const Value.absent(),
                 Value<bool> isActive = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
               }) => EmployeesCompanion(
                 id: id,
                 name: name,
@@ -6184,6 +6495,7 @@ class $$EmployeesTableTableManager
                 salary: salary,
                 joiningDate: joiningDate,
                 isActive: isActive,
+                updatedAt: updatedAt,
               ),
           createCompanionCallback:
               ({
@@ -6195,6 +6507,7 @@ class $$EmployeesTableTableManager
                 Value<double> salary = const Value.absent(),
                 Value<DateTime> joiningDate = const Value.absent(),
                 Value<bool> isActive = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
               }) => EmployeesCompanion.insert(
                 id: id,
                 name: name,
@@ -6204,6 +6517,7 @@ class $$EmployeesTableTableManager
                 salary: salary,
                 joiningDate: joiningDate,
                 isActive: isActive,
+                updatedAt: updatedAt,
               ),
           withReferenceMapper: (p0) => p0
               .map(
@@ -6329,6 +6643,7 @@ typedef $$ShiftsTableCreateCompanionBuilder =
       Value<double> totalExpenses,
       Value<String?> notes,
       Value<int?> closedBy,
+      Value<DateTime> updatedAt,
     });
 typedef $$ShiftsTableUpdateCompanionBuilder =
     ShiftsCompanion Function({
@@ -6341,6 +6656,7 @@ typedef $$ShiftsTableUpdateCompanionBuilder =
       Value<double> totalExpenses,
       Value<String?> notes,
       Value<int?> closedBy,
+      Value<DateTime> updatedAt,
     });
 
 final class $$ShiftsTableReferences
@@ -6448,6 +6764,11 @@ class $$ShiftsTableFilterComposer
 
   ColumnFilters<String> get notes => $composableBuilder(
     column: $table.notes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -6574,6 +6895,11 @@ class $$ShiftsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$EmployeesTableOrderingComposer get closedBy {
     final $$EmployeesTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -6634,6 +6960,9 @@ class $$ShiftsTableAnnotationComposer
 
   GeneratedColumn<String> get notes =>
       $composableBuilder(column: $table.notes, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 
   $$EmployeesTableAnnotationComposer get closedBy {
     final $$EmployeesTableAnnotationComposer composer = $composerBuilder(
@@ -6750,6 +7079,7 @@ class $$ShiftsTableTableManager
                 Value<double> totalExpenses = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
                 Value<int?> closedBy = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
               }) => ShiftsCompanion(
                 id: id,
                 type: type,
@@ -6760,6 +7090,7 @@ class $$ShiftsTableTableManager
                 totalExpenses: totalExpenses,
                 notes: notes,
                 closedBy: closedBy,
+                updatedAt: updatedAt,
               ),
           createCompanionCallback:
               ({
@@ -6772,6 +7103,7 @@ class $$ShiftsTableTableManager
                 Value<double> totalExpenses = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
                 Value<int?> closedBy = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
               }) => ShiftsCompanion.insert(
                 id: id,
                 type: type,
@@ -6782,6 +7114,7 @@ class $$ShiftsTableTableManager
                 totalExpenses: totalExpenses,
                 notes: notes,
                 closedBy: closedBy,
+                updatedAt: updatedAt,
               ),
           withReferenceMapper: (p0) => p0
               .map(
@@ -6911,6 +7244,7 @@ typedef $$ShiftSalesTableCreateCompanionBuilder =
       Value<double> cashCollected,
       Value<double> cardCollected,
       Value<double> creditCollected,
+      Value<DateTime> updatedAt,
     });
 typedef $$ShiftSalesTableUpdateCompanionBuilder =
     ShiftSalesCompanion Function({
@@ -6924,6 +7258,7 @@ typedef $$ShiftSalesTableUpdateCompanionBuilder =
       Value<double> cashCollected,
       Value<double> cardCollected,
       Value<double> creditCollected,
+      Value<DateTime> updatedAt,
     });
 
 final class $$ShiftSalesTableReferences
@@ -7011,6 +7346,11 @@ class $$ShiftSalesTableFilterComposer
 
   ColumnFilters<double> get creditCollected => $composableBuilder(
     column: $table.creditCollected,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -7110,6 +7450,11 @@ class $$ShiftSalesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$ShiftsTableOrderingComposer get shiftId {
     final $$ShiftsTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -7204,6 +7549,9 @@ class $$ShiftSalesTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
   $$ShiftsTableAnnotationComposer get shiftId {
     final $$ShiftsTableAnnotationComposer composer = $composerBuilder(
       composer: this,
@@ -7289,6 +7637,7 @@ class $$ShiftSalesTableTableManager
                 Value<double> cashCollected = const Value.absent(),
                 Value<double> cardCollected = const Value.absent(),
                 Value<double> creditCollected = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
               }) => ShiftSalesCompanion(
                 id: id,
                 shiftId: shiftId,
@@ -7300,6 +7649,7 @@ class $$ShiftSalesTableTableManager
                 cashCollected: cashCollected,
                 cardCollected: cardCollected,
                 creditCollected: creditCollected,
+                updatedAt: updatedAt,
               ),
           createCompanionCallback:
               ({
@@ -7313,6 +7663,7 @@ class $$ShiftSalesTableTableManager
                 Value<double> cashCollected = const Value.absent(),
                 Value<double> cardCollected = const Value.absent(),
                 Value<double> creditCollected = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
               }) => ShiftSalesCompanion.insert(
                 id: id,
                 shiftId: shiftId,
@@ -7324,6 +7675,7 @@ class $$ShiftSalesTableTableManager
                 cashCollected: cashCollected,
                 cardCollected: cardCollected,
                 creditCollected: creditCollected,
+                updatedAt: updatedAt,
               ),
           withReferenceMapper: (p0) => p0
               .map(
@@ -7415,6 +7767,7 @@ typedef $$ExpensesTableCreateCompanionBuilder =
       Value<int?> shiftId,
       Value<int?> createdBy,
       Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
     });
 typedef $$ExpensesTableUpdateCompanionBuilder =
     ExpensesCompanion Function({
@@ -7426,6 +7779,7 @@ typedef $$ExpensesTableUpdateCompanionBuilder =
       Value<int?> shiftId,
       Value<int?> createdBy,
       Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
     });
 
 final class $$ExpensesTableReferences
@@ -7503,6 +7857,11 @@ class $$ExpensesTableFilterComposer
 
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -7592,6 +7951,11 @@ class $$ExpensesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$ShiftsTableOrderingComposer get shiftId {
     final $$ShiftsTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -7667,6 +8031,9 @@ class $$ExpensesTableAnnotationComposer
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 
   $$ShiftsTableAnnotationComposer get shiftId {
     final $$ShiftsTableAnnotationComposer composer = $composerBuilder(
@@ -7751,6 +8118,7 @@ class $$ExpensesTableTableManager
                 Value<int?> shiftId = const Value.absent(),
                 Value<int?> createdBy = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
               }) => ExpensesCompanion(
                 id: id,
                 category: category,
@@ -7760,6 +8128,7 @@ class $$ExpensesTableTableManager
                 shiftId: shiftId,
                 createdBy: createdBy,
                 createdAt: createdAt,
+                updatedAt: updatedAt,
               ),
           createCompanionCallback:
               ({
@@ -7771,6 +8140,7 @@ class $$ExpensesTableTableManager
                 Value<int?> shiftId = const Value.absent(),
                 Value<int?> createdBy = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
               }) => ExpensesCompanion.insert(
                 id: id,
                 category: category,
@@ -7780,6 +8150,7 @@ class $$ExpensesTableTableManager
                 shiftId: shiftId,
                 createdBy: createdBy,
                 createdAt: createdAt,
+                updatedAt: updatedAt,
               ),
           withReferenceMapper: (p0) => p0
               .map(
@@ -7875,6 +8246,7 @@ typedef $$PayrollTableCreateCompanionBuilder =
       Value<bool> isPaid,
       Value<DateTime?> paidDate,
       Value<String?> notes,
+      Value<DateTime> updatedAt,
     });
 typedef $$PayrollTableUpdateCompanionBuilder =
     PayrollCompanion Function({
@@ -7890,6 +8262,7 @@ typedef $$PayrollTableUpdateCompanionBuilder =
       Value<bool> isPaid,
       Value<DateTime?> paidDate,
       Value<String?> notes,
+      Value<DateTime> updatedAt,
     });
 
 final class $$PayrollTableReferences
@@ -7975,6 +8348,11 @@ class $$PayrollTableFilterComposer
 
   ColumnFilters<String> get notes => $composableBuilder(
     column: $table.notes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -8066,6 +8444,11 @@ class $$PayrollTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$EmployeesTableOrderingComposer get employeeId {
     final $$EmployeesTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -8136,6 +8519,9 @@ class $$PayrollTableAnnotationComposer
   GeneratedColumn<String> get notes =>
       $composableBuilder(column: $table.notes, builder: (column) => column);
 
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
   $$EmployeesTableAnnotationComposer get employeeId {
     final $$EmployeesTableAnnotationComposer composer = $composerBuilder(
       composer: this,
@@ -8200,6 +8586,7 @@ class $$PayrollTableTableManager
                 Value<bool> isPaid = const Value.absent(),
                 Value<DateTime?> paidDate = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
               }) => PayrollCompanion(
                 id: id,
                 employeeId: employeeId,
@@ -8213,6 +8600,7 @@ class $$PayrollTableTableManager
                 isPaid: isPaid,
                 paidDate: paidDate,
                 notes: notes,
+                updatedAt: updatedAt,
               ),
           createCompanionCallback:
               ({
@@ -8228,6 +8616,7 @@ class $$PayrollTableTableManager
                 Value<bool> isPaid = const Value.absent(),
                 Value<DateTime?> paidDate = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
               }) => PayrollCompanion.insert(
                 id: id,
                 employeeId: employeeId,
@@ -8241,6 +8630,7 @@ class $$PayrollTableTableManager
                 isPaid: isPaid,
                 paidDate: paidDate,
                 notes: notes,
+                updatedAt: updatedAt,
               ),
           withReferenceMapper: (p0) => p0
               .map(

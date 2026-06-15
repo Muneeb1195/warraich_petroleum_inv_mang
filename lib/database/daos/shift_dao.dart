@@ -44,10 +44,26 @@ class ShiftDao extends DatabaseAccessor<AppDatabase> with _$ShiftDaoMixin {
     }).toList();
   }
 
-  Future<void> addSaleToShift(ShiftSalesCompanion sale) => into(shiftSales).insert(sale);
+  Future<int> addSaleToShift(ShiftSalesCompanion sale) => into(shiftSales).insert(sale);
 
   Future<void> updateSaleInShift(int saleId, ShiftSalesCompanion sale) async {
-    await (update(shiftSales)..where((s) => s.id.equals(saleId))).write(sale);
+    await (update(shiftSales)..where((s) => s.id.equals(saleId))).write(
+      sale.copyWith(updatedAt: Value(DateTime.now())),
+    );
+  }
+
+  Future<int> getProductIdForSale(int saleId) async {
+    final sale = await (select(shiftSales)..where((s) => s.id.equals(saleId))).getSingleOrNull();
+    return sale?.productId ?? 0;
+  }
+
+  Future<double> getQuantityForSale(int saleId) async {
+    final sale = await (select(shiftSales)..where((s) => s.id.equals(saleId))).getSingleOrNull();
+    return sale?.quantitySold ?? 0;
+  }
+
+  Future<ShiftSale?> getSaleById(int saleId) async {
+    return (select(shiftSales)..where((s) => s.id.equals(saleId))).getSingleOrNull();
   }
 
   Future<void> deleteSaleFromShift(int saleId) async {
@@ -61,7 +77,16 @@ class ShiftDao extends DatabaseAccessor<AppDatabase> with _$ShiftDaoMixin {
       closedBy: Value(closedBy),
       totalSales: Value(totalSales),
       totalExpenses: Value(totalExpenses),
+      updatedAt: Value(DateTime.now()),
     ));
+  }
+
+  Future<List<ShiftSale>> getAllShiftSales() async {
+    return (select(shiftSales)).get();
+  }
+
+  Future<void> updateShift(int id, ShiftsCompanion data) async {
+    await (update(shifts)..where((s) => s.id.equals(id))).write(data);
   }
 
   Future<double> getShiftExpenses(int shiftId) async {

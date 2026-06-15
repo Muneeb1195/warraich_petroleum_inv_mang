@@ -4,6 +4,7 @@ import '../../providers/payroll_provider.dart';
 import '../../providers/employee_provider.dart';
 import '../../utils/extensions.dart';
 import '../../utils/constants.dart';
+import '../../utils/error_utils.dart';
 
 class PayrollScreen extends ConsumerWidget {
   const PayrollScreen({super.key});
@@ -60,13 +61,9 @@ class PayrollScreen extends ConsumerWidget {
                               onPressed: () async {
                                 try {
                                   await ref.read(payrollNotifierProvider.notifier).markAsPaid(row.payrollEntry.id);
-                                  if (context.mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${row.employee.name} marked as paid')));
-                                  }
+                                  if (context.mounted) context.showSuccess('${row.employee.name} marked as paid');
                                 } catch (e) {
-                                  if (context.mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
-                                  }
+                                  if (context.mounted) context.showError(e, source: 'markPaid');
                                 }
                               },
                               child: const Text('Mark Paid'),

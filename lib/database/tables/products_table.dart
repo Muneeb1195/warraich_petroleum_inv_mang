@@ -8,4 +8,5 @@ class Products extends Table {
   RealColumn get pricePerUnit => real().withDefault(const Constant(0))();
   RealColumn get costPerUnit => real().withDefault(const Constant(0))();
   BoolColumn get isActive => boolean().withDefault(const Constant(true))();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 }

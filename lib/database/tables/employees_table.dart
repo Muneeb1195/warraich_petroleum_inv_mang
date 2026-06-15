@@ -9,6 +9,7 @@ class Employees extends Table {
   RealColumn get salary => real().withDefault(const Constant(0))();
   DateTimeColumn get joiningDate => dateTime().withDefault(currentDateAndTime)();
   BoolColumn get isActive => boolean().withDefault(const Constant(true))();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 }
 
 class Payroll extends Table {
@@ -24,4 +25,5 @@ class Payroll extends Table {
   BoolColumn get isPaid => boolean().withDefault(const Constant(false))();
   DateTimeColumn get paidDate => dateTime().nullable()();
   TextColumn get notes => text().nullable()();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 }

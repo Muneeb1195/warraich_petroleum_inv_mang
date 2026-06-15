@@ -15,6 +15,22 @@
       "oauth_client": [
         {
           "client_id": "REDACTED_GOOGLE_CLIENT_ID",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.warraich.petroleum",
+            "certificate_hash": "54fde16281c8fbe4e481c0c454a480e144954d9c"
+          }
+        },
+        {
+          "client_id": "REDACTED_GOOGLE_CLIENT_ID",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.warraich.petroleum",
+            "certificate_hash": "6034234df7b119c39e4a6db201868c794aa3f58a"
+          }
+        },
+        {
+          "client_id": "REDACTED_GOOGLE_CLIENT_ID",
           "client_type": 3
         }
       ],

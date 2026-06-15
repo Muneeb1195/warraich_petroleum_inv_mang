@@ -28,7 +28,10 @@ class ShiftsScreen extends ConsumerWidget {
         icon: const Icon(Icons.add),
         label: const Text('New Shift'),
       ),
-      body: _buildBody(context, ref, activeShift, allShifts, colorScheme),
+      body: RefreshIndicator(
+        onRefresh: () async { ref.invalidate(activeShiftProvider); ref.invalidate(allShiftsProvider); },
+        child: _buildBody(context, ref, activeShift, allShifts, colorScheme),
+      ),
     );
   }
 

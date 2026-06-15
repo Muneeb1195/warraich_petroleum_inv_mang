@@ -3,9 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../providers/expense_provider.dart';
+import '../../providers/format_provider.dart';
 import '../../providers/shift_provider.dart';
-import '../../utils/constants.dart';
 import 'add_expense_screen.dart';
+import '../../utils/error_utils.dart';
 
 class ExpensesScreen extends ConsumerWidget {
   const ExpensesScreen({super.key});
@@ -24,7 +25,10 @@ class ExpensesScreen extends ConsumerWidget {
         icon: const Icon(Icons.add),
         label: const Text('Add Expense'),
       ),
-      body: _buildBody(context, ref, allExpenses, colorScheme),
+      body: RefreshIndicator(
+        onRefresh: () async { ref.invalidate(allExpensesProvider); },
+        child: _buildBody(context, ref, allExpenses, colorScheme),
+      ),
     );
   }
 
@@ -62,7 +66,7 @@ class ExpensesScreen extends ConsumerWidget {
                   child: Text('${dateExpenses.length}', style: TextStyle(color: colorScheme.onPrimaryContainer)),
                 ),
                 title: Text(dateLabel, style: const TextStyle(fontWeight: FontWeight.w600)),
-                subtitle: Text('${dateExpenses.length} expenses • ${formatMoney(total)}'),
+                subtitle: Text('${dateExpenses.length} expenses • ${fm(ref, total)}'),
                 children: dateExpenses.map((expense) => ListTile(
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                   leading: CircleAvatar(
@@ -71,7 +75,8 @@ class ExpensesScreen extends ConsumerWidget {
                   ),
                   title: Text(expense.category.toUpperCase(), style: const TextStyle(fontSize: 14)),
                   subtitle: Text(expense.description ?? '', style: const TextStyle(fontSize: 12)),
-                  trailing: Text(formatMoney(expense.amount), style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.error)),
+                  trailing: Text(fm(ref, expense.amount), style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.error)),
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => AddExpenseScreen(expense: expense))),
                   onLongPress: () {
                     showDialog(
                       context: context,
@@ -89,13 +94,9 @@ class ExpensesScreen extends ConsumerWidget {
                                 ref.invalidate(weeklyExpensesProvider);
                                 ref.invalidate(weeklyProfitProvider);
                                 ref.invalidate(monthlySummaryProvider);
-                                if (context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Expense deleted')));
-                                }
+                                if (context.mounted) context.showSuccess('Expense deleted');
                               } catch (e) {
-                                if (context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
-                                }
+                                if (context.mounted) context.showError(e, source: 'deleteExpense');
                               }
                             },
                             child: const Text('Delete'),

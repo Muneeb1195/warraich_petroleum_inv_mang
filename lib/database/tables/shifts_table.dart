@@ -12,6 +12,7 @@ class Shifts extends Table {
   RealColumn get totalExpenses => real().withDefault(const Constant(0))();
   TextColumn get notes => text().nullable()();
   IntColumn get closedBy => integer().nullable().references(Employees, #id)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 }
 
 class ShiftSales extends Table {
@@ -25,4 +26,5 @@ class ShiftSales extends Table {
   RealColumn get cashCollected => real().withDefault(const Constant(0))();
   RealColumn get cardCollected => real().withDefault(const Constant(0))();
   RealColumn get creditCollected => real().withDefault(const Constant(0))();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 }

@@ -56,7 +56,7 @@ static void my_application_activate(GApplication* application) {
 
   // Set window icon
   g_autoptr(GError) icon_error = nullptr;
-  gtk_window_set_icon_from_file(window, "linux/runner/resources/icon.png", &icon_error);
+  gtk_window_set_icon_from_file(window, "icon.png", &icon_error);
   if (icon_error != nullptr) {
     g_warning("Failed to set window icon: %s", icon_error->message);
     g_error_free(icon_error);

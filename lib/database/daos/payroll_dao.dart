@@ -8,6 +8,12 @@ part 'payroll_dao.g.dart';
 class PayrollDao extends DatabaseAccessor<AppDatabase> with _$PayrollDaoMixin {
   PayrollDao(super.db);
 
+  Future<PayrollData?> getPayrollById(int id) async {
+    return (select(payroll)..where((p) => p.id.equals(id))).getSingleOrNull();
+  }
+
+  Future<int> generatePayrollRaw(PayrollCompanion data) => into(payroll).insert(data);
+
   Future<int> generatePayroll(int employeeId, int month, int year) async {
     final employee = await (select(employees)..where((e) => e.id.equals(employeeId))).getSingleOrNull();
     if (employee == null) throw Exception('Employee not found');
@@ -65,6 +71,7 @@ class PayrollDao extends DatabaseAccessor<AppDatabase> with _$PayrollDaoMixin {
       PayrollCompanion(
         isPaid: const Value(true),
         paidDate: Value(DateTime.now()),
+        updatedAt: Value(DateTime.now()),
       ),
     );
   }
@@ -86,6 +93,7 @@ class PayrollDao extends DatabaseAccessor<AppDatabase> with _$PayrollDaoMixin {
       advances: data.advances,
       bonuses: data.bonuses,
       netPay: Value(netPay),
+      updatedAt: Value(DateTime.now()),
     ));
   }
 }

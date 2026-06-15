@@ -22,11 +22,22 @@ class ProductDao extends DatabaseAccessor<AppDatabase> with _$ProductDaoMixin {
         .get();
   }
 
+  Future<Product?> getProductById(int id) async {
+    return (select(products)..where((p) => p.id.equals(id))).getSingleOrNull();
+  }
+
+  Future<int> addProduct(ProductsCompanion data) => into(products).insert(data);
+
+  Future<int> updateProduct(int id, ProductsCompanion data) async {
+    return (update(products)..where((p) => p.id.equals(id))).write(data);
+  }
+
   Future<int> updateProductPrice(int productId, double price, double cost) async {
     return (update(products)..where((p) => p.id.equals(productId))).write(
       ProductsCompanion(
         pricePerUnit: Value(price),
         costPerUnit: Value(cost),
+        updatedAt: Value(DateTime.now()),
       ),
     );
   }

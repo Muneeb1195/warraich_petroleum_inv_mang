@@ -11,4 +11,5 @@ class Expenses extends Table {
   IntColumn get shiftId => integer().nullable().references(Shifts, #id)();
   IntColumn get createdBy => integer().nullable().references(Employees, #id)();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 }

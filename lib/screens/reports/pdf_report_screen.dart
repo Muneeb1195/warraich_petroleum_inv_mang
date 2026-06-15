@@ -103,7 +103,7 @@ class _PdfReportScreenState extends ConsumerState<PdfReportScreen> {
                       try {
                         final summary = await ref.read(expenseSummaryProvider((start: DateTime(_selectedMonth.year, _selectedMonth.month), end: DateTime(_selectedMonth.year, _selectedMonth.month + 1))).future);
                         final totalExpenses = summary.values.fold<double>(0, (s, v) => s + v);
-                        final shifts = ref.read(allShiftsProvider).valueOrNull ?? [];
+                        final shifts = ref.read(allShiftsProvider).asData?.value ?? [];
                         final monthShifts = shifts.where((s) => s.startDate.month == _selectedMonth.month && s.startDate.year == _selectedMonth.year && s.status == 'closed').toList();
                         final totalSales = monthShifts.fold<double>(0, (s, shift) => s + shift.totalSales);
                         await PdfService.generateMonthlyReport(month: _selectedMonth.month, year: _selectedMonth.year, expenseSummary: summary, totalSales: totalSales, totalExpenses: totalExpenses);

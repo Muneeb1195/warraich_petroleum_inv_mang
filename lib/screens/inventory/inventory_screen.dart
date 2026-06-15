@@ -5,6 +5,7 @@ import '../../providers/product_provider.dart';
 import '../../providers/database_provider.dart';
 import '../../database/app_database.dart';
 import 'add_stock_screen.dart';
+import '../../utils/error_utils.dart';
 
 class InventoryScreen extends ConsumerWidget {
   const InventoryScreen({super.key});
@@ -26,7 +27,10 @@ class InventoryScreen extends ConsumerWidget {
         icon: const Icon(Icons.add),
         label: const Text('Add Stock'),
       ),
-      body: _buildBody(context, ref, allInventory, colorScheme),
+      body: RefreshIndicator(
+        onRefresh: () async { ref.invalidate(allInventoryProvider); },
+        child: _buildBody(context, ref, allInventory, colorScheme),
+      ),
     );
   }
 
@@ -330,9 +334,7 @@ class InventoryScreen extends ConsumerWidget {
                 ref.invalidate(allInventoryProvider);
                 if (context.mounted) Navigator.pop(context);
               } catch (e) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
-                }
+                if (context.mounted) context.showError(e, source: 'updateMinStock');
               }
             },
             child: const Text('Save'),

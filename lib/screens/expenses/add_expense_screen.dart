@@ -1,24 +1,38 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../database/app_database.dart';
 import '../../providers/expense_provider.dart';
 import '../../providers/shift_provider.dart';
 import '../../utils/constants.dart';
+import '../../utils/error_utils.dart';
 import '../../utils/extensions.dart';
 
 class AddExpenseScreen extends ConsumerStatefulWidget {
-  const AddExpenseScreen({super.key});
+  final Expense? expense;
+  const AddExpenseScreen({super.key, this.expense});
 
   @override
   ConsumerState<AddExpenseScreen> createState() => _AddExpenseScreenState();
 }
 
 class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
-  String _selectedCategory = 'Misc';
-  final _amountController = TextEditingController();
-  final _descriptionController = TextEditingController();
-  DateTime _selectedDate = DateTime.now();
+  late String _selectedCategory;
+  late TextEditingController _amountController;
+  late TextEditingController _descriptionController;
+  late DateTime _selectedDate;
   bool _isWide(BuildContext context) => MediaQuery.sizeOf(context).width > 800;
+
+  bool get _isEditing => widget.expense != null;
+
+  @override
+  void initState() {
+    super.initState();
+    final e = widget.expense;
+    _selectedCategory = e?.category ?? 'Misc';
+    _amountController = TextEditingController(text: e != null ? e.amount.toString() : '');
+    _descriptionController = TextEditingController(text: e?.description ?? '');
+    _selectedDate = e?.date ?? DateTime.now();
+  }
 
   @override
   void dispose() {
@@ -33,7 +47,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
     final activeShift = ref.watch(activeShiftProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Add Expense')),
+      appBar: AppBar(title: Text(_isEditing ? 'Edit Expense' : 'Add Expense')),
       body: _buildBody(context, expenseState, activeShift),
     );
   }
@@ -44,30 +58,31 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          activeShift.when(
-            data: (shift) {
-              if (shift == null) return const SizedBox.shrink();
-              return Card(
-                color: Theme.of(context).colorScheme.secondaryContainer,
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Row(
-                    children: [
-                      Icon(Icons.link, color: Theme.of(context).colorScheme.onSecondaryContainer),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Linked to ${shift.type.toUpperCase()} shift',
-                        style: TextStyle(color: Theme.of(context).colorScheme.onSecondaryContainer, fontWeight: FontWeight.w600),
-                      ),
-                    ],
+          if (!_isEditing)
+            activeShift.when(
+              data: (shift) {
+                if (shift == null) return const SizedBox.shrink();
+                return Card(
+                  color: Theme.of(context).colorScheme.secondaryContainer,
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Row(
+                      children: [
+                        Icon(Icons.link, color: Theme.of(context).colorScheme.onSecondaryContainer),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Linked to ${shift.type.toUpperCase()} shift',
+                          style: TextStyle(color: Theme.of(context).colorScheme.onSecondaryContainer, fontWeight: FontWeight.w600),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              );
-            },
-            loading: () => const SizedBox.shrink(),
-            error: (_, e) => const SizedBox.shrink(),
-          ),
-          const SizedBox(height: 12),
+                );
+              },
+              loading: () => const SizedBox.shrink(),
+              error: (_, e) => const SizedBox.shrink(),
+            ),
+          if (!_isEditing) const SizedBox(height: 12),
           Text(
             'Category',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
@@ -115,7 +130,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                 firstDate: DateTime(2020),
                 lastDate: DateTime.now(),
               );
-                      if (date != null && context.mounted) setState(() => _selectedDate = date);
+              if (date != null && context.mounted) setState(() => _selectedDate = date);
             },
           ),
           const SizedBox(height: 16),
@@ -131,31 +146,39 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                       return;
                     }
                     try {
-                      final activeShiftData = ref.read(activeShiftProvider).valueOrNull;
-                      await ref.read(expenseNotifierProvider.notifier).addExpense(
-                            category: _selectedCategory,
-                            amount: amount,
-                            description: _descriptionController.text.isNotEmpty ? _descriptionController.text : null,
-                            date: _selectedDate,
-                            shiftId: activeShiftData?.id,
-                          );
+                      if (_isEditing) {
+                        await ref.read(expenseNotifierProvider.notifier).updateExpense(
+                          id: widget.expense!.id,
+                          category: _selectedCategory,
+                          amount: amount,
+                          description: _descriptionController.text.isNotEmpty ? _descriptionController.text : null,
+                          date: _selectedDate,
+                        );
+                      } else {
+                        final activeShiftData = ref.read(activeShiftProvider).asData?.value;
+                        await ref.read(expenseNotifierProvider.notifier).addExpense(
+                          category: _selectedCategory,
+                          amount: amount,
+                          description: _descriptionController.text.isNotEmpty ? _descriptionController.text : null,
+                          date: _selectedDate,
+                          shiftId: activeShiftData?.id,
+                        );
+                      }
                       if (context.mounted) {
                         ref.invalidate(todaySummaryProvider);
                         ref.invalidate(weeklyExpensesProvider);
                         ref.invalidate(weeklyProfitProvider);
                         ref.invalidate(monthlySummaryProvider);
                         Navigator.pop(context);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Expense added')),
-                        );
+                        context.showSuccess(_isEditing ? 'Expense updated' : 'Expense added');
                       }
                     } catch (e) {
-                      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to add expense: $e')));
+                      if (context.mounted) context.showError(e, source: 'saveExpense');
                     }
                   },
             child: expenseState.isLoading
                 ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                : const Text('Add Expense'),
+                : Text(_isEditing ? 'Update Expense' : 'Add Expense'),
           ),
         ],
       ),

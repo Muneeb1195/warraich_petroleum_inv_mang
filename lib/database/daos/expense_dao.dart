@@ -46,6 +46,16 @@ class ExpenseDao extends DatabaseAccessor<AppDatabase> with _$ExpenseDaoMixin {
     return expensesList.fold<double>(0.0, (sum, e) => sum + e.amount);
   }
 
+  Future<void> updateExpense(int id, ExpensesCompanion expense) async {
+    await (update(expenses)..where((e) => e.id.equals(id))).write(
+      expense.copyWith(updatedAt: Value(DateTime.now())),
+    );
+  }
+
+  Future<Expense?> getExpenseById(int id) async {
+    return (select(expenses)..where((e) => e.id.equals(id))).getSingleOrNull();
+  }
+
   Future<void> deleteExpense(int id) async {
     await (delete(expenses)..where((e) => e.id.equals(id))).go();
   }

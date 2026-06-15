@@ -12,7 +12,7 @@ class BackupService {
   static const _folderName = 'WarraichPetroleum';
   static const _httpTimeout = Duration(seconds: 60);
 
-  final GoogleSignIn _googleSignIn = GoogleSignIn(
+  late final GoogleSignIn _googleSignIn = GoogleSignIn(
     params: const GoogleSignInParams(
       clientId: AppConfig.googleClientId,
       clientSecret: AppConfig.googleClientSecret,
@@ -28,6 +28,7 @@ class BackupService {
   Future<Map<String, String>> _getHeaders() async {
     try {
       _credentials ??= await _googleSignIn.silentSignIn();
+      _credentials ??= await _googleSignIn.signIn();
     } catch (e) {
       return {};
     }

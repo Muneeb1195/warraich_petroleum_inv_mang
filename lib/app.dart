@@ -4,9 +4,14 @@ import 'package:dynamic_color/dynamic_color.dart';
 import 'theme/app_theme.dart';
 import 'providers/auth_provider.dart';
 import 'providers/backup_provider.dart';
+import 'providers/firebase_auth_provider.dart';
+import 'providers/onboarding_provider.dart';
+import 'providers/sync_provider.dart';
 import 'providers/theme_provider.dart';
 import 'screens/lock_screen.dart';
 import 'screens/home_shell.dart';
+import 'screens/onboarding/onboarding_screen.dart';
+import 'screens/auth/sign_in_screen.dart';
 
 class WarraichPetroleumApp extends ConsumerStatefulWidget {
   const WarraichPetroleumApp({super.key});
@@ -21,9 +26,11 @@ class _WarraichPetroleumAppState extends ConsumerState<WarraichPetroleumApp> wit
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(firebaseAuthServiceProvider).trySilentSignIn();
       ref.read(authStateProvider.notifier).init();
       ref.read(backupNotifierProvider.notifier).initializeAutoBackup();
     });
+    ref.listen(syncInitializerProvider, (_, __) {});
   }
 
   @override
@@ -43,6 +50,9 @@ class _WarraichPetroleumAppState extends ConsumerState<WarraichPetroleumApp> wit
   Widget build(BuildContext context) {
     final authState = ref.watch(authStateProvider);
     final themeMode = ref.watch(themeModeProvider);
+    final onboarding = ref.watch(onboardingProvider);
+    final skipAuth = ref.watch(signInSkippedProvider);
+    final isSignedIn = ref.watch(isSignedInProvider);
 
     return DynamicColorBuilder(
       builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) {
@@ -52,7 +62,21 @@ class _WarraichPetroleumAppState extends ConsumerState<WarraichPetroleumApp> wit
           theme: AppTheme.light(lightDynamic),
           darkTheme: AppTheme.dark(darkDynamic),
           themeMode: themeMode,
-          home: authState.isLocked ? const LockScreen() : const HomeShell(),
+          home: onboarding.when(
+            data: (completed) {
+              if (!completed) return const OnboardingScreen();
+              if (!isSignedIn && !skipAuth) return const SignInScreen();
+              return authState.isLocked ? const LockScreen() : const HomeShell();
+            },
+            loading: () {
+              if (!isSignedIn && !skipAuth) return const SignInScreen();
+              return authState.isLocked ? const LockScreen() : const HomeShell();
+            },
+            error: (_, _) {
+              if (!isSignedIn && !skipAuth) return const SignInScreen();
+              return authState.isLocked ? const LockScreen() : const HomeShell();
+            },
+          ),
         );
       },
     );

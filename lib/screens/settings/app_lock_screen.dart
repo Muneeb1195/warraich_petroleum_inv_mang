@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/auth_provider.dart';
+import '../../utils/error_utils.dart';
 
 class AppLockScreen extends ConsumerWidget {
   const AppLockScreen({super.key});
@@ -62,15 +63,9 @@ class AppLockScreen extends ConsumerWidget {
                   if (!await biometricService.authenticate()) return;
                   await ref.read(authStateProvider.notifier).disableLock();
                 }
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                    content: Text(value ? 'App lock enabled' : 'App lock disabled'),
-                  ));
-                }
+                if (context.mounted) context.showSuccess(value ? 'App lock enabled' : 'App lock disabled');
               } catch (e) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
-                }
+                if (context.mounted) context.showError(e, source: 'appLock');
               }
             },
           ),

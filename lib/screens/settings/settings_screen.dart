@@ -2,7 +2,11 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import '../../providers/format_provider.dart';
 import '../../providers/theme_provider.dart';
+import '../../providers/sync_provider.dart';
+import '../../providers/firebase_auth_provider.dart';
+import '../../services/sync_service.dart';
 import '../../services/error_logger.dart';
 import 'help_screen.dart';
 import 'backup_screen.dart';
@@ -12,42 +16,6 @@ class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
   bool _isWide(BuildContext context) => MediaQuery.sizeOf(context).width > 800;
-
-  void _showThemeDialog(BuildContext context, WidgetRef ref) {
-    final currentMode = ref.read(themeModeProvider);
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Theme'),
-        content: RadioGroup<ThemeMode>(
-          groupValue: currentMode,
-          onChanged: (value) {
-            if (value == null) return;
-            ref.read(themeModeProvider.notifier).setThemeMode(value);
-            Navigator.pop(context);
-          },
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              RadioListTile<ThemeMode>(
-                title: const Text('System Default'),
-                value: ThemeMode.system,
-              ),
-              RadioListTile<ThemeMode>(
-                title: const Text('Light'),
-                value: ThemeMode.light,
-              ),
-              RadioListTile<ThemeMode>(
-                title: const Text('Dark'),
-                value: ThemeMode.dark,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -91,12 +59,6 @@ class SettingsScreen extends ConsumerWidget {
             subtitle: 'Backup management',
             onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const BackupScreen())),
           ),
-          _MenuItem(
-            icon: Icons.dark_mode,
-            title: 'Theme',
-            subtitle: 'Switch between light and dark mode',
-            onTap: () => _showThemeDialog(context, ref),
-          ),
           if (Platform.isAndroid || Platform.isIOS)
             _MenuItem(
               icon: Icons.lock,
@@ -117,6 +79,32 @@ class SettingsScreen extends ConsumerWidget {
             onTap: () => _showErrorLog(context),
           ),
         ],
+      ),
+      const SizedBox(height: 16),
+      _SyncStatusCard(ref: ref, colorScheme: colorScheme),
+      const SizedBox(height: 16),
+      Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(children: [Icon(Icons.dark_mode, color: colorScheme.primary, size: 20), const SizedBox(width: 8), Text('Theme', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold))]),
+              const SizedBox(height: 12),
+              _ThemeSelector(ref: ref),
+            ],
+          ),
+        ),
+      ),
+      const SizedBox(height: 16),
+      Card(
+        child: SwitchListTile(
+          secondary: Icon(Icons.format_paint, color: colorScheme.primary),
+          title: const Text('Abbreviate Amounts'),
+          subtitle: const Text('Show abbreviated amounts (e.g. 1.2L)'),
+          value: ref.watch(abbreviateAmountsProvider),
+          onChanged: (value) => ref.read(abbreviateAmountsProvider.notifier).setAbbreviate(value),
+        ),
       ),
       const SizedBox(height: 16),
       Card(
@@ -216,4 +204,79 @@ class _MenuItem {
   final VoidCallback onTap;
 
   const _MenuItem({required this.icon, required this.title, required this.subtitle, required this.onTap});
+}
+
+class _SyncStatusCard extends ConsumerWidget {
+  final WidgetRef ref;
+  final ColorScheme colorScheme;
+
+  const _SyncStatusCard({required this.ref, required this.colorScheme});
+
+  @override
+  Widget build(BuildContext context, WidgetRef _) {
+    final isSignedIn = ref.watch(isSignedInProvider);
+    final syncStatus = ref.watch(syncStatusProvider);
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.cloud_sync, color: colorScheme.primary, size: 20),
+                const SizedBox(width: 8),
+                Text('Cloud Sync', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Icon(isSignedIn ? Icons.check_circle : Icons.cancel, size: 16, color: isSignedIn ? colorScheme.primary : colorScheme.error),
+                const SizedBox(width: 8),
+                Text(isSignedIn ? 'Signed in' : 'Not signed in'),
+              ],
+            ),
+            const SizedBox(height: 8),
+            syncStatus.when(
+              data: (status) => Row(
+                children: [
+                  Icon(
+                    status == SyncStatus.syncing ? Icons.sync : status == SyncStatus.error ? Icons.error_outline : Icons.cloud_done,
+                    size: 16,
+                    color: status == SyncStatus.syncing ? colorScheme.primary : status == SyncStatus.error ? colorScheme.error : colorScheme.primary,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(status == SyncStatus.syncing ? 'Syncing...' : status == SyncStatus.error ? 'Sync error' : 'Synced'),
+                ],
+              ),
+              loading: () => const Row(children: [SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)), SizedBox(width: 8), Text('Checking...')]),
+              error: (_, __) => const Row(children: [Icon(Icons.error_outline, size: 16), SizedBox(width: 8), Text('Unknown')]),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ThemeSelector extends ConsumerWidget {
+  final WidgetRef ref;
+
+  const _ThemeSelector({required this.ref});
+
+  @override
+  Widget build(BuildContext context, WidgetRef _) {
+    final mode = ref.watch(themeModeProvider);
+    return SegmentedButton<ThemeMode>(
+      segments: const [
+        ButtonSegment(value: ThemeMode.system, icon: Icon(Icons.brightness_auto), label: Text('Auto')),
+        ButtonSegment(value: ThemeMode.light, icon: Icon(Icons.light_mode), label: Text('Light')),
+        ButtonSegment(value: ThemeMode.dark, icon: Icon(Icons.dark_mode), label: Text('Dark')),
+      ],
+      selected: {mode},
+      onSelectionChanged: (value) => ref.read(themeModeProvider.notifier).setThemeMode(value.first),
+    );
+  }
 }

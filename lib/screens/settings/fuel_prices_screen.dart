@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/product_provider.dart';
 import '../../utils/constants.dart';
+import '../../utils/error_utils.dart';
 
 class FuelPricesScreen extends ConsumerStatefulWidget {
   const FuelPricesScreen({super.key});
@@ -133,14 +134,10 @@ class _FuelPricesScreenState extends ConsumerState<FuelPricesScreen> {
                     );
                 if (context.mounted) {
                   Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('${product.name} prices updated')),
-                  );
+                  context.showSuccess('${product.name} prices updated');
                 }
               } catch (e) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
-                }
+                if (context.mounted) context.showError(e, source: 'updatePrice');
               }
             },
             child: const Text('Save'),

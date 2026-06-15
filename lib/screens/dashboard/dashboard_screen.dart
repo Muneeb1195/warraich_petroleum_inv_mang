@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../database/app_database.dart';
 import '../../providers/shift_provider.dart';
 import '../../providers/product_provider.dart';
+import '../../providers/format_provider.dart';
 import '../../utils/constants.dart';
 import '../../screens/shifts/shift_detail_screen.dart';
 import '../../screens/shifts/new_shift_screen.dart';
@@ -24,7 +25,9 @@ class DashboardScreen extends ConsumerWidget {
     final weeklySales = ref.watch(weeklySalesProvider);
     final weeklyExpenses = ref.watch(weeklyExpensesProvider);
     final weeklyProfit = ref.watch(weeklyProfitProvider);
+    final lowStock = ref.watch(lowStockProvider);
     final colorScheme = Theme.of(context).colorScheme;
+    final abbreviate = ref.watch(abbreviateAmountsProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Dashboard')),
@@ -40,28 +43,55 @@ class DashboardScreen extends ConsumerWidget {
           ref.invalidate(employeeCountProvider);
         },
         child: _isWide(context)
-            ? _buildDesktopLayout(context, ref, todaySummary, weeklySales, weeklyExpenses, weeklyProfit, activeShift, allInventory, colorScheme)
-            : _buildMobileLayout(context, ref, todaySummary, weeklySales, activeShift, allInventory, colorScheme),
+            ? _buildDesktopLayout(context, ref, todaySummary, weeklySales, weeklyExpenses, weeklyProfit, activeShift, allInventory, lowStock, colorScheme, abbreviate: abbreviate)
+            : _buildMobileLayout(context, ref, todaySummary, weeklySales, activeShift, allInventory, lowStock, colorScheme, abbreviate: abbreviate),
       ),
     );
   }
 
-  Widget _buildMobileLayout(BuildContext context, WidgetRef ref, AsyncValue<Map<String, double>> todaySummary, AsyncValue<List<MapEntry<DateTime, double>>> weeklySales, AsyncValue<Shift?> activeShift, AsyncValue<List<dynamic>> allInventory, ColorScheme colorScheme) {
+  Widget _buildLowStockBanner(BuildContext context, AsyncValue<List<InventoryRow>> lowStock, ColorScheme colorScheme) {
+    final lowStockItems = lowStock.asData?.value;
+    if (lowStockItems == null || lowStockItems.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Card(
+        color: colorScheme.errorContainer,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: colorScheme.onErrorContainer),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Low stock: ${lowStockItems.map((e) => '${e.product.name} (${e.inventoryEntry.currentStock.toStringAsFixed(1)} ${e.product.unit})').join(', ')}',
+                  style: TextStyle(color: colorScheme.onErrorContainer),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMobileLayout(BuildContext context, WidgetRef ref, AsyncValue<Map<String, double>> todaySummary, AsyncValue<List<MapEntry<DateTime, double>>> weeklySales, AsyncValue<Shift?> activeShift, AsyncValue<List<dynamic>> allInventory, AsyncValue<List<InventoryRow>> lowStock, ColorScheme colorScheme, {bool abbreviate = true}) {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        _buildTodaySummary(context, todaySummary, colorScheme),
+        _buildLowStockBanner(context, lowStock, colorScheme),
+        _buildTodaySummary(context, todaySummary, colorScheme, abbreviate: abbreviate),
         const SizedBox(height: 16),
         _buildActiveShiftCard(context, ref, activeShift, colorScheme),
         const SizedBox(height: 16),
-        _buildSalesChart(context, weeklySales, colorScheme),
+        _buildSalesChart(context, ref, weeklySales, colorScheme),
         const SizedBox(height: 16),
         _buildInventoryAlerts(context, ref, allInventory, colorScheme),
       ],
     );
   }
 
-  Widget _buildDesktopLayout(BuildContext context, WidgetRef ref, AsyncValue<Map<String, double>> todaySummary, AsyncValue<List<MapEntry<DateTime, double>>> weeklySales, AsyncValue<List<MapEntry<DateTime, double>>> weeklyExpenses, AsyncValue<List<MapEntry<DateTime, double>>> weeklyProfit, AsyncValue<Shift?> activeShift, AsyncValue<List<dynamic>> allInventory, ColorScheme colorScheme) {
+  Widget _buildDesktopLayout(BuildContext context, WidgetRef ref, AsyncValue<Map<String, double>> todaySummary, AsyncValue<List<MapEntry<DateTime, double>>> weeklySales, AsyncValue<List<MapEntry<DateTime, double>>> weeklyExpenses, AsyncValue<List<MapEntry<DateTime, double>>> weeklyProfit, AsyncValue<Shift?> activeShift, AsyncValue<List<dynamic>> allInventory, AsyncValue<List<InventoryRow>> lowStock, ColorScheme colorScheme, {bool abbreviate = true}) {
     final monthlySummary = ref.watch(monthlySummaryProvider);
     final employeeCount = ref.watch(employeeCountProvider);
 
@@ -73,12 +103,13 @@ class DashboardScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              _buildLowStockBanner(context, lowStock, colorScheme),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(child: _buildTodaySummary(context, todaySummary, colorScheme)),
+                  Expanded(child: _buildTodaySummary(context, todaySummary, colorScheme, abbreviate: abbreviate)),
                   const SizedBox(width: 16),
-                  Expanded(child: _buildMonthlySummary(context, monthlySummary, colorScheme)),
+                  Expanded(child: _buildMonthlySummary(context, monthlySummary, colorScheme, abbreviate: abbreviate)),
                 ],
               ),
               const SizedBox(height: 16),
@@ -96,11 +127,11 @@ class DashboardScreen extends ConsumerWidget {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(child: _buildTrendChart(context, 'Sales Trends (7 days)', weeklySales, colorScheme.primary, colorScheme)),
+                  Expanded(child: _buildTrendChart(context, 'Sales Trends (7 days)', weeklySales, colorScheme.primary, colorScheme, abbreviate: abbreviate)),
                   const SizedBox(width: 16),
-                  Expanded(child: _buildTrendChart(context, 'Expense Trends (7 days)', weeklyExpenses, colorScheme.error, colorScheme)),
+                  Expanded(child: _buildTrendChart(context, 'Expense Trends (7 days)', weeklyExpenses, colorScheme.error, colorScheme, abbreviate: abbreviate)),
                   const SizedBox(width: 16),
-                  Expanded(child: _buildTrendChart(context, 'Profit Trends (7 days)', weeklyProfit, Colors.green, colorScheme)),
+                  Expanded(child: _buildTrendChart(context, 'Profit Trends (7 days)', weeklyProfit, Colors.green, colorScheme, abbreviate: abbreviate)),
                 ],
               ),
               const SizedBox(height: 16),
@@ -117,7 +148,7 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildTodaySummary(BuildContext context, AsyncValue<Map<String, double>> todaySummary, ColorScheme colorScheme) {
+  Widget _buildTodaySummary(BuildContext context, AsyncValue<Map<String, double>> todaySummary, ColorScheme colorScheme, {bool abbreviate = true}) {
     return todaySummary.when(
       data: (summary) => Card(
         child: Padding(
@@ -129,11 +160,11 @@ class DashboardScreen extends ConsumerWidget {
               const SizedBox(height: 16),
               Row(
                 children: [
-                  Expanded(child: _StatCard(title: 'Sales', value: formatMoney(summary['sales'] ?? 0), icon: Icons.trending_up, color: colorScheme.primary)),
+                  Expanded(child: _StatCard(title: 'Sales', value: formatMoney(summary['sales'] ?? 0, abbreviate: abbreviate), icon: Icons.trending_up, color: colorScheme.primary)),
                   const SizedBox(width: 8),
-                  Expanded(child: _StatCard(title: 'Expenses', value: formatMoney(summary['expenses'] ?? 0), icon: Icons.trending_down, color: colorScheme.error)),
+                  Expanded(child: _StatCard(title: 'Expenses', value: formatMoney(summary['expenses'] ?? 0, abbreviate: abbreviate), icon: Icons.trending_down, color: colorScheme.error)),
                   const SizedBox(width: 8),
-                  Expanded(child: _StatCard(title: 'Profit', value: formatMoney(summary['profit'] ?? 0), icon: Icons.account_balance_wallet, color: (summary['profit'] ?? 0) >= 0 ? Colors.green : colorScheme.error)),
+                  Expanded(child: _StatCard(title: 'Profit', value: formatMoney(summary['profit'] ?? 0, abbreviate: abbreviate), icon: Icons.account_balance_wallet, color: (summary['profit'] ?? 0) >= 0 ? Colors.green : colorScheme.error)),
                 ],
               ),
             ],
@@ -145,7 +176,7 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildMonthlySummary(BuildContext context, AsyncValue<Map<String, double>> monthlySummary, ColorScheme colorScheme) {
+  Widget _buildMonthlySummary(BuildContext context, AsyncValue<Map<String, double>> monthlySummary, ColorScheme colorScheme, {bool abbreviate = true}) {
     return monthlySummary.when(
       data: (summary) => Card(
         child: Padding(
@@ -157,11 +188,11 @@ class DashboardScreen extends ConsumerWidget {
               const SizedBox(height: 16),
               Row(
                 children: [
-                  Expanded(child: _StatCard(title: 'Sales', value: formatMoney(summary['sales'] ?? 0), icon: Icons.trending_up, color: colorScheme.primary)),
+                  Expanded(child: _StatCard(title: 'Sales', value: formatMoney(summary['sales'] ?? 0, abbreviate: abbreviate), icon: Icons.trending_up, color: colorScheme.primary)),
                   const SizedBox(width: 8),
-                  Expanded(child: _StatCard(title: 'Expenses', value: formatMoney(summary['expenses'] ?? 0), icon: Icons.trending_down, color: colorScheme.error)),
+                  Expanded(child: _StatCard(title: 'Expenses', value: formatMoney(summary['expenses'] ?? 0, abbreviate: abbreviate), icon: Icons.trending_down, color: colorScheme.error)),
                   const SizedBox(width: 8),
-                  Expanded(child: _StatCard(title: 'Profit', value: formatMoney(summary['profit'] ?? 0), icon: Icons.account_balance_wallet, color: (summary['profit'] ?? 0) >= 0 ? Colors.green : colorScheme.error)),
+                  Expanded(child: _StatCard(title: 'Profit', value: formatMoney(summary['profit'] ?? 0, abbreviate: abbreviate), icon: Icons.account_balance_wallet, color: (summary['profit'] ?? 0) >= 0 ? Colors.green : colorScheme.error)),
                 ],
               ),
             ],
@@ -230,7 +261,7 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildSalesChart(BuildContext context, AsyncValue<List<MapEntry<DateTime, double>>> weeklySales, ColorScheme colorScheme) {
+  Widget _buildSalesChart(BuildContext context, WidgetRef ref, AsyncValue<List<MapEntry<DateTime, double>>> weeklySales, ColorScheme colorScheme, {bool abbreviate = true}) {
     return weeklySales.when(
       data: (data) {
         if (data.every((e) => e.value == 0)) {
@@ -278,7 +309,7 @@ class DashboardScreen extends ConsumerWidget {
                             reservedSize: 50,
                             getTitlesWidget: (value, meta) {
                               if (value == 0) return const SizedBox.shrink();
-                              return Text(formatMoney(value), style: const TextStyle(fontSize: 10));
+                              return Text(formatMoney(value, abbreviate: abbreviate), style: const TextStyle(fontSize: 10));
                             },
                           ),
                         ),
@@ -319,7 +350,7 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildTrendChart(BuildContext context, String title, AsyncValue<List<MapEntry<DateTime, double>>> weeklyData, Color chartColor, ColorScheme colorScheme) {
+  Widget _buildTrendChart(BuildContext context, String title, AsyncValue<List<MapEntry<DateTime, double>>> weeklyData, Color chartColor, ColorScheme colorScheme, {bool abbreviate = true}) {
     return weeklyData.when(
       data: (data) {
         if (data.every((e) => e.value == 0)) {
@@ -368,7 +399,7 @@ class DashboardScreen extends ConsumerWidget {
                             reservedSize: 50,
                             getTitlesWidget: (value, meta) {
                               if (value == 0) return const SizedBox.shrink();
-                              return Text(formatMoney(value), style: const TextStyle(fontSize: 10));
+                              return Text(formatMoney(value, abbreviate: abbreviate), style: const TextStyle(fontSize: 10));
                             },
                           ),
                         ),

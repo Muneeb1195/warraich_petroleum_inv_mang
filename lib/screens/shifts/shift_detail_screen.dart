@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../database/app_database.dart';
 import '../../providers/shift_provider.dart';
 import '../../providers/product_provider.dart';
-import '../../database/daos/shift_dao.dart';
+import '../../providers/format_provider.dart';
 import '../../utils/constants.dart';
+import '../../utils/error_utils.dart';
 
 class ShiftDetailScreen extends ConsumerStatefulWidget {
   final int shiftId;
@@ -112,17 +114,17 @@ class _ShiftDetailScreenState extends ConsumerState<ShiftDetailScreen> {
             const SizedBox(height: 12),
             Row(
               children: [
-                Expanded(child: _SummaryTile(label: 'Total Sales', value: formatMoney(total), color: colorScheme.primary, icon: Icons.trending_up)),
+                Expanded(child: _SummaryTile(label: 'Total Sales', value: fm(ref, total), color: colorScheme.primary, icon: Icons.trending_up)),
                 const SizedBox(width: 8),
-                Expanded(child: _SummaryTile(label: 'Cash', value: formatMoney(cash), color: Colors.green, icon: Icons.money)),
+                Expanded(child: _SummaryTile(label: 'Cash', value: fm(ref, cash), color: Colors.green, icon: Icons.money)),
               ],
             ),
             const SizedBox(height: 8),
             Row(
               children: [
-                Expanded(child: _SummaryTile(label: 'Card/Raast', value: formatMoney(card), color: Colors.blue, icon: Icons.credit_card)),
+                Expanded(child: _SummaryTile(label: 'Card/Raast', value: fm(ref, card), color: Colors.blue, icon: Icons.credit_card)),
                 const SizedBox(width: 8),
-                Expanded(child: _SummaryTile(label: 'Credit', value: formatMoney(credit), color: Colors.orange, icon: Icons.receipt_long)),
+                Expanded(child: _SummaryTile(label: 'Credit', value: fm(ref, credit), color: Colors.orange, icon: Icons.receipt_long)),
               ],
             ),
           ],
@@ -212,7 +214,7 @@ class _ShiftDetailScreenState extends ConsumerState<ShiftDetailScreen> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            formatMoney(sale.totalAmount),
+            fm(ref, sale.totalAmount),
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: colorScheme.primary),
           ),
           if (isShiftActive) ...[
@@ -266,11 +268,9 @@ class _ShiftDetailScreenState extends ConsumerState<ShiftDetailScreen> {
                 Navigator.pop(ctx);
                 await ref.read(shiftNotifierProvider.notifier).deleteSaleFromShift(saleId);
                 ref.invalidate(shiftSalesProvider(widget.shiftId));
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Entry deleted')));
-                }
+                if (context.mounted) context.showSuccess('Entry deleted');
               } catch (e) {
-                if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to delete: $e')));
+                if (context.mounted) context.showError(e, source: 'deleteSale');
               }
             },
             child: const Text('Delete'),
@@ -295,7 +295,7 @@ class _ShiftDetailScreenState extends ConsumerState<ShiftDetailScreen> {
                 await ref.read(shiftNotifierProvider.notifier).closeShift(widget.shiftId, null);
                 final closeState = ref.read(shiftNotifierProvider);
                 if (closeState.hasError) {
-                  if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to close shift: ${closeState.error}')));
+                  if (context.mounted) context.showError(closeState.error!, source: 'closeShift');
                   return;
                 }
                 if (context.mounted) {
@@ -307,10 +307,10 @@ class _ShiftDetailScreenState extends ConsumerState<ShiftDetailScreen> {
                   ref.invalidate(monthlySummaryProvider);
                   ref.invalidate(allInventoryProvider);
                   Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Shift closed')));
+                  context.showSuccess('Shift closed');
                 }
               } catch (e) {
-                if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to close shift: $e')));
+                if (context.mounted) context.showError(e, source: 'closeShift');
               }
             },
             child: const Text('Close Shift'),
@@ -383,14 +383,11 @@ class _AddFuelSheetState extends ConsumerState<_AddFuelSheet> {
 
   bool get _isEditing => widget.existingSale != null;
 
-  List<dynamic> get _products => ref.watch(allProductsProvider).valueOrNull ?? [];
-  List<dynamic> get _inventory => ref.watch(allInventoryProvider).valueOrNull ?? [];
-
-  double get _availableStock {
-    if (_selectedProductId == null) return 0;
-    final item = _inventory.where((i) => i.product.id == _selectedProductId).firstOrNull;
-    return item?.inventoryEntry.currentStock ?? 0;
-  }
+  List<Product> _products = [];
+  List<InventoryRow> _inventory = [];
+  List<ShiftSalesRow> _existingSales = [];
+  double _availableStock = 0;
+  double _pricePerUnit = 0;
 
   double get _quantity {
     final opening = double.tryParse(_openingController.text) ?? 0;
@@ -398,20 +395,12 @@ class _AddFuelSheetState extends ConsumerState<_AddFuelSheet> {
     return closing - opening;
   }
 
-  double get _pricePerUnit {
-    if (_selectedProductId == null) return 0;
-    final product = _products.firstWhere((p) => p.id == _selectedProductId, orElse: () => null);
-    if (product == null) return 0;
-    return (product.pricePerUnit as num).toDouble();
-  }
-
   double get _totalAmount => _quantity * _pricePerUnit;
 
   bool get _exceedsInventory {
     if (_selectedProductId == null) return false;
     if (_availableStock <= 0) return _quantity > 0;
-    final existingSales = ref.watch(shiftSalesProvider(widget.shiftId)).valueOrNull ?? [];
-    final existingQty = existingSales
+    final existingQty = _existingSales
         .where((row) => row.product.id == _selectedProductId && (!_isEditing || row.sale.id != widget.existingSale?.sale.id))
         .fold<double>(0, (sum, row) => sum + row.sale.quantitySold);
     return (existingQty + _quantity) > _availableStock;
@@ -423,9 +412,28 @@ class _AddFuelSheetState extends ConsumerState<_AddFuelSheet> {
     }
   }
 
+  void _readProductData() {
+    _products = ref.read(allProductsProvider).asData?.value ?? [];
+    _inventory = ref.read(allInventoryProvider).asData?.value ?? [];
+    _existingSales = ref.read(shiftSalesProvider(widget.shiftId)).asData?.value ?? [];
+    _availableStock = _selectedProductId != null
+        ? _inventory.where((i) => i.product.id == _selectedProductId).firstOrNull?.inventoryEntry.currentStock ?? 0
+        : 0;
+    if (_selectedProductId != null) {
+      try {
+        _pricePerUnit = _products.firstWhere((p) => p.id == _selectedProductId).pricePerUnit;
+      } catch (_) {
+        _pricePerUnit = 0;
+      }
+    } else {
+      _pricePerUnit = 0;
+    }
+  }
+
   @override
   void initState() {
     super.initState();
+    _readProductData();
     if (_isEditing) {
       final sale = widget.existingSale!;
       _selectedProductId = sale.product.id;
@@ -441,11 +449,9 @@ class _AddFuelSheetState extends ConsumerState<_AddFuelSheet> {
       }
     }
     _openingController.addListener(() {
-      setState(() {});
       _updateAmount();
     });
     _closingController.addListener(() {
-      setState(() {});
       _updateAmount();
     });
   }
@@ -460,9 +466,10 @@ class _AddFuelSheetState extends ConsumerState<_AddFuelSheet> {
 
   @override
   Widget build(BuildContext context) {
-    // Watch providers here to ensure UI rebuilds upon changes
     ref.watch(allProductsProvider);
     ref.watch(allInventoryProvider);
+    ref.watch(shiftSalesProvider(widget.shiftId));
+    _readProductData();
     final colorScheme = Theme.of(context).colorScheme;
 
     return Padding(
@@ -486,8 +493,8 @@ class _AddFuelSheetState extends ConsumerState<_AddFuelSheet> {
                   child: DropdownButtonFormField<int>(
                     initialValue: _selectedProductId,
                     decoration: const InputDecoration(labelText: 'Product'),
-                    items: _products.map<DropdownMenuItem<int>>((p) {
-                      return DropdownMenuItem(value: p.id as int, child: Text(p.name as String));
+                    items: _products.map((p) {
+                      return DropdownMenuItem(value: p.id, child: Text(p.name));
                     }).toList(),
                     onChanged: (value) {
                       setState(() => _selectedProductId = value);
@@ -548,7 +555,7 @@ class _AddFuelSheetState extends ConsumerState<_AddFuelSheet> {
                       ),
                     ),
                     Text(
-                      'Total: ${formatMoney(_totalAmount)}',
+                      'Total: ${fm(ref, _totalAmount)}',
                       style: TextStyle(
                         color: _exceedsInventory ? colorScheme.onErrorContainer : colorScheme.onPrimaryContainer,
                         fontWeight: FontWeight.bold,
@@ -604,7 +611,7 @@ class _AddFuelSheetState extends ConsumerState<_AddFuelSheet> {
                         ref.invalidate(shiftSalesProvider(widget.shiftId));
                         if (context.mounted) Navigator.pop(context);
                       } catch (e) {
-                        if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to save: $e')));
+                        if (context.mounted) context.showError(e, source: 'saveSale');
                       } finally {
                         if (mounted) setState(() => _isSubmitting = false);
                       }

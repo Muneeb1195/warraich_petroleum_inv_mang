@@ -1,6 +1,6 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../database/app_database.dart';
 import '../../providers/shift_provider.dart';
 import '../../utils/extensions.dart';
 import '../../utils/constants.dart';
@@ -15,7 +15,66 @@ class SalesHistoryScreen extends ConsumerStatefulWidget {
 
 class _SalesHistoryScreenState extends ConsumerState<SalesHistoryScreen> {
   String _filterType = 'all';
+  String _searchQuery = '';
+  DateTime? _startDate;
+  DateTime? _endDate;
+  final _searchController = TextEditingController();
+
   bool _isWide(BuildContext context) => MediaQuery.sizeOf(context).width > 800;
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  List<Shift> _applyFilters(List<Shift> shifts) {
+    var filtered = shifts;
+
+    if (_filterType == 'morning') {
+      filtered = filtered.where((s) => s.type == 'morning').toList();
+    } else if (_filterType == 'evening') {
+      filtered = filtered.where((s) => s.type == 'evening').toList();
+    } else if (_filterType == 'closed') {
+      filtered = filtered.where((s) => s.status == 'closed').toList();
+    }
+
+    if (_searchQuery.isNotEmpty) {
+      final q = _searchQuery.toLowerCase();
+      filtered = filtered.where((s) =>
+          s.type.toLowerCase().contains(q) ||
+          (s.notes?.toLowerCase().contains(q) ?? false) ||
+          s.startDate.formattedDate.toLowerCase().contains(q) ||
+          s.status.toLowerCase().contains(q)).toList();
+    }
+
+    if (_startDate != null) {
+      filtered = filtered.where((s) => !s.startDate.isBefore(_startDate!.startOfDay)).toList();
+    }
+    if (_endDate != null) {
+      filtered = filtered.where((s) => !s.startDate.isAfter(_endDate!.endOfDay)).toList();
+    }
+
+    return filtered;
+  }
+
+  Future<void> _pickDateRange() async {
+    final now = DateTime.now();
+    final range = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(2020),
+      lastDate: now.add(const Duration(days: 1)),
+      initialDateRange: _startDate != null && _endDate != null
+          ? DateTimeRange(start: _startDate!, end: _endDate!)
+          : DateTimeRange(start: now.subtract(const Duration(days: 30)), end: now),
+    );
+    if (range != null) {
+      setState(() {
+        _startDate = range.start;
+        _endDate = range.end;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,17 +83,13 @@ class _SalesHistoryScreenState extends ConsumerState<SalesHistoryScreen> {
 
     final body = allShifts.when(
       data: (shifts) {
-        var filtered = shifts;
-        if (_filterType == 'morning') {
-          filtered = shifts.where((s) => s.type == 'morning').toList();
-        } else if (_filterType == 'evening') {
-          filtered = shifts.where((s) => s.type == 'evening').toList();
-        } else if (_filterType == 'closed') {
-          filtered = shifts.where((s) => s.status == 'closed').toList();
-        }
-
+        final filtered = _applyFilters(shifts);
         if (filtered.isEmpty) {
-          return const Center(child: Text('No sales history'));
+          return Center(child: Text(
+            _searchQuery.isNotEmpty || _startDate != null
+                ? 'No shifts match your search'
+                : 'No sales history',
+          ));
         }
         return ListView.builder(
           padding: const EdgeInsets.all(16),
@@ -73,6 +128,17 @@ class _SalesHistoryScreenState extends ConsumerState<SalesHistoryScreen> {
       appBar: AppBar(
         title: const Text('Sales History'),
         actions: [
+          if (_startDate != null)
+            IconButton(
+              icon: const Icon(Icons.clear),
+              tooltip: 'Clear date filter',
+              onPressed: () => setState(() { _startDate = null; _endDate = null; }),
+            ),
+          IconButton(
+            icon: const Icon(Icons.date_range),
+            tooltip: 'Filter by date range',
+            onPressed: _pickDateRange,
+          ),
           PopupMenuButton<String>(
             icon: const Icon(Icons.filter_list),
             onSelected: (value) => setState(() => _filterType = value),
@@ -85,9 +151,50 @@ class _SalesHistoryScreenState extends ConsumerState<SalesHistoryScreen> {
           ),
         ],
       ),
-      body: _isWide(context)
-          ? Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 1000), child: body))
-          : body,
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'Search shifts...',
+                prefixIcon: const Icon(Icons.search),
+                suffixIcon: _searchQuery.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          _searchController.clear();
+                          setState(() => _searchQuery = '');
+                        },
+                      )
+                    : null,
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                filled: true,
+                fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+              ),
+              onChanged: (v) => setState(() => _searchQuery = v),
+            ),
+          ),
+          if (_startDate != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+              child: Chip(
+                avatar: const Icon(Icons.date_range, size: 18),
+                label: Text('${_startDate!.formattedDate} - ${_endDate!.formattedDate}'),
+                onDeleted: () => setState(() { _startDate = null; _endDate = null; }),
+              ),
+            ),
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: () async { ref.invalidate(allShiftsProvider); },
+              child: _isWide(context)
+                  ? Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 1000), child: body))
+                  : body,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

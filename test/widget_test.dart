@@ -4,8 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:warraich_petroleum/app.dart';
 
 void main() {
-  testWidgets('App renders', (WidgetTester tester) async {
-    // Set a desktop-sized viewport to accommodate the layout during test runs
+  testWidgets('App renders dashboard', (WidgetTester tester) async {
     tester.view.physicalSize = const Size(1200, 800);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
@@ -15,7 +14,8 @@ void main() {
         child: WarraichPetroleumApp(),
       ),
     );
+    await tester.pump();
+
     expect(find.text('Dashboard'), findsNWidgets(2));
   });
 }
-

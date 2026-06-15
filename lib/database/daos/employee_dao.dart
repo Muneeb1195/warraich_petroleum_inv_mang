@@ -10,6 +10,10 @@ class EmployeeDao extends DatabaseAccessor<AppDatabase> with _$EmployeeDaoMixin 
 
   Future<int> addEmployee(EmployeesCompanion employee) => into(employees).insert(employee);
 
+  Future<Employee?> getEmployeeById(int id) async {
+    return (select(employees)..where((e) => e.id.equals(id))).getSingleOrNull();
+  }
+
   Future<List<Employee>> getAllEmployees() async {
     return (select(employees)..where((e) => e.isActive.equals(true))).get();
   }
@@ -19,12 +23,17 @@ class EmployeeDao extends DatabaseAccessor<AppDatabase> with _$EmployeeDaoMixin 
   }
 
   Future<void> updateEmployee(int id, EmployeesCompanion data) async {
-    await (update(employees)..where((e) => e.id.equals(id))).write(data);
+    await (update(employees)..where((e) => e.id.equals(id))).write(
+      data.copyWith(updatedAt: Value(DateTime.now())),
+    );
   }
 
   Future<void> deactivateEmployee(int id) async {
     await (update(employees)..where((e) => e.id.equals(id))).write(
-      EmployeesCompanion(isActive: const Value(false)),
+      EmployeesCompanion(
+        isActive: const Value(false),
+        updatedAt: Value(DateTime.now()),
+      ),
     );
   }
 
