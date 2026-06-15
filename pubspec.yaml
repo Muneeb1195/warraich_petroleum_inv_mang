@@ -1,7 +1,7 @@
 name: warraich_petroleum
 description: "Warraich Petroleum - Petrol Pump Management App"
 publish_to: 'none'
-version: 1.2.0+1
+version: 1.5.0+1
 
 environment:
   sdk: ^3.12.1
@@ -30,6 +30,7 @@ dependencies:
 
   # Security
   flutter_secure_storage: ^10.3.1
+  local_auth: ^2.3.0
 
   # Cloud/Backup
   google_sign_in_all_platforms: ^2.0.3

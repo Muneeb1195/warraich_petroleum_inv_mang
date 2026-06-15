@@ -1,10 +1,9 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 
 class HelpScreen extends StatelessWidget {
   const HelpScreen({super.key});
 
-  bool get _isDesktop => Platform.isWindows || Platform.isLinux || Platform.isMacOS;
+  bool _isWide(BuildContext context) => MediaQuery.sizeOf(context).width > 800;
 
   @override
   Widget build(BuildContext context) {
@@ -139,7 +138,7 @@ class HelpScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Help & Guide')),
-      body: _isDesktop
+      body: _isWide(context)
           ? Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 1000), child: body))
           : body,
     );

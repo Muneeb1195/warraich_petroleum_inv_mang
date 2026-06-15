@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift/drift.dart' show Value;
@@ -10,7 +9,7 @@ import 'add_stock_screen.dart';
 class InventoryScreen extends ConsumerWidget {
   const InventoryScreen({super.key});
 
-  bool get _isDesktop => Platform.isWindows || Platform.isLinux || Platform.isMacOS;
+  bool _isWide(BuildContext context) => MediaQuery.sizeOf(context).width > 800;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -48,7 +47,7 @@ class InventoryScreen extends ConsumerWidget {
               style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-            if (_isDesktop)
+            if (_isWide(context))
               GridView.count(
                 crossAxisCount: fuelItems.isEmpty ? 1 : (fuelItems.length <= 3 ? fuelItems.length : 2),
                 shrinkWrap: true,
@@ -66,7 +65,7 @@ class InventoryScreen extends ConsumerWidget {
               style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-            if (_isDesktop)
+            if (_isWide(context))
               GridView.count(
                 crossAxisCount: lubeItems.isEmpty ? 1 : (lubeItems.length <= 3 ? lubeItems.length : 2),
                 shrinkWrap: true,
@@ -85,7 +84,7 @@ class InventoryScreen extends ConsumerWidget {
       error: (e, _) => Center(child: Text('Error: $e')),
     );
 
-    if (_isDesktop) {
+    if (_isWide(context)) {
       return Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 1000),

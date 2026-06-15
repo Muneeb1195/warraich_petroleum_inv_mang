@@ -111,9 +111,9 @@ class ProductDao extends DatabaseAccessor<AppDatabase> with _$ProductDaoMixin {
       final current = await getInventory(productId);
       if (current == null) return;
 
-      if (current.currentStock < quantity) {
-        throw Exception('Insufficient stock for ${productId}');
-      }
+        if (current.currentStock < quantity) {
+          throw Exception('Insufficient stock for $productId');
+        }
 
       await into(inventoryTransactions).insert(InventoryTransactionsCompanion.insert(
         productId: productId,

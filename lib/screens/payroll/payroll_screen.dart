@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/payroll_provider.dart';
 import '../../providers/employee_provider.dart';
 import '../../utils/extensions.dart';
+import '../../utils/constants.dart';
 
 class PayrollScreen extends ConsumerWidget {
   const PayrollScreen({super.key});
@@ -48,11 +49,11 @@ class PayrollScreen extends ConsumerWidget {
                       child: Icon(row.payrollEntry.isPaid ? Icons.check_circle : Icons.pending, color: row.payrollEntry.isPaid ? colorScheme.onPrimaryContainer : colorScheme.onErrorContainer),
                     ),
                     title: Text(row.employee.name),
-                    subtitle: Text('Monthly Salary: Rs. ${row.payrollEntry.baseSalary.toStringAsFixed(0)}'),
+                    subtitle: Text('Monthly Salary: $kCurrency ${row.payrollEntry.baseSalary.toStringAsFixed(0)}'),
                     trailing: row.payrollEntry.isPaid
                         ? Column(mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.end, children: [
                             const Icon(Icons.check_circle, color: Colors.green, size: 20),
-                            Text('Rs. ${row.payrollEntry.netPay.toStringAsFixed(0)}', style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.primary)),
+                            Text('$kCurrency ${row.payrollEntry.netPay.toStringAsFixed(0)}', style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.primary)),
                           ])
                         : Column(mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.end, children: [
                             TextButton(
@@ -70,7 +71,7 @@ class PayrollScreen extends ConsumerWidget {
                               },
                               child: const Text('Mark Paid'),
                             ),
-                            Text('Rs. ${row.payrollEntry.netPay.toStringAsFixed(0)}', style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.primary)),
+                            Text('$kCurrency ${row.payrollEntry.netPay.toStringAsFixed(0)}', style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.primary)),
                           ]),
                   ),
                 );

@@ -24,3 +24,13 @@ target_link_libraries(${BINARY_NAME} PRIVATE flutter)
 target_link_libraries(${BINARY_NAME} PRIVATE PkgConfig::GTK)
 
 target_include_directories(${BINARY_NAME} PRIVATE "${CMAKE_SOURCE_DIR}")
+
+# Copy icon to the bundle for release builds
+set(FLUTTER_ICON_PATH "${CMAKE_CURRENT_SOURCE_DIR}/resources/icon.png")
+if(EXISTS "${FLUTTER_ICON_PATH}")
+  add_custom_command(TARGET ${BINARY_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+      "${FLUTTER_ICON_PATH}"
+      "${CMAKE_BINARY_DIR}/bundle/icon.png"
+    COMMENT "Copying app icon to bundle")
+endif()

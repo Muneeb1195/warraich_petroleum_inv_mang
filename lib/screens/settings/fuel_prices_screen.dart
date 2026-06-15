@@ -1,7 +1,7 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/product_provider.dart';
+import '../../utils/constants.dart';
 
 class FuelPricesScreen extends ConsumerStatefulWidget {
   const FuelPricesScreen({super.key});
@@ -11,7 +11,7 @@ class FuelPricesScreen extends ConsumerStatefulWidget {
 }
 
 class _FuelPricesScreenState extends ConsumerState<FuelPricesScreen> {
-  bool get _isDesktop => Platform.isWindows || Platform.isLinux || Platform.isMacOS;
+  bool _isWide(BuildContext context) => MediaQuery.sizeOf(context).width > 800;
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +26,7 @@ class _FuelPricesScreenState extends ConsumerState<FuelPricesScreen> {
             return const Center(child: Text('No products found'));
           }
 
-          if (_isDesktop) {
+          if (_isWide(context)) {
             return Center(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 1000),
@@ -71,7 +71,7 @@ class _FuelPricesScreenState extends ConsumerState<FuelPricesScreen> {
         ),
         title: Text(product.name),
         subtitle: Text(
-          'Cost: Rs. ${product.costPerUnit.toStringAsFixed(1)} | Selling: Rs. ${product.pricePerUnit.toStringAsFixed(1)}',
+          'Cost: $kCurrency ${product.costPerUnit.toStringAsFixed(1)} | Selling: $kCurrency ${product.pricePerUnit.toStringAsFixed(1)}',
         ),
         trailing: const Icon(Icons.edit),
         onTap: () => _showEditPriceDialog(context, product),

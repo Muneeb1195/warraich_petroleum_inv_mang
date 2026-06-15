@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -17,7 +16,7 @@ class _PdfReportScreenState extends ConsumerState<PdfReportScreen> {
   int? _selectedShiftId;
   DateTime _selectedMonth = DateTime.now();
   DateTime _expenseSelectedMonth = DateTime.now();
-  bool get _isDesktop => Platform.isWindows || Platform.isLinux || Platform.isMacOS;
+  bool _isWide(BuildContext context) => MediaQuery.sizeOf(context).width > 800;
 
   @override
   Widget build(BuildContext context) {
@@ -165,7 +164,7 @@ class _PdfReportScreenState extends ConsumerState<PdfReportScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Generate Report')),
-      body: _isDesktop
+      body: _isWide(context)
           ? Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 1000), child: body))
           : body,
     );

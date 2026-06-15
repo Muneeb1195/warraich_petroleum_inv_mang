@@ -3,20 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../../providers/theme_provider.dart';
-import '../employees/employees_screen.dart';
-import '../payroll/payroll_screen.dart';
-import '../history/sales_history_screen.dart';
-import '../reports/pdf_report_screen.dart';
 import '../../services/error_logger.dart';
 import 'help_screen.dart';
 import 'backup_screen.dart';
 import 'app_lock_screen.dart';
-import 'fuel_prices_screen.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
-  bool get _isDesktop => Platform.isWindows || Platform.isLinux || Platform.isMacOS;
+  bool _isWide(BuildContext context) => MediaQuery.sizeOf(context).width > 800;
 
   void _showThemeDialog(BuildContext context, WidgetRef ref) {
     final currentMode = ref.read(themeModeProvider);
@@ -25,40 +20,30 @@ class SettingsScreen extends ConsumerWidget {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Theme'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            RadioListTile<ThemeMode>(
-              title: const Text('System Default'),
-              value: ThemeMode.system,
-              groupValue: currentMode,
-              onChanged: (value) {
-                if (value == null) return;
-                ref.read(themeModeProvider.notifier).setThemeMode(value);
-                Navigator.pop(context);
-              },
-            ),
-            RadioListTile<ThemeMode>(
-              title: const Text('Light'),
-              value: ThemeMode.light,
-              groupValue: currentMode,
-              onChanged: (value) {
-                if (value == null) return;
-                ref.read(themeModeProvider.notifier).setThemeMode(value);
-                Navigator.pop(context);
-              },
-            ),
-            RadioListTile<ThemeMode>(
-              title: const Text('Dark'),
-              value: ThemeMode.dark,
-              groupValue: currentMode,
-              onChanged: (value) {
-                if (value == null) return;
-                ref.read(themeModeProvider.notifier).setThemeMode(value);
-                Navigator.pop(context);
-              },
-            ),
-          ],
+        content: RadioGroup<ThemeMode>(
+          groupValue: currentMode,
+          onChanged: (value) {
+            if (value == null) return;
+            ref.read(themeModeProvider.notifier).setThemeMode(value);
+            Navigator.pop(context);
+          },
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              RadioListTile<ThemeMode>(
+                title: const Text('System Default'),
+                value: ThemeMode.system,
+              ),
+              RadioListTile<ThemeMode>(
+                title: const Text('Light'),
+                value: ThemeMode.light,
+              ),
+              RadioListTile<ThemeMode>(
+                title: const Text('Dark'),
+                value: ThemeMode.dark,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -70,7 +55,7 @@ class SettingsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Settings')),
-      body: _isDesktop
+      body: _isWide(context)
           ? _buildDesktopLayout(context, ref, colorScheme)
           : _buildMobileLayout(context, ref, colorScheme),
     );
@@ -153,7 +138,7 @@ class SettingsScreen extends ConsumerWidget {
               const SizedBox(height: 12),
               Text('Built by Software Works', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant)),
               const SizedBox(height: 2),
-              Text('Developer: Muneed Saeed', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant)),
+              Text('Developer: Muneeb Saeed', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant)),
               const SizedBox(height: 2),
               Text('Contact: 03156525591', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant)),
             ],

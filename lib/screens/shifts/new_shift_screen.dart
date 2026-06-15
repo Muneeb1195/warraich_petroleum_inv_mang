@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -13,7 +12,7 @@ class NewShiftScreen extends ConsumerStatefulWidget {
 
 class _NewShiftScreenState extends ConsumerState<NewShiftScreen> {
   String _selectedType = 'morning';
-  bool get _isDesktop => Platform.isWindows || Platform.isLinux || Platform.isMacOS;
+  bool _isWide(BuildContext context) => MediaQuery.sizeOf(context).width > 800;
   DateTime _selectedDate = DateTime.now();
   TimeOfDay _selectedTime = TimeOfDay.now();
 
@@ -104,7 +103,7 @@ class _NewShiftScreenState extends ConsumerState<NewShiftScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Start New Shift')),
-      body: _isDesktop
+      body: _isWide(context)
           ? Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 1000), child: body))
           : body,
     );

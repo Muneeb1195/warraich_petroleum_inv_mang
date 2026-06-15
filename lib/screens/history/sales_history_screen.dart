@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/shift_provider.dart';
 import '../../utils/extensions.dart';
+import '../../utils/constants.dart';
 import '../shifts/shift_detail_screen.dart';
 
 class SalesHistoryScreen extends ConsumerStatefulWidget {
@@ -49,12 +50,12 @@ class _SalesHistoryScreenState extends ConsumerState<SalesHistoryScreen> {
                   child: Icon(isActive ? Icons.schedule : Icons.check_circle, color: isActive ? colorScheme.onSurfaceVariant : colorScheme.onPrimaryContainer),
                 ),
                 title: Text('${shift.type.toUpperCase()} - ${shift.startDate.formattedDate}'),
-                subtitle: Text('Sales: Rs. ${shift.totalSales.toStringAsFixed(0)} | Exp: Rs. ${shift.totalExpenses.toStringAsFixed(0)}'),
+                subtitle: Text('Sales: $kCurrency ${shift.totalSales.toStringAsFixed(0)} | Exp: $kCurrency ${shift.totalExpenses.toStringAsFixed(0)}'),
                 trailing: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text('Rs. ${profit.toStringAsFixed(0)}', style: TextStyle(fontWeight: FontWeight.bold, color: profit >= 0 ? Colors.green : colorScheme.error)),
+                    Text('$kCurrency ${profit.toStringAsFixed(0)}', style: TextStyle(fontWeight: FontWeight.bold, color: profit >= 0 ? Colors.green : colorScheme.error)),
                     if (isActive) Text('Active', style: TextStyle(fontSize: 10, color: colorScheme.onSurfaceVariant)),
                   ],
                 ),

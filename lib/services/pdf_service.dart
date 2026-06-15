@@ -2,6 +2,7 @@ import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+import '../utils/constants.dart';
 
 class PdfService {
   static Future<void> generateShiftReport({
@@ -48,14 +49,14 @@ class PdfService {
             mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
             children: [
               pw.Text('Total Sales:'),
-              pw.Text('Rs. ${totalSales.toStringAsFixed(2)}'),
+              pw.Text('$kCurrency ${totalSales.toStringAsFixed(2)}'),
             ],
           ),
           pw.Row(
             mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
             children: [
               pw.Text('Total Expenses:'),
-              pw.Text('Rs. ${totalExpenses.toStringAsFixed(2)}'),
+              pw.Text('$kCurrency ${totalExpenses.toStringAsFixed(2)}'),
             ],
           ),
           pw.Divider(),
@@ -67,7 +68,7 @@ class PdfService {
                 style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14),
               ),
               pw.Text(
-                'Rs. ${profit.toStringAsFixed(2)}',
+                '$kCurrency ${profit.toStringAsFixed(2)}',
                 style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14),
               ),
             ],
@@ -110,7 +111,7 @@ class PdfService {
             mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
             children: [
               pw.Text('Total Sales:'),
-              pw.Text('Rs. ${totalSales.toStringAsFixed(2)}'),
+              pw.Text('$kCurrency ${totalSales.toStringAsFixed(2)}'),
             ],
           ),
           pw.SizedBox(height: 20),
@@ -121,7 +122,7 @@ class PdfService {
             headers: ['Category', 'Amount'],
             data: expenseSummary.entries.map((e) => [
               e.key.toUpperCase(),
-              'Rs. ${e.value.toStringAsFixed(2)}',
+              '$kCurrency ${e.value.toStringAsFixed(2)}',
             ]).toList(),
           ),
           pw.SizedBox(height: 10),
@@ -130,7 +131,7 @@ class PdfService {
             mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
             children: [
               pw.Text('Total Expenses:'),
-              pw.Text('Rs. ${totalExpenses.toStringAsFixed(2)}'),
+              pw.Text('$kCurrency ${totalExpenses.toStringAsFixed(2)}'),
             ],
           ),
           pw.Row(
@@ -141,7 +142,7 @@ class PdfService {
                 style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14),
               ),
               pw.Text(
-                'Rs. ${(totalSales - totalExpenses).toStringAsFixed(2)}',
+                '$kCurrency ${(totalSales - totalExpenses).toStringAsFixed(2)}',
                 style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14),
               ),
             ],

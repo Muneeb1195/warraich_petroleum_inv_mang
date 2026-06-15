@@ -1,5 +1,5 @@
-lib/config/app_config.dart
 android/key.properties
+.env
 android/release-key.jks
 
 build/

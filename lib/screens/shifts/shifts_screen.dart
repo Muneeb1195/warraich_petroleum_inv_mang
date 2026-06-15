@@ -1,16 +1,16 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../database/app_database.dart';
 import '../../providers/shift_provider.dart';
+import '../../utils/constants.dart';
 import 'new_shift_screen.dart';
 import 'shift_detail_screen.dart';
 
 class ShiftsScreen extends ConsumerWidget {
   const ShiftsScreen({super.key});
 
-  bool get _isDesktop => Platform.isWindows || Platform.isLinux || Platform.isMacOS;
+  bool _isWide(BuildContext context) => MediaQuery.sizeOf(context).width > 800;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -74,9 +74,8 @@ class ShiftsScreen extends ConsumerWidget {
             }
             return Column(
               children: shifts.map<Widget>((shift) {
-                final typedShift = shift as Shift;
-                final isActive = typedShift.status == 'active';
-                final profit = typedShift.totalSales - typedShift.totalExpenses;
+                final isActive = shift.status == 'active';
+                final profit = shift.totalSales - shift.totalExpenses;
                 return Card(
                   child: ListTile(
                     leading: CircleAvatar(
@@ -91,20 +90,20 @@ class ShiftsScreen extends ConsumerWidget {
                       ),
                     ),
                     title: Text(
-                      '${typedShift.type.toUpperCase()} Shift',
+                      '${shift.type.toUpperCase()} Shift',
                       style: TextStyle(fontWeight: isActive ? FontWeight.bold : FontWeight.normal),
                     ),
                     subtitle: Text(
                       isActive
-                          ? DateFormat('EEEE, dd MMM yyyy').format(typedShift.startDate)
-                          : '${DateFormat('EEEE, dd MMM yyyy').format(typedShift.startDate)} | Exp: Rs. ${typedShift.totalExpenses.toStringAsFixed(0)}',
+                          ? DateFormat('EEEE, dd MMM yyyy').format(shift.startDate)
+                          : '${DateFormat('EEEE, dd MMM yyyy').format(shift.startDate)} | Exp: $kCurrency ${shift.totalExpenses.toStringAsFixed(0)}',
                     ),
                     trailing: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Text(
-                          'Rs. ${typedShift.totalSales.toStringAsFixed(0)}',
+                          '$kCurrency ${shift.totalSales.toStringAsFixed(0)}',
                           style: TextStyle(
                             color: Theme.of(context).colorScheme.primary,
                             fontWeight: FontWeight.bold,
@@ -123,7 +122,7 @@ class ShiftsScreen extends ConsumerWidget {
                     ),
                     onTap: () => Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => ShiftDetailScreen(shiftId: typedShift.id)),
+                      MaterialPageRoute(builder: (_) => ShiftDetailScreen(shiftId: shift.id)),
                     ),
                   ),
                 );
@@ -136,7 +135,7 @@ class ShiftsScreen extends ConsumerWidget {
       ],
     );
 
-    if (_isDesktop) {
+    if (_isWide(context)) {
       return Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 1000),

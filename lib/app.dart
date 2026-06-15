@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'theme/app_theme.dart';
 import 'providers/auth_provider.dart';
+import 'providers/backup_provider.dart';
 import 'providers/theme_provider.dart';
 import 'screens/lock_screen.dart';
 import 'screens/home_shell.dart';
@@ -21,6 +22,7 @@ class _WarraichPetroleumAppState extends ConsumerState<WarraichPetroleumApp> wit
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(authStateProvider.notifier).init();
+      ref.read(backupNotifierProvider.notifier).initializeAutoBackup();
     });
   }
 

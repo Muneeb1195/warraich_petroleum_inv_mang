@@ -1,8 +1,8 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/product_provider.dart';
 import '../../providers/shift_provider.dart';
+import '../../utils/constants.dart';
 
 class AddStockScreen extends ConsumerStatefulWidget {
   const AddStockScreen({super.key});
@@ -16,7 +16,7 @@ class _AddStockScreenState extends ConsumerState<AddStockScreen> {
   final _quantityController = TextEditingController();
   final _costController = TextEditingController();
   final _notesController = TextEditingController();
-  bool get _isDesktop => Platform.isWindows || Platform.isLinux || Platform.isMacOS;
+  bool _isWide(BuildContext context) => MediaQuery.sizeOf(context).width > 800;
 
   double get _totalCost {
     final quantity = double.tryParse(_quantityController.text) ?? 0;
@@ -79,7 +79,7 @@ class _AddStockScreenState extends ConsumerState<AddStockScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text('Total Cost', style: TextStyle(color: colorScheme.onPrimaryContainer)),
-                  Text('Rs. ${_totalCost.toStringAsFixed(0)}', style: TextStyle(color: colorScheme.onPrimaryContainer, fontWeight: FontWeight.bold, fontSize: 16)),
+                  Text('$kCurrency ${_totalCost.toStringAsFixed(0)}', style: TextStyle(color: colorScheme.onPrimaryContainer, fontWeight: FontWeight.bold, fontSize: 16)),
                 ],
               ),
             ),
@@ -117,7 +117,7 @@ class _AddStockScreenState extends ConsumerState<AddStockScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Add Stock')),
-      body: _isDesktop
+      body: _isWide(context)
           ? Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 1000), child: body))
           : body,
     );

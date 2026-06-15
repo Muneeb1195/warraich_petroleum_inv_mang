@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/employee_provider.dart';
+import '../../utils/constants.dart';
 
 class EmployeesScreen extends ConsumerWidget {
   const EmployeesScreen({super.key});
@@ -24,7 +25,7 @@ class EmployeesScreen extends ConsumerWidget {
                 leading: CircleAvatar(backgroundColor: colorScheme.primaryContainer, child: Text(employee.name.isEmpty ? '?' : employee.name.substring(0, 1).toUpperCase(), style: TextStyle(color: colorScheme.onPrimaryContainer, fontWeight: FontWeight.bold))),
                 title: Text(employee.name),
                 subtitle: Text('${employee.role} - ${employee.defaultShift} shift'),
-                trailing: Text('Rs. ${employee.salary.toStringAsFixed(0)}', style: TextStyle(color: colorScheme.primary, fontWeight: FontWeight.bold)),
+                trailing: Text('$kCurrency ${employee.salary.toStringAsFixed(0)}', style: TextStyle(color: colorScheme.primary, fontWeight: FontWeight.bold)),
               ),
             );
           },

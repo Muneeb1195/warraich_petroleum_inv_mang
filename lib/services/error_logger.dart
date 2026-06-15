@@ -7,11 +7,7 @@ class ErrorLogger {
   static const _maxLogSize = 512 * 1024; // 512KB
 
   static Future<File> get _logFile async {
-    Directory? dir;
-    try {
-      dir = await getExternalStorageDirectory();
-    } catch (_) {}
-    dir ??= await getApplicationDocumentsDirectory();
+    final dir = await getApplicationDocumentsDirectory();
     return File(p.join(dir.path, _fileName));
   }
 

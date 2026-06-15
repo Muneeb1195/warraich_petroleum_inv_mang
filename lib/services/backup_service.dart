@@ -28,7 +28,6 @@ class BackupService {
   Future<Map<String, String>> _getHeaders() async {
     try {
       _credentials ??= await _googleSignIn.silentSignIn();
-      _credentials ??= await _googleSignIn.signIn();
     } catch (e) {
       return {};
     }

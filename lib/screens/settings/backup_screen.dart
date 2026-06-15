@@ -20,7 +20,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
   bool _autoBackup = true;
   bool _isSignedIn = false;
   String _backupPath = '';
-  bool get _isDesktop => Platform.isWindows || Platform.isLinux || Platform.isMacOS;
+  bool _isWide(BuildContext context) => MediaQuery.sizeOf(context).width > 800;
 
   @override
   void initState() {
@@ -212,7 +212,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Backup & Restore')),
-      body: _isDesktop
+      body: _isWide(context)
           ? Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 1000), child: body))
           : body,
     );

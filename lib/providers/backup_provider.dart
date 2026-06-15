@@ -1,5 +1,9 @@
+import 'dart:async';
 import 'dart:io';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as p;
 import '../services/backup_service.dart';
 import 'database_provider.dart';
 
@@ -10,16 +14,79 @@ final backupServiceProvider = Provider<BackupService>((ref) {
 class BackupNotifier extends StateNotifier<AsyncValue<void>> {
   final BackupService _service;
   final Ref _ref;
+  Timer? _autoTimer;
 
   BackupNotifier(this._service, this._ref) : super(const AsyncValue.data(null));
+
+  static const _autoBackupKey = 'auto_backup_enabled';
+  static const _lastAutoBackupKey = 'last_auto_backup';
+
+  Future<void> initializeAutoBackup() async {
+    const storage = FlutterSecureStorage();
+    final enabled = await storage.read(key: _autoBackupKey);
+    if (enabled == 'false') return;
+
+    await _tryAutoBackup();
+
+    _autoTimer?.cancel();
+    _autoTimer = Timer.periodic(const Duration(hours: 1), (_) async {
+      await _tryAutoBackup();
+    });
+  }
+
+  Future<void> _tryAutoBackup() async {
+    const storage = FlutterSecureStorage();
+    final enabled = await storage.read(key: _autoBackupKey);
+    if (enabled == 'false') return;
+
+    final lastBackup = await storage.read(key: _lastAutoBackupKey);
+    if (lastBackup != null) {
+      final lastDate = DateTime.tryParse(lastBackup);
+      if (lastDate != null && DateTime.now().difference(lastDate).inHours < 24) return;
+    }
+
+    try {
+      final dir = await getApplicationDocumentsDirectory();
+      final dbFile = File(p.join(dir.path, 'warraich_petroleum.db'));
+      final db = _ref.read(databaseProvider);
+      await db.customStatement('PRAGMA wal_checkpoint(TRUNCATE)');
+      await db.close();
+      _ref.invalidate(databaseProvider);
+
+      final cloudResult = await _service.backupDatabase(dbFile);
+      if (cloudResult) {
+        await storage.write(key: _lastAutoBackupKey, value: DateTime.now().toIso8601String());
+        return;
+      }
+
+      final localResult = await _service.localBackup(dbFile);
+      if (localResult) {
+        await storage.write(key: _lastAutoBackupKey, value: DateTime.now().toIso8601String());
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _saveBackupTimestamp() async {
+    const storage = FlutterSecureStorage();
+    await storage.write(key: _lastAutoBackupKey, value: DateTime.now().toIso8601String());
+  }
+
+  @override
+  void dispose() {
+    _autoTimer?.cancel();
+    super.dispose();
+  }
 
   Future<bool> backupDatabase(File dbFile) async {
     state = const AsyncValue.loading();
     try {
       final db = _ref.read(databaseProvider);
       await db.customStatement('PRAGMA wal_checkpoint(TRUNCATE)');
+      await db.close();
     } catch (_) {}
     final result = await _service.backupDatabase(dbFile);
+    _ref.invalidate(databaseProvider);
+    if (result) await _saveBackupTimestamp();
     state = result
         ? const AsyncValue.data(null)
         : const AsyncValue.error('Backup failed', StackTrace.empty);
@@ -86,8 +153,11 @@ class BackupNotifier extends StateNotifier<AsyncValue<void>> {
     try {
       final db = _ref.read(databaseProvider);
       await db.customStatement('PRAGMA wal_checkpoint(TRUNCATE)');
+      await db.close();
     } catch (_) {}
     final result = await _service.localBackup(dbFile);
+    _ref.invalidate(databaseProvider);
+    if (result) await _saveBackupTimestamp();
     state = result
         ? const AsyncValue.data(null)
         : const AsyncValue.error('Local backup failed', StackTrace.empty);

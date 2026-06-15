@@ -48,20 +48,22 @@ class AppLockScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
           SwitchListTile(
-            title: const Text('Enable App Lock'),
+            title: Text(authState.biometricEnabled ? 'Disable App Lock' : 'Enable App Lock'),
             subtitle: Text(authState.biometricEnabled ? 'App is locked. Authentication required on launch.' : 'App is unlocked. No authentication required.'),
             value: authState.biometricEnabled,
             onChanged: (value) async {
               try {
-                final biometricService = ref.read(biometricServiceProvider);
-                final authenticated = await biometricService.authenticate();
-                if (!authenticated) return;
                 if (value) {
+                  final biometricService = ref.read(biometricServiceProvider);
+                  if (!await biometricService.authenticate()) return;
                   await ref.read(authStateProvider.notifier).enableLock();
-                  if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('App lock enabled')));
                 } else {
                   await ref.read(authStateProvider.notifier).disableLock();
-                  if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('App lock disabled')));
+                }
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                    content: Text(value ? 'App lock enabled' : 'App lock disabled'),
+                  ));
                 }
               } catch (e) {
                 if (context.mounted) {

@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/shift_provider.dart';
@@ -15,7 +14,7 @@ class ShiftDetailScreen extends ConsumerStatefulWidget {
 }
 
 class _ShiftDetailScreenState extends ConsumerState<ShiftDetailScreen> {
-  bool get _isDesktop => Platform.isWindows || Platform.isLinux || Platform.isMacOS;
+  bool _isWide(BuildContext context) => MediaQuery.sizeOf(context).width > 800;
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +35,7 @@ class _ShiftDetailScreenState extends ConsumerState<ShiftDetailScreen> {
           final totalCard = sales.fold<double>(0, (sum, row) => sum + row.sale.cardCollected);
           final totalCredit = sales.fold<double>(0, (sum, row) => sum + row.sale.creditCollected);
 
-          if (_isDesktop) {
+          if (_isWide(context)) {
             return Center(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 1000),
@@ -409,7 +408,8 @@ class _AddFuelSheetState extends ConsumerState<_AddFuelSheet> {
   double get _totalAmount => _quantity * _pricePerUnit;
 
   bool get _exceedsInventory {
-    if (_selectedProductId == null || _availableStock <= 0) return false;
+    if (_selectedProductId == null) return false;
+    if (_availableStock <= 0) return _quantity > 0;
     final existingSales = ref.watch(shiftSalesProvider(widget.shiftId)).valueOrNull ?? [];
     final existingQty = existingSales
         .where((row) => row.product.id == _selectedProductId && (!_isEditing || row.sale.id != widget.existingSale?.sale.id))
@@ -517,7 +517,7 @@ class _AddFuelSheetState extends ConsumerState<_AddFuelSheet> {
             if (_selectedProductId != null && _availableStock > 0) ...[
               const SizedBox(height: 8),
               Text(
-                'Available: ${_availableStock.toStringAsFixed(1)} units | Price: Rs. ${_pricePerUnit.toStringAsFixed(1)} / unit',
+                'Available: ${_availableStock.toStringAsFixed(1)} units | Price: $kCurrency ${_pricePerUnit.toStringAsFixed(1)} / unit',
                 style: TextStyle(color: colorScheme.primary, fontWeight: FontWeight.w600, fontSize: 12),
               ),
             ],
