@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer' show log;
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
@@ -58,13 +59,16 @@ class BackupService {
         if (token != null) {
           return {'Authorization': 'Bearer $token', 'Content-Type': 'application/json'};
         }
+        log('backup: Android token retrieval failed');
       } else {
         _credentials ??= await _getDesktopSignIn.silentSignIn();
         if (_credentials != null) {
           return {'Authorization': 'Bearer ${_credentials!.accessToken}', 'Content-Type': 'application/json'};
         }
       }
-    } catch (_) {}
+    } catch (e) {
+      log('backup: _getHeaders error: $e');
+    }
     return {};
   }
 
@@ -72,7 +76,12 @@ class BackupService {
     try {
       if (Platform.isAndroid) {
         await _initAndroid();
-        _androidAccount = await gs.GoogleSignIn.instance.authenticate();
+        _androidAccount = await gs.GoogleSignIn.instance.authenticate(
+          scopeHint: [
+            'https://www.googleapis.com/auth/drive.file',
+            'https://www.googleapis.com/auth/drive.appdata',
+          ],
+        );
         if (_androidAccount != null) {
           final token = await _getAndroidToken();
           return token != null;
@@ -285,21 +294,27 @@ class BackupService {
   Future<bool> restoreFromId(String fileId) async {
     try {
       final headers = await _getHeaders();
-      if (headers.isEmpty) return false;
-
+      if (headers.isEmpty) {
+        log('backup: restoreFromId failed - no auth headers');
+        return false;
+      }
+      log('backup: restoreFromId downloading $fileId...');
       final downloadResponse = await http.get(
         Uri.parse('https://www.googleapis.com/drive/v3/files/$fileId?alt=media'),
         headers: headers,
       ).timeout(_httpTimeout);
 
+      log('backup: restoreFromId status=${downloadResponse.statusCode}');
       if (downloadResponse.statusCode == 200) {
         final dir = await getApplicationDocumentsDirectory();
         final file = File(p.join(dir.path, 'warraich_petroleum.db'));
         await file.writeAsBytes(downloadResponse.bodyBytes);
+        log('backup: restoreFromId wrote ${downloadResponse.bodyBytes.length} bytes');
         return true;
       }
       return false;
     } catch (e) {
+      log('backup: restoreFromId error: $e');
       return false;
     }
   }
