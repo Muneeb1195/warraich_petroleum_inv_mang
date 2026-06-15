@@ -58,6 +58,8 @@ class AppLockScreen extends ConsumerWidget {
                   if (!await biometricService.authenticate()) return;
                   await ref.read(authStateProvider.notifier).enableLock();
                 } else {
+                  final biometricService = ref.read(biometricServiceProvider);
+                  if (!await biometricService.authenticate()) return;
                   await ref.read(authStateProvider.notifier).disableLock();
                 }
                 if (context.mounted) {
