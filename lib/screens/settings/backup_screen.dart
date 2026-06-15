@@ -1,3 +1,4 @@
+import 'dart:developer' show log;
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -220,7 +221,9 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
 
   void _showCloudRestoreDialog(BuildContext context) async {
     final colorScheme = Theme.of(context).colorScheme;
+    log('backup_ui: listing cloud backups...');
     final backups = await ref.read(backupNotifierProvider.notifier).listCloudBackups();
+    log('backup_ui: found ${backups.length} backups');
     if (!context.mounted) return;
 
     if (backups.isEmpty) {
@@ -276,8 +279,10 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
                 subtitle: Text(name, style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant)),
                 onTap: () async {
                   Navigator.pop(ctx);
+                  log('backup_ui: restoring cloud backup ${backup['id']}...');
                   try {
                     final restored = await ref.read(backupNotifierProvider.notifier).restoreCloudBackup(backup['id'] ?? '');
+                    log('backup_ui: restore result=$restored');
                     if (!context.mounted) return;
                     if (restored) {
                       showDialog(
@@ -289,9 +294,10 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
                         ),
                       );
                     } else {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Restore failed')));
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Restore failed — check error log in Settings')));
                     }
                   } catch (e) {
+                    log('backup_ui: restore exception: $e');
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
                     }
