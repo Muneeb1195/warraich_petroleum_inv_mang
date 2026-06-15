@@ -144,9 +144,8 @@ class BackupNotifier extends StateNotifier<AsyncValue<void>> {
 
     final result = await _service.restoreFromId(fileId);
 
-    if (result) {
-      _ref.invalidate(databaseProvider);
-    }
+    // Always recreate DB connection since we closed it above
+    _ref.invalidate(databaseProvider);
 
     state = result
         ? const AsyncValue.data(null)
@@ -180,9 +179,8 @@ class BackupNotifier extends StateNotifier<AsyncValue<void>> {
       result = await _service.localRestore();
     } catch (_) {}
 
-    if (result != null) {
-      _ref.invalidate(databaseProvider);
-    }
+    // Always recreate DB connection since we closed it above
+    _ref.invalidate(databaseProvider);
 
     state = result != null
         ? const AsyncValue.data(null)
