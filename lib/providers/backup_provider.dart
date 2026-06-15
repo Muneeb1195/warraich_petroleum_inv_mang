@@ -90,17 +90,9 @@ class BackupNotifier extends StateNotifier<AsyncValue<void>> {
     try {
       final db = _ref.read(databaseProvider);
       await db.customStatement('PRAGMA wal_checkpoint(TRUNCATE)');
-      await db.close();
     } catch (_) {}
     final result = await _service.backupDatabase(dbFile);
-    // Only invalidate and re-create DB connection on success
-    if (result) {
-      _ref.invalidate(databaseProvider);
-      await _saveBackupTimestamp();
-    } else {
-      // DB was closed but backup failed — force re-create connection
-      _ref.invalidate(databaseProvider);
-    }
+    if (result) await _saveBackupTimestamp();
     state = result
         ? const AsyncValue.data(null)
         : const AsyncValue.error('Backup failed', StackTrace.empty);
@@ -167,10 +159,8 @@ class BackupNotifier extends StateNotifier<AsyncValue<void>> {
     try {
       final db = _ref.read(databaseProvider);
       await db.customStatement('PRAGMA wal_checkpoint(TRUNCATE)');
-      await db.close();
     } catch (_) {}
     final result = await _service.localBackup(dbFile);
-    _ref.invalidate(databaseProvider);
     if (result) await _saveBackupTimestamp();
     state = result
         ? const AsyncValue.data(null)
