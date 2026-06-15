@@ -2,9 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import '../database/app_database.dart';
 import '../repositories/shift_repository.dart';
-import '../services/sync_service.dart';
 import 'database_provider.dart';
-import 'sync_provider.dart';
 
 final shiftRepositoryProvider = Provider<ShiftRepository>((ref) {
   final db = ref.watch(databaseProvider);
@@ -54,32 +52,14 @@ final employeeCountProvider = FutureProvider<int>((ref) {
 
 class ShiftNotifier extends StateNotifier<AsyncValue<void>> {
   final ShiftRepository _repo;
-  final SyncService? _sync;
 
-  ShiftNotifier(this._repo, this._sync) : super(const AsyncValue.data(null));
+  ShiftNotifier(this._repo) : super(const AsyncValue.data(null));
 
   Future<void> startShift(String type, {DateTime? dateTime}) async {
     state = const AsyncValue.loading();
-    int id = 0;
     state = await AsyncValue.guard(() async {
-      id = await _repo.createShift(type, dateTime: dateTime);
+      await _repo.createShift(type, dateTime: dateTime);
     });
-    if (id > 0) {
-      final shift = await _repo.getShiftById(id);
-      if (shift != null) {
-        await _sync?.syncRecord('shifts', id.toString(), {
-          'id': shift.id,
-          'type': shift.type,
-          'status': shift.status,
-          'startDate': shift.startDate.toIso8601String(),
-          'endDate': shift.endDate?.toIso8601String(),
-          'closedBy': shift.closedBy,
-          'totalSales': shift.totalSales,
-          'totalExpenses': shift.totalExpenses,
-          'updatedAt': shift.updatedAt.toIso8601String(),
-        });
-      }
-    }
   }
 
   Future<void> addSaleToShift(
@@ -96,32 +76,12 @@ class ShiftNotifier extends StateNotifier<AsyncValue<void>> {
     if (quantity <= 0) throw Exception('Sale quantity must be greater than 0');
     final totalAmount = cash + card + credit;
     if (totalAmount <= 0) throw Exception('Sale amount must be greater than 0');
-    int id = 0;
     state = await AsyncValue.guard(() async {
-      id = await _repo.addSaleToShift(
+      await _repo.addSaleToShift(
         shiftId, productId, openingReading, closingReading,
         pricePerUnit, cash, card, credit,
       );
     });
-    if (id > 0) {
-      final sale = await _repo.getSaleById(id);
-      final nowStr = sale != null
-          ? sale.updatedAt.toIso8601String()
-          : DateTime.now().toIso8601String();
-      await _sync?.syncRecord('shift_sales', id.toString(), {
-        'id': id,
-        'shiftId': shiftId,
-        'productId': productId,
-        'openingReading': openingReading,
-        'closingReading': closingReading,
-        'quantitySold': quantity,
-        'totalAmount': totalAmount,
-        'cashCollected': cash,
-        'cardCollected': card,
-        'creditCollected': credit,
-        'updatedAt': nowStr,
-      });
-    }
   }
 
   Future<void> updateSaleInShift(
@@ -143,57 +103,20 @@ class ShiftNotifier extends StateNotifier<AsyncValue<void>> {
       saleId, shiftId, productId, openingReading, closingReading,
       pricePerUnit, cash, card, credit,
     ));
-    if (_sync != null) {
-      final sale = await _repo.getSaleById(saleId);
-      final nowStr = sale != null
-          ? sale.updatedAt.toIso8601String()
-          : DateTime.now().toIso8601String();
-      await _sync.syncRecord('shift_sales', saleId.toString(), {
-        'id': saleId,
-        'shiftId': shiftId,
-        'productId': productId,
-        'openingReading': openingReading,
-        'closingReading': closingReading,
-        'quantitySold': quantity,
-        'totalAmount': totalAmount,
-        'cashCollected': cash,
-        'cardCollected': card,
-        'creditCollected': credit,
-        'updatedAt': nowStr,
-      });
-    }
   }
 
   Future<void> deleteSaleFromShift(int saleId) async {
     state = await AsyncValue.guard(() => _repo.deleteSaleFromShift(saleId));
-    await _sync?.deleteRecord('shift_sales', saleId.toString());
   }
 
   Future<void> closeShift(int shiftId, int? closedBy) async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() => _repo.closeShift(shiftId, closedBy));
-    if (_sync != null) {
-      final shift = await _repo.getShiftById(shiftId);
-      if (shift != null) {
-        await _sync.syncRecord('shifts', shiftId.toString(), {
-          'id': shift.id,
-          'type': shift.type,
-          'status': shift.status,
-          'startDate': shift.startDate.toIso8601String(),
-          'endDate': shift.endDate?.toIso8601String(),
-          'closedBy': shift.closedBy,
-          'totalSales': shift.totalSales,
-          'totalExpenses': shift.totalExpenses,
-          'updatedAt': shift.updatedAt.toIso8601String(),
-        });
-      }
-    }
   }
 }
 
 final shiftNotifierProvider = StateNotifierProvider<ShiftNotifier, AsyncValue<void>>((ref) {
   return ShiftNotifier(
     ref.watch(shiftRepositoryProvider),
-    ref.read(syncServiceProvider),
   );
 });

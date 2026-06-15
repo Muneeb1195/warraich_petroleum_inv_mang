@@ -4,9 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../../providers/format_provider.dart';
 import '../../providers/theme_provider.dart';
-import '../../providers/sync_provider.dart';
-import '../../providers/firebase_auth_provider.dart';
-import '../../services/sync_service.dart';
 import '../../services/error_logger.dart';
 import 'help_screen.dart';
 import 'backup_screen.dart';
@@ -80,8 +77,6 @@ class SettingsScreen extends ConsumerWidget {
           ),
         ],
       ),
-      const SizedBox(height: 16),
-      _SyncStatusCard(ref: ref, colorScheme: colorScheme),
       const SizedBox(height: 16),
       Card(
         child: Padding(
@@ -204,61 +199,6 @@ class _MenuItem {
   final VoidCallback onTap;
 
   const _MenuItem({required this.icon, required this.title, required this.subtitle, required this.onTap});
-}
-
-class _SyncStatusCard extends ConsumerWidget {
-  final WidgetRef ref;
-  final ColorScheme colorScheme;
-
-  const _SyncStatusCard({required this.ref, required this.colorScheme});
-
-  @override
-  Widget build(BuildContext context, WidgetRef _) {
-    final isSignedIn = ref.watch(isSignedInProvider);
-    final syncStatus = ref.watch(syncStatusProvider);
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.cloud_sync, color: colorScheme.primary, size: 20),
-                const SizedBox(width: 8),
-                Text('Cloud Sync', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Icon(isSignedIn ? Icons.check_circle : Icons.cancel, size: 16, color: isSignedIn ? colorScheme.primary : colorScheme.error),
-                const SizedBox(width: 8),
-                Text(isSignedIn ? 'Signed in' : 'Not signed in'),
-              ],
-            ),
-            const SizedBox(height: 8),
-            syncStatus.when(
-              data: (status) => Row(
-                children: [
-                  Icon(
-                    status == SyncStatus.syncing ? Icons.sync : status == SyncStatus.error ? Icons.error_outline : Icons.cloud_done,
-                    size: 16,
-                    color: status == SyncStatus.syncing ? colorScheme.primary : status == SyncStatus.error ? colorScheme.error : colorScheme.primary,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(status == SyncStatus.syncing ? 'Syncing...' : status == SyncStatus.error ? 'Sync error' : 'Synced'),
-                ],
-              ),
-              loading: () => const Row(children: [SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)), SizedBox(width: 8), Text('Checking...')]),
-              error: (_, __) => const Row(children: [Icon(Icons.error_outline, size: 16), SizedBox(width: 8), Text('Unknown')]),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
 
 class _ThemeSelector extends ConsumerWidget {
