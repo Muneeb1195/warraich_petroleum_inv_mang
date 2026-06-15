@@ -58,7 +58,7 @@ class SignInScreen extends ConsumerWidget {
               const SizedBox(height: 16),
               TextButton(
                 onPressed: () {
-                  ref.read(signInSkippedProvider.notifier).state = true;
+                  ref.read(signInSkippedProvider.notifier).set(true);
                 },
                 child: const Text('Skip for now'),
               ),

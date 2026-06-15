@@ -57,9 +57,6 @@ class AppDatabase extends _$AppDatabase {
           if (from < 4) {
             await _ensureUpdatedAtColumns(m);
           }
-          if (from < 5) {
-            await _ensureUpdatedAtColumns(m);
-          }
         },
       );
 

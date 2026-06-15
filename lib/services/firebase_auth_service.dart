@@ -10,7 +10,7 @@ import 'package:google_sign_in/google_sign_in.dart' as gs;
 import '../config/app_config.dart';
 
 class FirebaseAuthService {
-  static const String _apiKey = 'REDACTED_FIREBASE_KEY';
+  static const String _apiKey = AppConfig.firebaseApiKey;
   static const String _databaseURL =
       'https://com-warraich-petroleum-default-rtdb.asia-southeast1.firebasedatabase.app';
 
@@ -151,7 +151,7 @@ class FirebaseAuthService {
       } else {
         _tokenExpiresAt = DateTime.now().add(const Duration(hours: 1));
       }
-      log('google_auth: exchange OK, uid=$_uid idToken=${_idToken?.substring(0, 20)}...');
+      log('google_auth: exchange OK, uid=$_uid idToken=${(_idToken?.length ?? 0) > 20 ? _idToken!.substring(0, 20) : _idToken ?? "null"}...');
       return _uid != null;
     } catch (e) {
       log('google_auth: exchange error: $e');
@@ -231,43 +231,54 @@ class FirebaseAuthService {
     final uri = Uri.parse(url);
     final headers = <String, String>{'Content-Type': 'application/json'};
 
-    http.Response response;
-    try {
-      switch (method) {
-        case 'GET':
-          response = await http.get(uri, headers: headers).timeout(const Duration(seconds: 15));
-          break;
-        case 'PUT':
-          response = await http
-              .put(uri, headers: headers, body: jsonEncode(body))
-              .timeout(const Duration(seconds: 15));
-          break;
-        case 'PATCH':
-          response = await http
-              .patch(uri, headers: headers, body: jsonEncode(body))
-              .timeout(const Duration(seconds: 15));
-          break;
-        case 'DELETE':
-          response = await http
-              .delete(uri, headers: headers)
-              .timeout(const Duration(seconds: 15));
-          break;
-        default:
-          throw Exception('Unsupported method: $method');
+    const maxAttempts = 3;
+    for (int attempt = 1; attempt <= maxAttempts; attempt++) {
+      http.Response response;
+      try {
+        switch (method) {
+          case 'GET':
+            response = await http.get(uri, headers: headers).timeout(const Duration(seconds: 15));
+            break;
+          case 'PUT':
+            response = await http
+                .put(uri, headers: headers, body: jsonEncode(body))
+                .timeout(const Duration(seconds: 15));
+            break;
+          case 'PATCH':
+            response = await http
+                .patch(uri, headers: headers, body: jsonEncode(body))
+                .timeout(const Duration(seconds: 15));
+            break;
+          case 'DELETE':
+            response = await http
+                .delete(uri, headers: headers)
+                .timeout(const Duration(seconds: 15));
+            break;
+          default:
+            throw Exception('Unsupported method: $method');
+        }
+      } on TimeoutException {
+        log('sync_req: $method $path timed out (attempt $attempt/$maxAttempts)');
+        if (attempt < maxAttempts) {
+          await Future<void>.delayed(const Duration(seconds: 2));
+          continue;
+        }
+        throw Exception('RTDB $method $path timed out');
       }
-    } on TimeoutException {
-      log('sync_req: $method $path timed out');
-      throw Exception('RTDB $method $path timed out');
-    }
 
-    if (response.statusCode < 200 || response.statusCode >= 300) {
-      log('sync_req: $method $path failed ${response.statusCode}: ${response.body}');
-      throw Exception(
-          'RTDB $method $path failed: ${response.statusCode} ${response.body}');
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        log('sync_req: $method $path failed ${response.statusCode} (attempt $attempt/$maxAttempts): ${response.body}');
+        if (attempt < maxAttempts) {
+          await Future<void>.delayed(const Duration(seconds: 2));
+          continue;
+        }
+        throw Exception(
+            'RTDB $method $path failed: ${response.statusCode} ${response.body}');
+      }
+      final decoded = jsonDecode(response.body);
+      if (decoded == null || decoded is! Map) return <String, dynamic>{};
+      return decoded as Map<String, dynamic>;
     }
-    final decoded = jsonDecode(response.body);
-    if (decoded is Map<String, dynamic>) return decoded;
-    if (decoded == null) return {};
     return {};
   }
 
@@ -306,7 +317,25 @@ class FirebaseAuthService {
         return exchanged;
       }
 
-      return false;
+      if (!_androidInitialized) {
+        try {
+          await gs.GoogleSignIn.instance.initialize();
+          _androidInitialized = true;
+        } catch (e) {
+          log('google_auth: android silent init error: $e');
+          return false;
+        }
+      }
+      try {
+        final account = await gs.GoogleSignIn.instance.authenticate();
+        log('google_auth: android silent sign-in succeeded, email=${account.email}');
+        final exchanged = await _exchangeToken(account.authentication.idToken!);
+        if (exchanged) _authStateController.add(true);
+        return exchanged;
+      } catch (e) {
+        log('google_auth: android silent sign-in error: $e');
+        return false;
+      }
     } catch (e) {
       log('google_auth: silent sign-in error: $e');
       return false;
@@ -320,6 +349,7 @@ class FirebaseAuthService {
     const storage = FlutterSecureStorage();
     await storage.delete(key: 'firebase_uid');
     await storage.delete(key: 'firebase_refresh_token');
+    await storage.delete(key: 'google_sign_in_token');
     _authStateController.add(false);
   }
 

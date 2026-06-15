@@ -110,11 +110,21 @@ class SyncService {
   }
 
   Future<void> syncRecord(String collection, String id, Map<String, dynamic> data) async {
-    await _auth.putData('$_basePath/$collection/$id', data);
+    _setStatus(SyncStatus.syncing);
+    try {
+      await _auth.putData('$_basePath/$collection/$id', data);
+    } finally {
+      _setStatus(SyncStatus.idle);
+    }
   }
 
   Future<void> deleteRecord(String collection, String id) async {
-    await _auth.deleteData('$_basePath/$collection/$id');
+    _setStatus(SyncStatus.syncing);
+    try {
+      await _auth.deleteData('$_basePath/$collection/$id');
+    } finally {
+      _setStatus(SyncStatus.idle);
+    }
   }
 
   Future<void> pullAllFromCloud() async {
@@ -167,6 +177,7 @@ class SyncService {
       'cashCollected': s.cashCollected,
       'cardCollected': s.cardCollected,
       'creditCollected': s.creditCollected,
+      'createdAt': s.updatedAt.toIso8601String(),
       'updatedAt': s.updatedAt.toIso8601String(),
     }};
   }
@@ -320,6 +331,7 @@ class SyncService {
         final data = entry as Map<dynamic, dynamic>;
         final id = data['id'] as int;
         final cloudUpdatedAt = DateTime.parse(data['updatedAt'] as String);
+        final quantitySold = (data['quantitySold'] as num).toDouble();
 
         final local = await _localDb.shiftDao.getSaleById(id);
         if (local != null) {
@@ -329,7 +341,7 @@ class SyncService {
               productId: Value(data['productId'] as int),
               openingReading: Value((data['openingReading'] as num).toDouble()),
               closingReading: Value((data['closingReading'] as num).toDouble()),
-              quantitySold: Value((data['quantitySold'] as num).toDouble()),
+              quantitySold: Value(quantitySold),
               totalAmount: Value((data['totalAmount'] as num).toDouble()),
               cashCollected: Value((data['cashCollected'] as num).toDouble()),
               cardCollected: Value((data['cardCollected'] as num).toDouble()),
@@ -338,12 +350,17 @@ class SyncService {
             ));
           }
         } else {
+          final inventory = await _localDb.productDao.getInventory(data['productId'] as int);
+          if (inventory != null && inventory.currentStock < quantitySold) {
+            log('sync: skipping shift_sale $id from cloud — insufficient stock (${inventory.currentStock} < $quantitySold)');
+            continue;
+          }
           await _localDb.shiftDao.addSaleToShift(ShiftSalesCompanion(
             shiftId: Value(data['shiftId'] as int),
             productId: Value(data['productId'] as int),
             openingReading: Value((data['openingReading'] as num).toDouble()),
             closingReading: Value((data['closingReading'] as num).toDouble()),
-            quantitySold: Value((data['quantitySold'] as num).toDouble()),
+            quantitySold: Value(quantitySold),
             totalAmount: Value((data['totalAmount'] as num).toDouble()),
             cashCollected: Value((data['cashCollected'] as num).toDouble()),
             cardCollected: Value((data['cardCollected'] as num).toDouble()),

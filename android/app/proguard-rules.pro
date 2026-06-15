@@ -21,3 +21,9 @@
 
 # App
 -keep class com.warraich.petroleum.** { *; }
+
+# Gson
+-keepattributes Signature
+-keepattributes *Annotation*
+-keep class com.google.gson.** { *; }
+-keep class * extends com.google.gson.TypeAdapter
