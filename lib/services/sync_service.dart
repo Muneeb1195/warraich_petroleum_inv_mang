@@ -59,11 +59,12 @@ class SyncService {
 
     _periodicTimer = Timer.periodic(const Duration(seconds: 30), (_) async {
       try {
+        await pullAllFromCloud();
         await syncAllToCloud();
         _setStatus(SyncStatus.idle);
       } catch (e) {
         _lastError = e.toString();
-        log('Sync periodic push failed: $e');
+        log('Sync periodic failed: $e');
         _setStatus(SyncStatus.error);
       }
     });
