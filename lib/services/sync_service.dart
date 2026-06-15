@@ -59,7 +59,9 @@ class SyncService {
 
     _periodicTimer = Timer.periodic(const Duration(seconds: 30), (_) async {
       try {
+        log('sync: periodic tick — pulling from cloud...');
         await pullAllFromCloud();
+        log('sync: periodic tick — push to cloud...');
         await syncAllToCloud();
         _setStatus(SyncStatus.idle);
       } catch (e) {
@@ -244,9 +246,14 @@ class SyncService {
   }
 
   Future<void> _pullNode(String node, Future<void> Function(Map<dynamic, dynamic>) apply) async {
-    final data = await _auth.getData('$_basePath/$node');
-    if (data != null) {
-      await apply(data);
+    try {
+      final data = await _auth.getData('$_basePath/$node');
+      log('sync: pull $node → ${data != null ? "${data.length} records" : "null"}');
+      if (data != null) {
+        await apply(data);
+      }
+    } catch (e) {
+      log('sync: pull $node FAILED: $e');
     }
   }
 

@@ -297,8 +297,9 @@ class FirebaseAuthService {
           _authStateController.add(true);
           return true;
         }
-        log('google_auth: silent sign-in refresh FAILED, clearing tokens');
-        await storage.deleteAll();
+        log('google_auth: silent sign-in refresh FAILED');
+        await storage.delete(key: 'firebase_refresh_token');
+        await storage.delete(key: 'firebase_uid');
         _uid = null;
         _refreshToken = null;
         return false;
