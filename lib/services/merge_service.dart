@@ -54,9 +54,8 @@ class MergeService {
 
       if (existing != null) {
         idMap[bp.id] = existing.id;
-        if (bp.updatedAt.isAfter(existing.updatedAt)) {
-          await current.update(current.products).replace(bp.copyWith(id: existing.id));
-        }
+        // Always update from backup (backup is the source of truth for restore)
+        await current.update(current.products).replace(bp.copyWith(id: existing.id));
       } else {
         final newId = await current.into(current.products).insert(
           ProductsCompanion.insert(
@@ -129,11 +128,10 @@ class MergeService {
       final existing = currentByProductId[newProductId];
 
       if (existing != null) {
-        if (bi.lastUpdated.isAfter(existing.lastUpdated)) {
-          await current.update(current.inventory).replace(
-            bi.copyWith(id: existing.id, productId: newProductId),
-          );
-        }
+        // Always update from backup (backup is the source of truth for restore)
+        await current.update(current.inventory).replace(
+          bi.copyWith(id: existing.id, productId: newProductId),
+        );
       } else {
         await current.into(current.inventory).insert(
           InventoryCompanion.insert(
