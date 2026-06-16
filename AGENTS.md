@@ -21,6 +21,9 @@
 - 0 dart analyze issues (all info-level warnings resolved)
 - Removed hardcoded Google credentials from source; requires `--dart-define` at build time
 - Git history cleaned — all secrets replaced with REDACTED placeholders
+- CI/CD fixed: Android keystore path, Windows shell: bash, removed dead FIREBASE_API_KEY
+- Code quality pass: extracted `_isWide` to `lib/utils/responsive.dart`, removed 17 duplicates
+- `local_auth` upgraded to 3.x (fixes Windows build STL1011 error)
 
 ### In Progress
 - (none)
@@ -34,6 +37,7 @@
 - Backup timer created unconditionally in `initializeAutoBackup`; cancelled in `dispose()`
 - Onboarding shown before app-lock
 - Riverpod 3.x: kept `StateNotifierProvider` via `legacy.dart`
+- `local_auth` 3.x accepted as cross-platform dependency (app lock is mobile-only but Flutter includes all platform sub-packages automatically)
 
 ## Next Steps
 - (none)
