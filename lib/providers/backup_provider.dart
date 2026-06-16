@@ -1,11 +1,14 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:drift/native.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
+import '../database/app_database.dart';
 import '../services/backup_service.dart';
+import '../services/merge_service.dart';
 import 'database_provider.dart';
 
 final backupServiceProvider = Provider<BackupService>((ref) {
@@ -108,23 +111,33 @@ class BackupNotifier extends StateNotifier<AsyncValue<void>> {
   Future<bool> restoreFromDrive(File targetFile) async {
     state = const AsyncValue.loading();
     try {
-      // 1. Close the active database connection
-      final db = _ref.read(databaseProvider);
-      await db.close();
-    } catch (_) {
-      // Ignore if DB is already closed
+      // 1. Download backup to temp file
+      final tempFile = await _service.restoreLatestBackup();
+      if (tempFile == null) {
+        state = const AsyncValue.error('Download failed', StackTrace.empty);
+        return false;
+      }
+
+      // 2. Open both databases and merge
+      final currentDb = _ref.read(databaseProvider);
+      final backupDb = AppDatabase(executor: NativeDatabase(tempFile));
+      try {
+        await MergeService.mergeDatabases(currentDb, backupDb);
+      } finally {
+        await backupDb.close();
+        try { await tempFile.delete(); } catch (_) {}
+      }
+
+      // 3. Invalidate provider so database re-initializes
+      _ref.invalidate(databaseProvider);
+
+      state = const AsyncValue.data(null);
+      return true;
+    } catch (e) {
+      _ref.invalidate(databaseProvider);
+      state = AsyncValue.error('Restore failed: $e', StackTrace.empty);
+      return false;
     }
-
-    // 2. Perform restoration
-    final result = await _service.restoreLatestBackup();
-
-    // 3. Always invalidate provider so database re-initializes
-    _ref.invalidate(databaseProvider);
-
-    state = result
-        ? const AsyncValue.data(null)
-        : const AsyncValue.error('Restore failed', StackTrace.empty);
-    return result;
   }
 
   Future<void> signOut() async {
@@ -143,28 +156,28 @@ class BackupNotifier extends StateNotifier<AsyncValue<void>> {
     if (state.isLoading) return false;
     state = const AsyncValue.loading();
     try {
-      // Close DB with timeout — don't let it hang forever
-      try {
-        final db = _ref.read(databaseProvider);
-        await db.close().timeout(const Duration(seconds: 5));
-      } catch (_) {}
-      // Clean up WAL/SHM files
-      try {
-        final dir = await getApplicationDocumentsDirectory();
-        final dbPath = p.join(dir.path, 'warraich_petroleum.db');
-        await File('$dbPath-wal').delete();
-        await File('$dbPath-shm').delete();
-      } catch (_) {}
+      // 1. Download backup to temp file
+      final tempFile = await _service.restoreFromId(fileId);
+      if (tempFile == null) {
+        state = const AsyncValue.error('Cloud restore failed', StackTrace.empty);
+        return false;
+      }
 
-      final result = await _service.restoreFromId(fileId);
+      // 2. Open both databases and merge
+      final currentDb = _ref.read(databaseProvider);
+      final backupDb = AppDatabase(executor: NativeDatabase(tempFile));
+      try {
+        await MergeService.mergeDatabases(currentDb, backupDb);
+      } finally {
+        await backupDb.close();
+        try { await tempFile.delete(); } catch (_) {}
+      }
 
-      // Always recreate DB connection
+      // 3. Invalidate provider so database re-initializes
       _ref.invalidate(databaseProvider);
 
-      state = result
-          ? const AsyncValue.data(null)
-          : const AsyncValue.error('Cloud restore failed', StackTrace.empty);
-      return result;
+      state = const AsyncValue.data(null);
+      return true;
     } catch (e) {
       _ref.invalidate(databaseProvider);
       state = const AsyncValue.error('Cloud restore failed', StackTrace.empty);
@@ -191,31 +204,28 @@ class BackupNotifier extends StateNotifier<AsyncValue<void>> {
     if (state.isLoading) return false;
     state = const AsyncValue.loading();
     try {
-      // Close DB with timeout
-      try {
-        final db = _ref.read(databaseProvider);
-        await db.close().timeout(const Duration(seconds: 5));
-      } catch (_) {}
-      // Clean up WAL/SHM
-      try {
-        final dir = await getApplicationDocumentsDirectory();
-        final dbPath = p.join(dir.path, 'warraich_petroleum.db');
-        await File('$dbPath-wal').delete();
-        await File('$dbPath-shm').delete();
-      } catch (_) {}
+      // 1. Get backup file
+      final tempFile = await _service.localRestore();
+      if (tempFile == null) {
+        state = const AsyncValue.error('Local restore failed', StackTrace.empty);
+        return false;
+      }
 
-      File? result;
+      // 2. Open both databases and merge
+      final currentDb = _ref.read(databaseProvider);
+      final backupDb = AppDatabase(executor: NativeDatabase(tempFile));
       try {
-        result = await _service.localRestore();
-      } catch (_) {}
+        await MergeService.mergeDatabases(currentDb, backupDb);
+      } finally {
+        await backupDb.close();
+        try { await tempFile.delete(); } catch (_) {}
+      }
 
-      // Always recreate DB connection
+      // 3. Invalidate provider so database re-initializes
       _ref.invalidate(databaseProvider);
 
-      state = result != null
-          ? const AsyncValue.data(null)
-          : const AsyncValue.error('Local restore failed', StackTrace.empty);
-      return result != null;
+      state = const AsyncValue.data(null);
+      return true;
     } catch (e) {
       _ref.invalidate(databaseProvider);
       state = const AsyncValue.error('Local restore failed', StackTrace.empty);

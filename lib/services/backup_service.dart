@@ -227,13 +227,13 @@ class BackupService {
     }
   }
 
-  Future<bool> restoreLatestBackup() async {
+  Future<File?> restoreLatestBackup() async {
     try {
       final headers = await _getHeaders();
-      if (headers.isEmpty) return false;
+      if (headers.isEmpty) return null;
 
       final folderId = await _getFolderId();
-      if (folderId == null) return false;
+      if (folderId == null) return null;
 
       final response = await http.get(
         Uri.parse('https://www.googleapis.com/drive/v3/files?q=%27$folderId%27%20in%20parents%20and%20name%20contains%20%27warraich_backup_%27%20and%20trashed%3Dfalse&orderBy=createdTime%20desc&pageSize=1'),
@@ -243,7 +243,7 @@ class BackupService {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final files = data['files'] as List? ?? [];
-        if (files.isEmpty) return false;
+        if (files.isEmpty) return null;
 
         final fileId = files[0]['id'];
         final downloadResponse = await http.get(
@@ -253,17 +253,15 @@ class BackupService {
 
         if (downloadResponse.statusCode == 200) {
           final dir = await getApplicationDocumentsDirectory();
-          final dbPath = p.join(dir.path, 'warraich_petroleum.db');
-          try { await File('$dbPath-wal').delete(); } catch (_) {}
-          try { await File('$dbPath-shm').delete(); } catch (_) {}
-          final file = File(dbPath);
+          final tempPath = p.join(dir.path, 'restore_temp.db');
+          final file = File(tempPath);
           await file.writeAsBytes(downloadResponse.bodyBytes);
-          return true;
+          return file;
         }
       }
-      return false;
+      return null;
     } catch (e) {
-      return false;
+      return null;
     }
   }
 
@@ -295,12 +293,12 @@ class BackupService {
     }
   }
 
-  Future<bool> restoreFromId(String fileId) async {
+  Future<File?> restoreFromId(String fileId) async {
     try {
       final headers = await _getHeaders();
       if (headers.isEmpty) {
         log('backup: restoreFromId failed - no auth headers');
-        return false;
+        return null;
       }
       log('backup: restoreFromId downloading $fileId...');
       final downloadResponse = await http.get(
@@ -311,24 +309,17 @@ class BackupService {
       log('backup: restoreFromId status=${downloadResponse.statusCode}');
       if (downloadResponse.statusCode == 200) {
         final dir = await getApplicationDocumentsDirectory();
-        final dbPath = p.join(dir.path, 'warraich_petroleum.db');
-        // Delete WAL/SHM sidecar files before overwriting
-        try {
-          await File('$dbPath-wal').delete();
-        } catch (_) {}
-        try {
-          await File('$dbPath-shm').delete();
-        } catch (_) {}
-        final file = File(dbPath);
+        final tempPath = p.join(dir.path, 'restore_temp.db');
+        final file = File(tempPath);
         await file.writeAsBytes(downloadResponse.bodyBytes);
-        log('backup: restoreFromId wrote ${downloadResponse.bodyBytes.length} bytes');
-        return true;
+        log('backup: restoreFromId wrote ${downloadResponse.bodyBytes.length} bytes to temp');
+        return file;
       }
       log('backup: restoreFromId HTTP ${downloadResponse.statusCode}');
-      return false;
+      return null;
     } catch (e) {
       log('backup: restoreFromId error: $e');
-      return false;
+      return null;
     }
   }
 
@@ -366,16 +357,9 @@ class BackupService {
       if (files.isEmpty) return null;
 
       final latest = files.first;
-      final dbPath = p.join(dir.path, 'warraich_petroleum.db');
-      // Delete WAL/SHM sidecar files before overwriting
-      try {
-        await File('$dbPath-wal').delete();
-      } catch (_) {}
-      try {
-        await File('$dbPath-shm').delete();
-      } catch (_) {}
-      await latest.copy(dbPath);
-      return File(dbPath);
+      final tempPath = p.join(dir.path, 'restore_temp.db');
+      await latest.copy(tempPath);
+      return File(tempPath);
     } catch (e) {
       return null;
     }
