@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/product_provider.dart';
 import '../../utils/constants.dart';
 import '../../utils/error_utils.dart';
+import '../../utils/responsive.dart';
 
 class FuelPricesScreen extends ConsumerStatefulWidget {
   const FuelPricesScreen({super.key});
@@ -12,7 +13,6 @@ class FuelPricesScreen extends ConsumerStatefulWidget {
 }
 
 class _FuelPricesScreenState extends ConsumerState<FuelPricesScreen> {
-  bool _isWide(BuildContext context) => MediaQuery.sizeOf(context).width > 800;
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +27,7 @@ class _FuelPricesScreenState extends ConsumerState<FuelPricesScreen> {
             return const Center(child: Text('No products found'));
           }
 
-          if (_isWide(context)) {
+          if (isWide(context)) {
             return Center(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 1000),

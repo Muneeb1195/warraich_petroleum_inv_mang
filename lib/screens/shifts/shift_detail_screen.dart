@@ -6,6 +6,7 @@ import '../../providers/product_provider.dart';
 import '../../providers/format_provider.dart';
 import '../../utils/constants.dart';
 import '../../utils/error_utils.dart';
+import '../../utils/responsive.dart';
 
 class ShiftDetailScreen extends ConsumerStatefulWidget {
   final int shiftId;
@@ -16,7 +17,6 @@ class ShiftDetailScreen extends ConsumerStatefulWidget {
 }
 
 class _ShiftDetailScreenState extends ConsumerState<ShiftDetailScreen> {
-  bool _isWide(BuildContext context) => MediaQuery.sizeOf(context).width > 800;
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +37,7 @@ class _ShiftDetailScreenState extends ConsumerState<ShiftDetailScreen> {
           final totalCard = sales.fold<double>(0, (sum, row) => sum + row.sale.cardCollected);
           final totalCredit = sales.fold<double>(0, (sum, row) => sum + row.sale.creditCollected);
 
-          if (_isWide(context)) {
+          if (isWide(context)) {
             return Center(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 1000),

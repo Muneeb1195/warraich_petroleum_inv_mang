@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
+import '../../utils/responsive.dart';
 
 class HelpScreen extends StatelessWidget {
   const HelpScreen({super.key});
-
-  bool _isWide(BuildContext context) => MediaQuery.sizeOf(context).width > 800;
 
   @override
   Widget build(BuildContext context) {
@@ -138,7 +137,7 @@ class HelpScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Help & Guide')),
-      body: _isWide(context)
+      body: isWide(context)
           ? Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 1000), child: body))
           : body,
     );

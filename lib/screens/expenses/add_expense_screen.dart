@@ -6,6 +6,7 @@ import '../../providers/shift_provider.dart';
 import '../../utils/constants.dart';
 import '../../utils/error_utils.dart';
 import '../../utils/extensions.dart';
+import '../../utils/responsive.dart';
 
 class AddExpenseScreen extends ConsumerStatefulWidget {
   final Expense? expense;
@@ -20,7 +21,6 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
   late TextEditingController _amountController;
   late TextEditingController _descriptionController;
   late DateTime _selectedDate;
-  bool _isWide(BuildContext context) => MediaQuery.sizeOf(context).width > 800;
 
   bool get _isEditing => widget.expense != null;
 
@@ -184,7 +184,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
       ),
     );
 
-    if (_isWide(context)) {
+    if (isWide(context)) {
       return Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 1000), child: content));
     }
     return content;

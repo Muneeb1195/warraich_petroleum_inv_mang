@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../providers/shift_provider.dart';
 import '../../providers/expense_provider.dart';
 import '../../services/pdf_service.dart';
+import '../../utils/responsive.dart';
 
 class PdfReportScreen extends ConsumerStatefulWidget {
   const PdfReportScreen({super.key});
@@ -16,7 +17,6 @@ class _PdfReportScreenState extends ConsumerState<PdfReportScreen> {
   int? _selectedShiftId;
   DateTime _selectedMonth = DateTime.now();
   DateTime _expenseSelectedMonth = DateTime.now();
-  bool _isWide(BuildContext context) => MediaQuery.sizeOf(context).width > 800;
 
   @override
   Widget build(BuildContext context) {
@@ -164,7 +164,7 @@ class _PdfReportScreenState extends ConsumerState<PdfReportScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Generate Report')),
-      body: _isWide(context)
+      body: isWide(context)
           ? Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 1000), child: body))
           : body,
     );

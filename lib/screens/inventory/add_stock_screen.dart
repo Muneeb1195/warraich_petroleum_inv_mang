@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/product_provider.dart';
 import '../../providers/shift_provider.dart';
 import '../../utils/constants.dart';
+import '../../utils/responsive.dart';
 
 class AddStockScreen extends ConsumerStatefulWidget {
   const AddStockScreen({super.key});
@@ -16,7 +17,6 @@ class _AddStockScreenState extends ConsumerState<AddStockScreen> {
   final _quantityController = TextEditingController();
   final _costController = TextEditingController();
   final _notesController = TextEditingController();
-  bool _isWide(BuildContext context) => MediaQuery.sizeOf(context).width > 800;
 
   double get _totalCost {
     final quantity = double.tryParse(_quantityController.text) ?? 0;
@@ -27,8 +27,6 @@ class _AddStockScreenState extends ConsumerState<AddStockScreen> {
   @override
   void initState() {
     super.initState();
-    _quantityController.addListener(() => setState(() {}));
-    _costController.addListener(() => setState(() {}));
   }
 
   @override
@@ -117,7 +115,7 @@ class _AddStockScreenState extends ConsumerState<AddStockScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Add Stock')),
-      body: _isWide(context)
+      body: isWide(context)
           ? Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 1000), child: body))
           : body,
     );

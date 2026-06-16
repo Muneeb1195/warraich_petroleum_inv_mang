@@ -5,13 +5,12 @@ import 'package:intl/intl.dart';
 import '../../providers/expense_provider.dart';
 import '../../providers/format_provider.dart';
 import '../../providers/shift_provider.dart';
+import '../../utils/responsive.dart';
 import 'add_expense_screen.dart';
 import '../../utils/error_utils.dart';
 
 class ExpensesScreen extends ConsumerWidget {
   const ExpensesScreen({super.key});
-
-  bool _isWide(BuildContext context) => MediaQuery.sizeOf(context).width > 800;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -115,7 +114,7 @@ class ExpensesScreen extends ConsumerWidget {
       error: (e, _) => Center(child: Text('Error: $e')),
     );
 
-    if (_isWide(context)) {
+    if (isWide(context)) {
       return Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 1000),

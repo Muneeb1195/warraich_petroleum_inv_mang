@@ -7,6 +7,7 @@ import '../../providers/shift_provider.dart';
 import '../../providers/product_provider.dart';
 import '../../providers/format_provider.dart';
 import '../../utils/constants.dart';
+import '../../utils/responsive.dart';
 import '../../screens/shifts/shift_detail_screen.dart';
 import '../../screens/shifts/new_shift_screen.dart';
 import '../../screens/expenses/add_expense_screen.dart';
@@ -14,8 +15,6 @@ import '../../screens/settings/fuel_prices_screen.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
-
-  bool _isWide(BuildContext context) => MediaQuery.of(context).size.width > 900;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -42,7 +41,7 @@ class DashboardScreen extends ConsumerWidget {
           ref.invalidate(recentExpensesProvider);
           ref.invalidate(employeeCountProvider);
         },
-        child: _isWide(context)
+        child: isWide(context)
             ? _buildDesktopLayout(context, ref, todaySummary, weeklySales, weeklyExpenses, weeklyProfit, activeShift, allInventory, lowStock, colorScheme, abbreviate: abbreviate)
             : _buildMobileLayout(context, ref, todaySummary, weeklySales, activeShift, allInventory, lowStock, colorScheme, abbreviate: abbreviate),
       ),
@@ -296,7 +295,7 @@ class DashboardScreen extends ConsumerWidget {
                 Text('Sales Trends (7 days)', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 16),
                 SizedBox(
-                  height: _isWide(context) ? 220 : 200,
+                  height: isWide(context) ? 220 : 200,
                   child: LineChart(
                     LineChartData(
                       gridData: const FlGridData(show: true),

@@ -4,13 +4,12 @@ import 'package:intl/intl.dart';
 import '../../database/app_database.dart';
 import '../../providers/shift_provider.dart';
 import '../../utils/constants.dart';
+import '../../utils/responsive.dart';
 import 'new_shift_screen.dart';
 import 'shift_detail_screen.dart';
 
 class ShiftsScreen extends ConsumerWidget {
   const ShiftsScreen({super.key});
-
-  bool _isWide(BuildContext context) => MediaQuery.sizeOf(context).width > 800;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -138,7 +137,7 @@ class ShiftsScreen extends ConsumerWidget {
       ],
     );
 
-    if (_isWide(context)) {
+    if (isWide(context)) {
       return Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 1000),

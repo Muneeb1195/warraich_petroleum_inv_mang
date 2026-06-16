@@ -5,11 +5,10 @@ import '../../providers/employee_provider.dart';
 import '../../utils/extensions.dart';
 import '../../utils/constants.dart';
 import '../../utils/error_utils.dart';
+import '../../utils/responsive.dart';
 
 class PayrollScreen extends ConsumerWidget {
   const PayrollScreen({super.key});
-
-  bool _isWide(BuildContext context) => MediaQuery.sizeOf(context).width > 800;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -88,7 +87,7 @@ class PayrollScreen extends ConsumerWidget {
         icon: const Icon(Icons.calculate),
         label: const Text('Generate Payroll'),
       ),
-      body: _isWide(context)
+      body: isWide(context)
           ? Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 1000), child: body))
           : body,
     );

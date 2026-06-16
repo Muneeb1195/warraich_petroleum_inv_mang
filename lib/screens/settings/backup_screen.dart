@@ -8,6 +8,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import '../../providers/backup_provider.dart';
 import '../../config/app_config.dart';
+import '../../utils/responsive.dart';
 
 class BackupScreen extends ConsumerStatefulWidget {
   const BackupScreen({super.key});
@@ -22,7 +23,6 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
   bool _autoBackup = true;
   bool _isSignedIn = false;
   String _backupPath = '';
-  bool _isWide(BuildContext context) => MediaQuery.sizeOf(context).width > 800;
 
   @override
   void initState() {
@@ -215,7 +215,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Backup & Restore')),
-      body: _isWide(context)
+      body: isWide(context)
           ? Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 1000), child: body))
           : body,
     );

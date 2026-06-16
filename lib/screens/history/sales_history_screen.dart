@@ -4,6 +4,7 @@ import '../../database/app_database.dart';
 import '../../providers/shift_provider.dart';
 import '../../utils/extensions.dart';
 import '../../utils/constants.dart';
+import '../../utils/responsive.dart';
 import '../shifts/shift_detail_screen.dart';
 
 class SalesHistoryScreen extends ConsumerStatefulWidget {
@@ -19,8 +20,6 @@ class _SalesHistoryScreenState extends ConsumerState<SalesHistoryScreen> {
   DateTime? _startDate;
   DateTime? _endDate;
   final _searchController = TextEditingController();
-
-  bool _isWide(BuildContext context) => MediaQuery.sizeOf(context).width > 800;
 
   @override
   void dispose() {
@@ -188,7 +187,7 @@ class _SalesHistoryScreenState extends ConsumerState<SalesHistoryScreen> {
           Expanded(
             child: RefreshIndicator(
               onRefresh: () async { ref.invalidate(allShiftsProvider); },
-              child: _isWide(context)
+              child: isWide(context)
                   ? Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 1000), child: body))
                   : body,
             ),

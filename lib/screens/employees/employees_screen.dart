@@ -3,10 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/employee_provider.dart';
 import '../../utils/constants.dart';
 import '../../utils/error_utils.dart';
+import '../../utils/responsive.dart';
 
 class EmployeesScreen extends ConsumerWidget {
   const EmployeesScreen({super.key});
-  bool _isWide(BuildContext context) => MediaQuery.sizeOf(context).width > 800;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -40,7 +40,7 @@ class EmployeesScreen extends ConsumerWidget {
       appBar: AppBar(title: const Text('Employees')),
       body: RefreshIndicator(
         onRefresh: () async { ref.invalidate(allEmployeesProvider); },
-        child: _isWide(context) ? Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 1000), child: body)) : body,
+        child: isWide(context) ? Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 1000), child: body)) : body,
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AddEmployeeScreen())),
@@ -63,7 +63,6 @@ class _AddEmployeeScreenState extends ConsumerState<AddEmployeeScreen> {
   final _salaryController = TextEditingController();
   String _selectedRole = 'Operator';
   String _selectedShift = 'both';
-  bool _isWide(BuildContext context) => MediaQuery.sizeOf(context).width > 800;
 
   @override
   void dispose() {
@@ -149,7 +148,7 @@ class _AddEmployeeScreenState extends ConsumerState<AddEmployeeScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Add Employee')),
-      body: _isWide(context) ? Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 1000), child: body)) : body,
+      body: isWide(context) ? Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 1000), child: body)) : body,
     );
   }
 }

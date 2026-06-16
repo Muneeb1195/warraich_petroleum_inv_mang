@@ -5,6 +5,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import '../../providers/format_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../services/error_logger.dart';
+import '../../utils/responsive.dart';
 import 'help_screen.dart';
 import 'backup_screen.dart';
 import 'app_lock_screen.dart';
@@ -12,15 +13,13 @@ import 'app_lock_screen.dart';
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
-  bool _isWide(BuildContext context) => MediaQuery.sizeOf(context).width > 800;
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Settings')),
-      body: _isWide(context)
+      body: isWide(context)
           ? _buildDesktopLayout(context, ref, colorScheme)
           : _buildMobileLayout(context, ref, colorScheme),
     );
