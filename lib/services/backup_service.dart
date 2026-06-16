@@ -84,16 +84,18 @@ class BackupService {
     try {
       if (Platform.isAndroid) {
         await _initAndroid();
-        var token = await _getAndroidToken();
-        if (token == null) {
-          // No token after restart, show account picker
-          final success = await signIn();
-          if (success) {
-            token = await _getAndroidToken();
-          }
+        // Try lightweight sign-in first (uses Credential Manager, no UI)
+        final lightweightCreds = await _getDesktopSignIn.lightweightSignIn();
+        if (lightweightCreds != null) {
+          return {'Authorization': 'Bearer ${lightweightCreds.accessToken}', 'Content-Type': 'application/json'};
         }
-        if (token != null) {
-          return {'Authorization': 'Bearer $token', 'Content-Type': 'application/json'};
+        // No stored credentials, show account picker
+        final success = await signIn();
+        if (success) {
+          final token = await _getAndroidToken();
+          if (token != null) {
+            return {'Authorization': 'Bearer $token', 'Content-Type': 'application/json'};
+          }
         }
         log('backup: Android token retrieval failed');
       } else {
