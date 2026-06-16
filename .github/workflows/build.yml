@@ -25,7 +25,7 @@ jobs:
           storePassword=${{ secrets.ANDROID_STORE_PASSWORD }}
           keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}
           keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}
-          storeFile=release-key.jks
+          storeFile=../release-key.jks
           EOF
 
       - uses: subosito/flutter-action@v2
@@ -43,8 +43,7 @@ jobs:
         run: |
           flutter build apk --release --target-platform android-arm64 \
             --dart-define=GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }} \
-            --dart-define=GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }} \
-            --dart-define=FIREBASE_API_KEY=${{ secrets.FIREBASE_API_KEY }}
+            --dart-define=GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
 
       - name: Upload APK to Release
         uses: softprops/action-gh-release@v2
@@ -77,8 +76,7 @@ jobs:
         run: |
           flutter build linux --release \
             --dart-define=GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }} \
-            --dart-define=GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }} \
-            --dart-define=FIREBASE_API_KEY=${{ secrets.FIREBASE_API_KEY }}
+            --dart-define=GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
 
       - name: Package Linux Build
         run: tar -czf linux-desktop.tar.gz -C build/linux/x64/release/bundle .
@@ -108,11 +106,11 @@ jobs:
         run: dart run build_runner build --delete-conflicting-outputs
 
       - name: Build Windows Desktop
+        shell: bash
         run: |
           flutter build windows --release \
             --dart-define=GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }} \
-            --dart-define=GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }} \
-            --dart-define=FIREBASE_API_KEY=${{ secrets.FIREBASE_API_KEY }}
+            --dart-define=GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
 
       - name: Package Windows Build
         shell: bash
