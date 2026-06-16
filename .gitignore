@@ -1,6 +1,8 @@
 android/key.properties
 .env
 android/release-key.jks
+android/app/google-services.json
+firebase.json
 
 build/
 .dart_tool/
