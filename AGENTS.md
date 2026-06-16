@@ -13,20 +13,14 @@
 - Edit/delete expenses
 - Centralized error handling
 - 4-page onboarding with PageView
-- 17 tests (11 DB + 6 provider)
+- 19 tests (11 DB + 6 provider + 1 widget + 1 backup)
 - Riverpod codegen unblocked
 - Repository pattern
-- Replaced all Firebase packages with pure-HTTP REST client
-- FirebaseAuthService: Google sign-in + Firebase Auth REST + RTDB HTTP CRUD
-- SyncService: 6-collection sync, 30s periodic timer, per-record PATCH/DELETE, conflict resolution via `updatedAt`
-- Linux desktop builds and runs without Firebase crash
-- Android RTDB sync works (`?auth=` query param)
-- Login persists after restart (`_refreshToken`/`_uid` in `FlutterSecureStorage`)
-- Desktop sign-in works (browser OAuth + `FlutterSecureStorage`)
-- Cloud Sync status card in Settings
-- **Bidirectional sync**: `updatedAt` column added to all 6 syncable tables;
-  per-record `syncRecord()`/`deleteRecord()` methods; conflict resolution in
-  `pullAllFromCloud` (last-writer-wins); providers wire sync to all collections.
+- Linux desktop builds and runs
+- Widget test fixed (Drift stream timer issue resolved)
+- 0 dart analyze issues (all info-level warnings resolved)
+- Removed hardcoded Google credentials from source; requires `--dart-define` at build time
+- Git history cleaned — all secrets replaced with REDACTED placeholders
 
 ### In Progress
 - (none)
@@ -40,20 +34,14 @@
 - Backup timer created unconditionally in `initializeAutoBackup`; cancelled in `dispose()`
 - Onboarding shown before app-lock
 - Riverpod 3.x: kept `StateNotifierProvider` via `legacy.dart`
-- Realtime Database over Firestore (Spark free tier)
-- Pure-HTTP Firebase over native SDK (no Linux desktop support for native)
-- Platform-specific Google sign-in (Android Credential Manager vs browser OAuth)
-- Desktop token storage uses `FlutterSecureStorage` not `SharedPreferences`
-- `?auth=` query param over `Authorization: Bearer` for RTDB
-- Sync frequency: per-record push immediately on mutation; periodic full push every 30s; full pull on init; last-writer-wins via `updatedAt`
 
 ## Next Steps
-- Fix pre-existing widget test (drift timer pending issue)
-- Update RTDB security rules to enforce per-UID access
-- Add inventory collection to cloud sync
+- (none)
 
 ## Relevant Files
-- `lib/services/sync_service.dart`: Full bidirectional sync with per-record PATCH/DELETE, conflict resolution via `updatedAt`, 6 collections, periodic timer
-- `lib/database/app_database.dart`: schema v4 with `updatedAt` in all 6 tables
-- `lib/database/daos/`: All DAOs set `updatedAt` on every update
-- `lib/providers/`: All providers call sync after each mutation
+- `lib/services/backup_service.dart`: Google Drive + local backup/restore via REST API
+- `lib/providers/backup_provider.dart`: Backup state management
+- `lib/screens/settings/backup_screen.dart`: Backup UI
+- `lib/providers/auth_provider.dart`: Biometric app lock
+- `lib/database/app_database.dart`: Drift schema
+- `lib/database/daos/`: All DAOs

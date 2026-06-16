@@ -73,6 +73,7 @@ class BackupService {
   }
 
   Future<bool> signIn() async {
+    if (!AppConfig.isGoogleDriveConfigured) return false;
     try {
       if (Platform.isAndroid) {
         await _initAndroid();

@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import '../../providers/backup_provider.dart';
+import '../../config/app_config.dart';
 
 class BackupScreen extends ConsumerStatefulWidget {
   const BackupScreen({super.key});
@@ -139,6 +140,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
           ),
         ),
         const SizedBox(height: 16),
+        if (AppConfig.isGoogleDriveConfigured)
         Card(
           child: Column(
             children: [
@@ -161,7 +163,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
                       }
                     }
                   } catch (e) {
-                    if (mounted) {
+                    if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
                     }
                   }
@@ -240,7 +242,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
           child: ListView.separated(
             shrinkWrap: true,
             itemCount: backups.length,
-            separatorBuilder: (_, __) => const Divider(height: 1),
+            separatorBuilder: (_, _) => const Divider(height: 1),
             itemBuilder: (context, index) {
               final backup = backups[index];
               final name = backup['name'] ?? '';

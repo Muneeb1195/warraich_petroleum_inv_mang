@@ -1,5 +1,4 @@
 import '../database/app_database.dart';
-import '../database/daos/payroll_dao.dart';
 
 class PayrollRepository {
   final PayrollDao _dao;

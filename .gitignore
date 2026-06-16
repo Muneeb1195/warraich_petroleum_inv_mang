@@ -6,3 +6,4 @@ build/
 .dart_tool/
 .idea/
 *.iml
+.mimocode/
