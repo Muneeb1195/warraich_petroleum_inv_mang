@@ -124,7 +124,8 @@ class MergeService {
     }
 
     for (final bi in backupInventory) {
-      final newProductId = productMap[bi.productId] ?? bi.productId;
+      final newProductId = productMap[bi.productId];
+      if (newProductId == null) continue;
       final existing = currentByProductId[newProductId];
 
       if (existing != null) {
@@ -156,7 +157,9 @@ class MergeService {
     }
 
     for (final bt in backupTxns) {
-      final newProductId = productMap[bt.productId] ?? bt.productId;
+      final newProductId = productMap[bt.productId];
+      if (newProductId == null) continue;
+      final newRefId = bt.referenceId != null ? shiftMap[bt.referenceId!] : null;
       final key = '${bt.createdAt}|${bt.type}|$newProductId|${bt.quantity}';
       final existing = currentByKey[key];
 
@@ -165,7 +168,7 @@ class MergeService {
           await current.update(current.inventoryTransactions).replace(bt.copyWith(
             id: existing.id,
             productId: newProductId,
-            referenceId: Value(bt.referenceId != null ? (shiftMap[bt.referenceId!] ?? bt.referenceId) : null),
+            referenceId: Value(newRefId),
           ));
         }
       } else {
@@ -175,7 +178,7 @@ class MergeService {
             type: bt.type,
             quantity: bt.quantity,
             unitCost: Value(bt.unitCost),
-            referenceId: Value(bt.referenceId != null ? (shiftMap[bt.referenceId!] ?? bt.referenceId) : null),
+            referenceId: Value(newRefId),
             notes: Value(bt.notes),
             createdAt: Value(bt.createdAt),
           ),
@@ -198,7 +201,7 @@ class MergeService {
       final key = '${bs.startDate}|${bs.type}';
       final existing = currentByDate[key];
 
-      final newClosedBy = bs.closedBy != null ? (employeeMap[bs.closedBy!] ?? bs.closedBy) : null;
+      final newClosedBy = bs.closedBy != null ? employeeMap[bs.closedBy!] : null;
 
       if (existing != null) {
         idMap[bs.id] = existing.id;
@@ -238,8 +241,9 @@ class MergeService {
     }
 
     for (final bs in backupSales) {
-      final newShiftId = shiftMap[bs.shiftId] ?? bs.shiftId;
-      final newProductId = productMap[bs.productId] ?? bs.productId;
+      final newShiftId = shiftMap[bs.shiftId];
+      final newProductId = productMap[bs.productId];
+      if (newShiftId == null || newProductId == null) continue;
       final key = '$newShiftId|$newProductId|${bs.openingReading.toStringAsFixed(6)}';
       final existing = currentByKey[key];
 
@@ -284,8 +288,8 @@ class MergeService {
 
       if (existing != null) {
         if (be.updatedAt.isAfter(existing.updatedAt)) {
-          final newShiftId = be.shiftId != null ? (shiftMap[be.shiftId!] ?? be.shiftId) : null;
-          final newCreatedBy = be.createdBy != null ? (employeeMap[be.createdBy!] ?? be.createdBy) : null;
+          final newShiftId = be.shiftId != null ? shiftMap[be.shiftId!] : null;
+          final newCreatedBy = be.createdBy != null ? employeeMap[be.createdBy!] : null;
           await current.update(current.expenses).replace(be.copyWith(
             id: existing.id,
             shiftId: Value(newShiftId),
@@ -293,8 +297,8 @@ class MergeService {
           ));
         }
       } else {
-        final newShiftId = be.shiftId != null ? (shiftMap[be.shiftId!] ?? be.shiftId) : null;
-        final newCreatedBy = be.createdBy != null ? (employeeMap[be.createdBy!] ?? be.createdBy) : null;
+        final newShiftId = be.shiftId != null ? shiftMap[be.shiftId!] : null;
+        final newCreatedBy = be.createdBy != null ? employeeMap[be.createdBy!] : null;
 
         await current.into(current.expenses).insert(
           ExpensesCompanion.insert(
@@ -321,7 +325,8 @@ class MergeService {
     }
 
     for (final bp in backupPayroll) {
-      final newEmployeeId = employeeMap[bp.employeeId] ?? bp.employeeId;
+      final newEmployeeId = employeeMap[bp.employeeId];
+      if (newEmployeeId == null) continue;
       final key = '$newEmployeeId|${bp.month}|${bp.year}';
       final existing = currentByKey[key];
 

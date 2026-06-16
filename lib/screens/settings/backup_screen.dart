@@ -80,7 +80,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
                           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(success ? 'Backup saved locally' : 'Backup failed')));
                         } catch (e) {
                           if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
+                            context.showError(e, source: 'backup');
                           }
                         }
                       },
@@ -132,7 +132,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
                           }
                         } catch (e) {
                           if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
+                            context.showError(e, source: 'backup');
                           }
                         }
                       },
@@ -165,7 +165,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
                     }
                   } catch (e) {
                     if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
+                      context.showError(e, source: 'backup');
                     }
                   }
                 }),
@@ -186,7 +186,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
                       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(success ? 'Backup completed' : 'Backup failed')));
                     } catch (e) {
                       if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
+                        context.showError(e, source: 'backup');
                       }
                     }
                   },
@@ -308,7 +308,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
                   } catch (e) {
                     log('backup_ui: restore exception: $e');
                     if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
+                      context.showError(e, source: 'backup');
                     }
                   }
                 },

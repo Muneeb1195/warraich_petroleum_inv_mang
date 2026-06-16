@@ -12,7 +12,7 @@ import 'package:warraich_petroleum/providers/shift_provider.dart';
 import 'package:warraich_petroleum/services/backup_service.dart';
 
 class _NoOpBackupNotifier extends BackupNotifier {
-  _NoOpBackupNotifier(BackupService service, Ref ref) : super(service, ref);
+  _NoOpBackupNotifier(super.service, super.ref);
 
   @override
   Future<void> initializeAutoBackup() async {}

@@ -14,14 +14,6 @@ class EmployeeDao extends DatabaseAccessor<AppDatabase> with _$EmployeeDaoMixin 
     return (select(employees)..where((e) => e.id.equals(id))).getSingleOrNull();
   }
 
-  Future<List<Employee>> getAllEmployees() async {
-    return (select(employees)..where((e) => e.isActive.equals(true))).get();
-  }
-
-  Future<List<Employee>> getAllEmployeesIncludingInactive() async {
-    return select(employees).get();
-  }
-
   Stream<List<Employee>> watchAllEmployees() {
     return (select(employees)..where((e) => e.isActive.equals(true))).watch();
   }
@@ -37,13 +29,5 @@ class EmployeeDao extends DatabaseAccessor<AppDatabase> with _$EmployeeDaoMixin 
         updatedAt: Value(DateTime.now()),
       ),
     );
-  }
-
-  Stream<List<Employee>> watchEmployeesByShift(String shift) {
-    return (select(employees)
-          ..where((e) =>
-              (e.defaultShift.equals(shift) | e.defaultShift.equals('both')) &
-              e.isActive.equals(true)))
-        .watch();
   }
 }

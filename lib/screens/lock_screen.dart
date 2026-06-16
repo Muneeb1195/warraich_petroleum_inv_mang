@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/auth_provider.dart';
 import '../utils/constants.dart';
+import '../utils/error_utils.dart';
 
 class LockScreen extends ConsumerStatefulWidget {
   const LockScreen({super.key});
@@ -24,7 +25,7 @@ class _LockScreenState extends ConsumerState<LockScreen> {
       await ref.read(authStateProvider.notifier).authenticate();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
+        context.showError(e, source: 'biometric');
       }
     }
   }

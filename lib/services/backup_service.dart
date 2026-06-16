@@ -309,7 +309,7 @@ class BackupService {
       log('backup: restoreFromId status=${downloadResponse.statusCode}');
       if (downloadResponse.statusCode == 200) {
         final dir = await getApplicationDocumentsDirectory();
-        final tempPath = p.join(dir.path, 'restore_temp.db');
+        final tempPath = p.join(dir.path, 'restore_${DateTime.now().millisecondsSinceEpoch}.db');
         final file = File(tempPath);
         await file.writeAsBytes(downloadResponse.bodyBytes);
         log('backup: restoreFromId wrote ${downloadResponse.bodyBytes.length} bytes to temp');

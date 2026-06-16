@@ -12,28 +12,12 @@ class ProductDao extends DatabaseAccessor<AppDatabase> with _$ProductDaoMixin {
     return (select(products)..where((p) => p.isActive.equals(true))).get();
   }
 
-  Future<List<Product>> getAllProductsIncludingInactive() async {
-    return select(products).get();
-  }
-
   Stream<List<Product>> watchAllProducts() {
     return (select(products)..where((p) => p.isActive.equals(true))).watch();
   }
 
-  Future<List<Product>> getProductsByCategory(String category) async {
-    return (select(products)
-          ..where((p) => p.category.equals(category) & p.isActive.equals(true)))
-        .get();
-  }
-
   Future<Product?> getProductById(int id) async {
     return (select(products)..where((p) => p.id.equals(id))).getSingleOrNull();
-  }
-
-  Future<int> addProduct(ProductsCompanion data) => into(products).insert(data);
-
-  Future<int> updateProduct(int id, ProductsCompanion data) async {
-    return (update(products)..where((p) => p.id.equals(id))).write(data);
   }
 
   Future<int> updateProductPrice(int productId, double price, double cost) async {

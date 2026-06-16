@@ -110,6 +110,22 @@ class PayrollScreen extends ConsumerWidget {
             FilledButton(
               onPressed: () async {
                 Navigator.pop(ctx);
+                if (context.mounted) {
+                  showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (_) => const AlertDialog(
+                      content: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          CircularProgressIndicator(),
+                          SizedBox(width: 16),
+                          Text('Generating payroll...'),
+                        ],
+                      ),
+                    ),
+                  );
+                }
                 int success = 0;
                 int failed = 0;
                 for (final emp in empList) {
@@ -122,6 +138,7 @@ class PayrollScreen extends ConsumerWidget {
                 }
                 ref.invalidate(currentMonthPayrollProvider);
                 if (context.mounted) {
+                  Navigator.of(context, rootNavigator: true).pop();
                   final msg = failed > 0 ? 'Generated $success/${empList.length} payrolls ($failed failed)' : 'Payroll generated for $success employees';
                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
                 }

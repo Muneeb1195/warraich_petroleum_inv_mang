@@ -18,13 +18,6 @@ class ExpenseDao extends DatabaseAccessor<AppDatabase> with _$ExpenseDaoMixin {
     return (select(expenses)..orderBy([(e) => OrderingTerm.desc(e.date)])).watch();
   }
 
-  Future<List<Expense>> getExpensesByCategory(String category) async {
-    return (select(expenses)
-          ..where((e) => e.category.equals(category))
-          ..orderBy([(e) => OrderingTerm.desc(e.date)]))
-        .get();
-  }
-
   Future<List<Expense>> getExpensesByDateRange(DateTime start, DateTime end) async {
     return (select(expenses)
           ..where((e) => e.date.isBetweenValues(start, end))

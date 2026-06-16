@@ -50,16 +50,6 @@ class ShiftDao extends DatabaseAccessor<AppDatabase> with _$ShiftDaoMixin {
     await (update(shiftSales)..where((s) => s.id.equals(saleId))).write(sale);
   }
 
-  Future<int> getProductIdForSale(int saleId) async {
-    final sale = await (select(shiftSales)..where((s) => s.id.equals(saleId))).getSingleOrNull();
-    return sale?.productId ?? 0;
-  }
-
-  Future<double> getQuantityForSale(int saleId) async {
-    final sale = await (select(shiftSales)..where((s) => s.id.equals(saleId))).getSingleOrNull();
-    return sale?.quantitySold ?? 0;
-  }
-
   Future<ShiftSale?> getSaleById(int saleId) async {
     return (select(shiftSales)..where((s) => s.id.equals(saleId))).getSingleOrNull();
   }
@@ -77,14 +67,6 @@ class ShiftDao extends DatabaseAccessor<AppDatabase> with _$ShiftDaoMixin {
       totalExpenses: Value(totalExpenses),
       updatedAt: Value(DateTime.now()),
     ));
-  }
-
-  Future<List<ShiftSale>> getAllShiftSales() async {
-    return (select(shiftSales)).get();
-  }
-
-  Future<void> updateShift(int id, ShiftsCompanion data) async {
-    await (update(shifts)..where((s) => s.id.equals(id))).write(data);
   }
 
   Future<double> getShiftExpenses(int shiftId) async {

@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:local_auth/local_auth.dart';
+import '../utils/constants.dart';
 
 class BiometricService {
   final LocalAuthentication _auth = LocalAuthentication();
@@ -17,7 +18,7 @@ class BiometricService {
     if (!Platform.isAndroid && !Platform.isIOS) return true;
     try {
       return await _auth.authenticate(
-        localizedReason: 'Authenticate to access Warraich Petroleum',
+        localizedReason: 'Authenticate to access $kAppName',
         biometricOnly: true,
       );
     } catch (e) {

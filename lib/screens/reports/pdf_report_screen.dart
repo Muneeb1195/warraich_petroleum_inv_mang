@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../providers/shift_provider.dart';
 import '../../providers/expense_provider.dart';
 import '../../services/pdf_service.dart';
+import '../../utils/error_utils.dart';
 import '../../utils/responsive.dart';
 
 class PdfReportScreen extends ConsumerStatefulWidget {
@@ -59,7 +60,7 @@ class _PdfReportScreenState extends ConsumerState<PdfReportScreen> {
                                       final dateFormatted = DateFormat('yyyy-MM-dd').format(shift.startDate);
                                       await PdfService.generateShiftReport(shiftType: shift.type.toUpperCase(), date: dateFormatted, salesData: mappedSales, totalSales: shift.totalSales, totalExpenses: shift.totalExpenses, profit: shift.totalSales - shift.totalExpenses);
                                     } catch (e) {
-                                      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to generate report: $e')));
+                                      if (context.mounted) context.showError(e, source: 'pdfReport');
                                     }
                                   },
                             icon: const Icon(Icons.picture_as_pdf),
@@ -108,7 +109,7 @@ class _PdfReportScreenState extends ConsumerState<PdfReportScreen> {
                         final totalSales = monthShifts.fold<double>(0, (s, shift) => s + shift.totalSales);
                         await PdfService.generateMonthlyReport(month: _selectedMonth.month, year: _selectedMonth.year, expenseSummary: summary, totalSales: totalSales, totalExpenses: totalExpenses);
                       } catch (e) {
-                        if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to generate report: $e')));
+                        if (context.mounted) context.showError(e, source: 'pdfReport');
                       }
                     },
                     icon: const Icon(Icons.picture_as_pdf),
@@ -148,7 +149,7 @@ class _PdfReportScreenState extends ConsumerState<PdfReportScreen> {
                         final totalExpenses = summary.values.fold<double>(0, (s, v) => s + v);
                         await PdfService.generateMonthlyReport(month: _expenseSelectedMonth.month, year: _expenseSelectedMonth.year, expenseSummary: summary, totalSales: 0, totalExpenses: totalExpenses);
                       } catch (e) {
-                        if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to generate report: $e')));
+                        if (context.mounted) context.showError(e, source: 'pdfReport');
                       }
                     },
                     icon: const Icon(Icons.picture_as_pdf),
