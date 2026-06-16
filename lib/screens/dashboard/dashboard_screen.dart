@@ -83,7 +83,7 @@ class DashboardScreen extends ConsumerWidget {
         const SizedBox(height: 16),
         _buildActiveShiftCard(context, ref, activeShift, colorScheme),
         const SizedBox(height: 16),
-        _buildSalesChart(context, ref, weeklySales, colorScheme),
+        _buildSalesChart(context, ref, weeklySales, colorScheme, abbreviate: abbreviate),
         const SizedBox(height: 16),
         _buildInventoryAlerts(context, ref, allInventory, colorScheme),
       ],

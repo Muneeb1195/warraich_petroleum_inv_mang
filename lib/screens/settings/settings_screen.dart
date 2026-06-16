@@ -5,6 +5,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import '../../providers/format_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../services/error_logger.dart';
+import '../../utils/error_utils.dart';
 import '../../utils/responsive.dart';
 import 'help_screen.dart';
 import 'backup_screen.dart';
@@ -131,7 +132,13 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   void _showErrorLog(BuildContext context) async {
-    final logContent = await ErrorLogger.getLogContent();
+    String logContent;
+    try {
+      logContent = await ErrorLogger.getLogContent();
+    } catch (e) {
+      if (context.mounted) context.showError(e, source: 'getLogContent');
+      return;
+    }
     if (!context.mounted) return;
     showDialog(
       context: context,
@@ -150,7 +157,9 @@ class SettingsScreen extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () async {
-              await ErrorLogger.clearLog();
+              try {
+                await ErrorLogger.clearLog();
+              } catch (_) {}
               if (ctx.mounted) Navigator.pop(ctx);
             },
             child: const Text('Clear Log'),

@@ -57,6 +57,9 @@ class AppDatabase extends _$AppDatabase {
           if (from < 4) {
             await _ensureUpdatedAtColumns(m);
           }
+          if (from < 5) {
+            // v5 had no schema changes (code-only)
+          }
         },
       );
 

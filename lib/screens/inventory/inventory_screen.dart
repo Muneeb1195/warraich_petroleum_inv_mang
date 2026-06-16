@@ -322,6 +322,14 @@ class InventoryScreen extends ConsumerWidget {
             onPressed: () async {
               final minStock = double.tryParse(minController.text) ?? 0;
               final maxStock = double.tryParse(maxController.text) ?? 0;
+              if (minStock < 0) {
+                if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Minimum stock cannot be negative')));
+                return;
+              }
+              if (maxStock < minStock) {
+                if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Maximum stock must be >= minimum stock')));
+                return;
+              }
               final database = ref.read(databaseProvider);
               try {
                 await (database.update(database.inventory)

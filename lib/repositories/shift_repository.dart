@@ -9,12 +9,14 @@ class ShiftRepository {
   ShiftRepository(this._shiftDao, this._productDao, this._db);
 
   Future<int> createShift(String type, {DateTime? dateTime}) async {
-    final active = await _shiftDao.getActiveShift();
-    if (active != null) throw Exception('An active shift already exists');
-    return _shiftDao.createShift(ShiftsCompanion.insert(
-      type: type,
-      startDate: dateTime ?? DateTime.now(),
-    ));
+    return await _db.transaction(() async {
+      final active = await _shiftDao.getActiveShift();
+      if (active != null) throw Exception('An active shift already exists');
+      return _shiftDao.createShift(ShiftsCompanion.insert(
+        type: type,
+        startDate: dateTime ?? DateTime.now(),
+      ));
+    });
   }
 
   Future<Shift?> getActiveShift() => _shiftDao.getActiveShift();

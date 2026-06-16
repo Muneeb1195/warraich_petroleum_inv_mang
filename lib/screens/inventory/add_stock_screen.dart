@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/product_provider.dart';
 import '../../providers/shift_provider.dart';
 import '../../utils/constants.dart';
+import '../../utils/error_utils.dart';
 import '../../utils/responsive.dart';
 
 class AddStockScreen extends ConsumerStatefulWidget {
@@ -94,17 +95,26 @@ class _AddStockScreenState extends ConsumerState<AddStockScreen> {
                       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Enter a valid quantity')));
                       return;
                     }
-                    await ref.read(productNotifierProvider.notifier).addStock(
-                          _selectedProductId!,
-                          quantity,
-                          double.tryParse(_costController.text) ?? 0,
-                          _notesController.text.isNotEmpty ? _notesController.text : null,
-                        );
-                    ref.invalidate(allInventoryProvider);
-                    ref.invalidate(todaySummaryProvider);
-                    if (context.mounted) {
-                      Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Stock added')));
+                    final cost = double.tryParse(_costController.text) ?? 0;
+                    if (cost < 0) {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Unit cost cannot be negative')));
+                      return;
+                    }
+                    try {
+                      await ref.read(productNotifierProvider.notifier).addStock(
+                            _selectedProductId!,
+                            quantity,
+                            cost,
+                            _notesController.text.isNotEmpty ? _notesController.text : null,
+                          );
+                      ref.invalidate(allInventoryProvider);
+                      ref.invalidate(todaySummaryProvider);
+                      if (context.mounted) {
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Stock added')));
+                      }
+                    } catch (e) {
+                      if (context.mounted) context.showError(e, source: 'addStock');
                     }
                   },
             child: productState.isLoading ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2)) : const Text('Add Stock'),

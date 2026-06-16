@@ -126,6 +126,14 @@ class _FuelPricesScreenState extends ConsumerState<FuelPricesScreen> {
             onPressed: () async {
               final selling = double.tryParse(sellingController.text) ?? 0;
               final cost = double.tryParse(costController.text) ?? 0;
+              if (selling <= 0) {
+                if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Selling price must be greater than 0')));
+                return;
+              }
+              if (cost < 0) {
+                if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Cost price cannot be negative')));
+                return;
+              }
               try {
                 await ref.read(productNotifierProvider.notifier).updatePrice(
                       product.id,

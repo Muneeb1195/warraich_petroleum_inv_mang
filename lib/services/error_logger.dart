@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
@@ -5,6 +6,7 @@ import 'package:path/path.dart' as p;
 class ErrorLogger {
   static const _fileName = 'error_log.txt';
   static const _maxLogSize = 512 * 1024; // 512KB
+  static Future<void>? _writeMutex;
 
   static Future<File> get _logFile async {
     Directory? dir;
@@ -16,6 +18,11 @@ class ErrorLogger {
   }
 
   static Future<void> log(String message, {String? source, StackTrace? stackTrace}) async {
+    final prev = _writeMutex;
+    final completer = Completer<void>();
+    _writeMutex = completer.future;
+    await prev;
+
     try {
       final file = await _logFile;
       final timestamp = DateTime.now().toIso8601String();
@@ -37,6 +44,8 @@ class ErrorLogger {
       await file.writeAsString(buffer.toString(), mode: FileMode.append);
     } catch (_) {
       // Don't let logging failures crash the app
+    } finally {
+      completer.complete();
     }
   }
 

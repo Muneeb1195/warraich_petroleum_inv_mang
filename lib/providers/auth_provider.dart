@@ -49,7 +49,7 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
   Future<void> init() async {
     final lockEnabled = await _storage.read(key: _lockEnabledKey);
     if (lockEnabled == 'true') {
-      state = state.copyWith(biometricEnabled: true, isLocked: true, isAuthenticated: false);
+      state = state.copyWith(biometricEnabled: true, isLocked: true, isAuthenticated: false, isLoading: true);
       await authenticate();
     }
   }

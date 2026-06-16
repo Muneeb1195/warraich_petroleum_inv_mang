@@ -95,10 +95,8 @@ void main() {
       await notifier.startShift('morning');
       final shift = await db.shiftDao.getActiveShift();
 
-      expect(
-        () => notifier.addSaleToShift(shift!.id, product.id, 100, 100, 250, 0, 0, 0),
-        throwsA(isA<Exception>()),
-      );
+      await notifier.addSaleToShift(shift!.id, product.id, 100, 100, 250, 0, 0, 0);
+      expect(container.read(shiftNotifierProvider).hasError, isTrue);
     });
   });
 

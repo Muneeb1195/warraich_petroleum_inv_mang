@@ -7,7 +7,12 @@ final onboardingProvider = FutureProvider<bool>((ref) async {
   return completed == 'true';
 });
 
-Future<void> completeOnboarding() async {
-  const storage = FlutterSecureStorage();
-  await storage.write(key: 'onboarding_completed', value: 'true');
+Future<bool> completeOnboarding() async {
+  try {
+    const storage = FlutterSecureStorage();
+    await storage.write(key: 'onboarding_completed', value: 'true');
+    return true;
+  } catch (_) {
+    return false;
+  }
 }

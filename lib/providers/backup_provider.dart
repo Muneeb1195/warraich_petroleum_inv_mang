@@ -28,12 +28,12 @@ class BackupNotifier extends StateNotifier<AsyncValue<void>> {
     final enabled = await storage.read(key: _autoBackupKey);
     if (enabled == 'false') return;
 
-    await _tryAutoBackup();
-
     _autoTimer?.cancel();
     _autoTimer = Timer.periodic(const Duration(hours: 1), (_) async {
       await _tryAutoBackup();
     });
+
+    _tryAutoBackup();
   }
 
   Future<void> _tryAutoBackup() async {
@@ -118,10 +118,8 @@ class BackupNotifier extends StateNotifier<AsyncValue<void>> {
     // 2. Perform restoration
     final result = await _service.restoreLatestBackup();
 
-    // 3. Invalidate provider so database re-initializes on next query
-    if (result) {
-      _ref.invalidate(databaseProvider);
-    }
+    // 3. Always invalidate provider so database re-initializes
+    _ref.invalidate(databaseProvider);
 
     state = result
         ? const AsyncValue.data(null)

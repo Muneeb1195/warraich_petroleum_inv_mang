@@ -67,7 +67,7 @@ class _SalesHistoryScreenState extends ConsumerState<SalesHistoryScreen> {
           ? DateTimeRange(start: _startDate!, end: _endDate!)
           : DateTimeRange(start: now.subtract(const Duration(days: 30)), end: now),
     );
-    if (range != null) {
+    if (range != null && mounted) {
       setState(() {
         _startDate = range.start;
         _endDate = range.end;

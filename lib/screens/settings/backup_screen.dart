@@ -8,6 +8,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import '../../providers/backup_provider.dart';
 import '../../config/app_config.dart';
+import '../../utils/error_utils.dart';
 import '../../utils/responsive.dart';
 
 class BackupScreen extends ConsumerStatefulWidget {
@@ -223,9 +224,15 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
 
   void _showCloudRestoreDialog(BuildContext context) async {
     final colorScheme = Theme.of(context).colorScheme;
-    log('backup_ui: listing cloud backups...');
-    final backups = await ref.read(backupNotifierProvider.notifier).listCloudBackups();
-    log('backup_ui: found ${backups.length} backups');
+    List<Map<String, String>> backups;
+    try {
+      log('backup_ui: listing cloud backups...');
+      backups = await ref.read(backupNotifierProvider.notifier).listCloudBackups();
+      log('backup_ui: found ${backups.length} backups');
+    } catch (e) {
+      if (context.mounted) context.showError(e, source: 'listCloudBackups');
+      return;
+    }
     if (!context.mounted) return;
 
     if (backups.isEmpty) {

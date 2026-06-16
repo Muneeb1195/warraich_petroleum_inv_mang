@@ -253,7 +253,10 @@ class BackupService {
 
         if (downloadResponse.statusCode == 200) {
           final dir = await getApplicationDocumentsDirectory();
-          final file = File(p.join(dir.path, 'warraich_petroleum.db'));
+          final dbPath = p.join(dir.path, 'warraich_petroleum.db');
+          try { await File('$dbPath-wal').delete(); } catch (_) {}
+          try { await File('$dbPath-shm').delete(); } catch (_) {}
+          final file = File(dbPath);
           await file.writeAsBytes(downloadResponse.bodyBytes);
           return true;
         }
@@ -321,7 +324,7 @@ class BackupService {
         log('backup: restoreFromId wrote ${downloadResponse.bodyBytes.length} bytes');
         return true;
       }
-      log('backup: restoreFromId HTTP ${downloadResponse.statusCode}: ${downloadResponse.body}');
+      log('backup: restoreFromId HTTP ${downloadResponse.statusCode}');
       return false;
     } catch (e) {
       log('backup: restoreFromId error: $e');

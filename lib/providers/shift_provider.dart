@@ -72,11 +72,11 @@ class ShiftNotifier extends StateNotifier<AsyncValue<void>> {
     double card,
     double credit,
   ) async {
-    final quantity = closingReading - openingReading;
-    if (quantity <= 0) throw Exception('Sale quantity must be greater than 0');
-    final totalAmount = cash + card + credit;
-    if (totalAmount <= 0) throw Exception('Sale amount must be greater than 0');
     state = await AsyncValue.guard(() async {
+      final quantity = closingReading - openingReading;
+      if (quantity <= 0) throw Exception('Sale quantity must be greater than 0');
+      final totalAmount = cash + card + credit;
+      if (totalAmount <= 0) throw Exception('Sale amount must be greater than 0');
       await _repo.addSaleToShift(
         shiftId, productId, openingReading, closingReading,
         pricePerUnit, cash, card, credit,
@@ -95,14 +95,16 @@ class ShiftNotifier extends StateNotifier<AsyncValue<void>> {
     double card,
     double credit,
   ) async {
-    final quantity = closingReading - openingReading;
-    if (quantity <= 0) throw Exception('Sale quantity must be greater than 0');
-    final totalAmount = cash + card + credit;
-    if (totalAmount <= 0) throw Exception('Sale amount must be greater than 0');
-    state = await AsyncValue.guard(() => _repo.updateSaleInShift(
-      saleId, shiftId, productId, openingReading, closingReading,
-      pricePerUnit, cash, card, credit,
-    ));
+    state = await AsyncValue.guard(() async {
+      final quantity = closingReading - openingReading;
+      if (quantity <= 0) throw Exception('Sale quantity must be greater than 0');
+      final totalAmount = cash + card + credit;
+      if (totalAmount <= 0) throw Exception('Sale amount must be greater than 0');
+      await _repo.updateSaleInShift(
+        saleId, shiftId, productId, openingReading, closingReading,
+        pricePerUnit, cash, card, credit,
+      );
+    });
   }
 
   Future<void> deleteSaleFromShift(int saleId) async {
