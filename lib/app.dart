@@ -60,7 +60,9 @@ class _WarraichPetroleumAppState extends ConsumerState<WarraichPetroleumApp> wit
               if (!completed) return const OnboardingScreen();
               return authState.isLocked ? const LockScreen() : const HomeShell();
             },
-            loading: () => authState.isLocked ? const LockScreen() : const HomeShell(),
+            loading: () => const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            ),
             error: (_, _) => authState.isLocked ? const LockScreen() : const HomeShell(),
           ),
         );

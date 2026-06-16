@@ -7,6 +7,7 @@ import 'package:warraich_petroleum/app.dart';
 import 'package:warraich_petroleum/database/app_database.dart';
 import 'package:warraich_petroleum/providers/backup_provider.dart';
 import 'package:warraich_petroleum/providers/database_provider.dart';
+import 'package:warraich_petroleum/providers/onboarding_provider.dart';
 import 'package:warraich_petroleum/providers/product_provider.dart';
 import 'package:warraich_petroleum/providers/shift_provider.dart';
 import 'package:warraich_petroleum/services/backup_service.dart';
@@ -30,6 +31,7 @@ void main() {
       ProviderScope(
         overrides: [
           databaseProvider.overrideWithValue(db),
+          onboardingProvider.overrideWithValue(const AsyncValue.data(true)),
           backupNotifierProvider.overrideWith((ref) {
             return _NoOpBackupNotifier(BackupService(), ref);
           }),
