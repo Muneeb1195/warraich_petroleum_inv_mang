@@ -84,7 +84,14 @@ class BackupService {
     try {
       if (Platform.isAndroid) {
         await _initAndroid();
-        final token = await _getAndroidToken();
+        var token = await _getAndroidToken();
+        if (token == null) {
+          // No token after restart, show account picker
+          final success = await signIn();
+          if (success) {
+            token = await _getAndroidToken();
+          }
+        }
         if (token != null) {
           return {'Authorization': 'Bearer $token', 'Content-Type': 'application/json'};
         }
@@ -92,7 +99,7 @@ class BackupService {
       } else {
         _credentials ??= await _getDesktopSignIn.silentSignIn();
         if (_credentials == null) {
-          // Token expired, try re-authenticating
+          // No stored credentials, show browser
           _credentials = await _getDesktopSignIn.signIn();
         } else if (_credentials!.expiresIn != null && _credentials!.expiresIn!.isBefore(DateTime.now())) {
           // Access token expired, try refresh token
