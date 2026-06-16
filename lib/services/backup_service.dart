@@ -53,6 +53,33 @@ class BackupService {
     }
   }
 
+  Future<gsap.GoogleSignInCredentials?> _refreshAccessToken() async {
+    if (_credentials?.refreshToken == null) return null;
+    try {
+      final res = await http.post(
+        Uri.https('oauth2.googleapis.com', '/token', {
+          'client_id': AppConfig.googleClientId,
+          'client_secret': AppConfig.googleClientSecret,
+          'refresh_token': _credentials!.refreshToken,
+          'grant_type': 'refresh_token',
+        }),
+      );
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body) as Map<String, dynamic>;
+        _credentials = _credentials!.copyWith(
+          accessToken: data['access_token'] as String,
+          expiresIn: DateTime.now().add(Duration(seconds: data['expires_in'] as int)),
+        );
+        log('backup: token refreshed successfully');
+        return _credentials;
+      }
+      log('backup: token refresh failed: ${res.statusCode}');
+    } catch (e) {
+      log('backup: token refresh error: $e');
+    }
+    return null;
+  }
+
   Future<Map<String, String>> _getHeaders() async {
     try {
       if (Platform.isAndroid) {
@@ -67,6 +94,12 @@ class BackupService {
         if (_credentials == null) {
           // Token expired, try re-authenticating
           _credentials = await _getDesktopSignIn.signIn();
+        } else if (_credentials!.expiresIn != null && _credentials!.expiresIn!.isBefore(DateTime.now())) {
+          // Access token expired, try refresh token
+          final refreshed = await _refreshAccessToken();
+          if (refreshed == null) {
+            _credentials = await _getDesktopSignIn.signIn();
+          }
         }
         if (_credentials != null) {
           return {'Authorization': 'Bearer ${_credentials!.accessToken}', 'Content-Type': 'application/json'};
