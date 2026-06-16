@@ -11,8 +11,9 @@ extension SnackbarUtils on BuildContext {
 
   void showError(dynamic error, {String? source}) {
     final message = error.toString();
+    final messenger = ScaffoldMessenger.of(this);
     ErrorLogger.log(message, source: source);
-    ScaffoldMessenger.of(this).showSnackBar(SnackBar(
+    messenger.showSnackBar(SnackBar(
       content: Text(message),
       backgroundColor: Theme.of(this).colorScheme.error,
     ));

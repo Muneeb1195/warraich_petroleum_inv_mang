@@ -33,7 +33,9 @@ class BackupService {
 
   Future<void> _initAndroid() async {
     if (!_androidInitialized) {
-      await gs.GoogleSignIn.instance.initialize();
+      await gs.GoogleSignIn.instance.initialize(
+        serverClientId: AppConfig.googleClientId,
+      );
       _androidInitialized = true;
     }
   }
@@ -93,6 +95,7 @@ class BackupService {
         return _credentials != null;
       }
     } catch (e) {
+      log('backup: signIn error: $e');
       return false;
     }
   }

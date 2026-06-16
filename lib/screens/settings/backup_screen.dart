@@ -149,7 +149,8 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
                 leading: Icon(Icons.cloud, color: _isSignedIn ? colorScheme.primary : colorScheme.onSurfaceVariant),
                 title: Text(_isSignedIn ? 'Signed in to Google' : 'Google Drive'),
                 subtitle: Text(_isSignedIn ? 'Connected to Google Drive' : 'Sign in to enable cloud backup'),
-                trailing: Switch(value: _isSignedIn, onChanged: (_) async {
+                trailing: Switch(value: _isSignedIn, onChanged: null),
+                onTap: () async {
                   try {
                     const storage = FlutterSecureStorage();
                     if (_isSignedIn) {
@@ -165,10 +166,10 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
                     }
                   } catch (e) {
                     if (context.mounted) {
-                      context.showError(e, source: 'backup');
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
                     }
                   }
-                }),
+                },
               ),
               if (_isSignedIn) ...[
                 const Divider(height: 1),
@@ -258,7 +259,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
 
               DateTime? date;
               try {
-                date = DateTime.parse(createdTime);
+                date = DateTime.parse(createdTime).toLocal();
               } catch (_) {}
 
               return ListTile(
