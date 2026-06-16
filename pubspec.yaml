@@ -30,7 +30,7 @@ dependencies:
 
   # Security
   flutter_secure_storage: ^10.3.1
-  local_auth: ^2.3.0
+  local_auth: ^3.0.0
 
   # Cloud/Backup
   google_sign_in_all_platforms: ^2.0.3

@@ -18,7 +18,7 @@ class BiometricService {
     try {
       return await _auth.authenticate(
         localizedReason: 'Authenticate to access Warraich Petroleum',
-        options: const AuthenticationOptions(biometricOnly: true),
+        biometricOnly: true,
       );
     } catch (e) {
       return false;
