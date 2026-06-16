@@ -335,7 +335,14 @@ class BackupService {
       await backupsDir.create(recursive: true);
 
       final fileName = 'warraich_backup_${DateTime.now().millisecondsSinceEpoch}.db';
-      await dbFile.copy(p.join(backupsDir.path, fileName));
+      final destPath = p.join(backupsDir.path, fileName);
+      try {
+        await dbFile.copy(destPath);
+      } catch (_) {
+        // Clean up partial file on failure
+        try { await File(destPath).delete(); } catch (_) {}
+        return false;
+      }
 
       // Enforce max 5 local backups
       final files = backupsDir.listSync().whereType<File>().toList()
@@ -360,7 +367,7 @@ class BackupService {
       if (files.isEmpty) return null;
 
       final latest = files.first;
-      final tempPath = p.join(dir.path, 'restore_temp.db');
+      final tempPath = p.join(dir.path, 'restore_${DateTime.now().millisecondsSinceEpoch}.db');
       await latest.copy(tempPath);
       return File(tempPath);
     } catch (e) {

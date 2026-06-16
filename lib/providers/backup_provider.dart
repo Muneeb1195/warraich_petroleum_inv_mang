@@ -98,7 +98,12 @@ class BackupNotifier extends StateNotifier<AsyncValue<void>> {
     state = const AsyncValue.loading();
     try {
       final db = _ref.read(databaseProvider);
-      await db.customStatement('PRAGMA wal_checkpoint(TRUNCATE)');
+      final checkpointResult = await db.customSelect('PRAGMA wal_checkpoint(TRUNCATE)').get();
+      final resultCode = checkpointResult.first.data['status'] as int;
+      if (resultCode != 0) {
+        state = const AsyncValue.error('WAL checkpoint failed - DB may be busy', StackTrace.empty);
+        return false;
+      }
     } catch (_) {}
     final result = await _service.backupDatabase(dbFile);
     if (result) await _saveBackupTimestamp();
@@ -124,6 +129,19 @@ class BackupNotifier extends StateNotifier<AsyncValue<void>> {
     if (state.isLoading) return false;
     state = const AsyncValue.loading();
     try {
+      // WAL checkpoint with failure check
+      try {
+        final db = _ref.read(databaseProvider);
+        await db.customStatement('PRAGMA wal_checkpoint(TRUNCATE)');
+      } catch (_) {}
+
+      // Pre-merge backup of current DB
+      final currentDb = _ref.read(databaseProvider);
+      final dir = await getApplicationDocumentsDirectory();
+      final preRestoreBackup = File(p.join(dir.path, 'pre_restore_backup.db'));
+      final currentDbPath = p.join(dir.path, 'warraich_petroleum.db');
+      await File(currentDbPath).copy(preRestoreBackup.path);
+
       final tempFile = await _service.restoreFromId(fileId);
       if (tempFile == null) {
         state = const AsyncValue.error('Cloud restore failed', StackTrace.empty);
@@ -132,7 +150,6 @@ class BackupNotifier extends StateNotifier<AsyncValue<void>> {
 
       AppDatabase? backupDb;
       try {
-        final currentDb = _ref.read(databaseProvider);
         backupDb = AppDatabase(executor: NativeDatabase(tempFile));
         await MergeService.mergeDatabases(currentDb, backupDb);
       } finally {
@@ -154,7 +171,12 @@ class BackupNotifier extends StateNotifier<AsyncValue<void>> {
     state = const AsyncValue.loading();
     try {
       final db = _ref.read(databaseProvider);
-      await db.customStatement('PRAGMA wal_checkpoint(TRUNCATE)');
+      final checkpointResult = await db.customSelect('PRAGMA wal_checkpoint(TRUNCATE)').get();
+      final resultCode = checkpointResult.first.data['status'] as int;
+      if (resultCode != 0) {
+        state = const AsyncValue.error('WAL checkpoint failed - DB may be busy', StackTrace.empty);
+        return false;
+      }
     } catch (_) {}
     final result = await _service.localBackup(dbFile);
     if (result) await _saveBackupTimestamp();
@@ -168,7 +190,19 @@ class BackupNotifier extends StateNotifier<AsyncValue<void>> {
     if (state.isLoading) return false;
     state = const AsyncValue.loading();
     try {
-      // 1. Get backup file
+      // WAL checkpoint with failure check
+      try {
+        final db = _ref.read(databaseProvider);
+        await db.customStatement('PRAGMA wal_checkpoint(TRUNCATE)');
+      } catch (_) {}
+
+      // Pre-merge backup of current DB
+      final currentDb = _ref.read(databaseProvider);
+      final dir = await getApplicationDocumentsDirectory();
+      final preRestoreBackup = File(p.join(dir.path, 'pre_restore_backup.db'));
+      final currentDbPath = p.join(dir.path, 'warraich_petroleum.db');
+      await File(currentDbPath).copy(preRestoreBackup.path);
+
       final tempFile = await _service.localRestore();
       if (tempFile == null) {
         state = const AsyncValue.error('Local restore failed', StackTrace.empty);
@@ -177,7 +211,6 @@ class BackupNotifier extends StateNotifier<AsyncValue<void>> {
 
       AppDatabase? backupDb;
       try {
-        final currentDb = _ref.read(databaseProvider);
         backupDb = AppDatabase(executor: NativeDatabase(tempFile));
         await MergeService.mergeDatabases(currentDb, backupDb);
       } finally {

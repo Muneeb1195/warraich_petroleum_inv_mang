@@ -359,18 +359,14 @@ class MergeService {
   }
 
   static Future<void> _mergeSettings(AppDatabase current, AppDatabase backup) async {
-    final currentSettings = await current.select(current.appSettings).get();
-    final currentKeys = currentSettings.map((s) => s.key).toSet();
     final backupSettings = await backup.select(backup.appSettings).get();
     for (final setting in backupSettings) {
-      if (!currentKeys.contains(setting.key)) {
-        await current.into(current.appSettings).insert(
-          AppSettingsCompanion.insert(
-            key: setting.key,
-            value: setting.value,
-          ),
-        );
-      }
+      await current.into(current.appSettings).insertOnConflictUpdate(
+        AppSettingsCompanion.insert(
+          key: setting.key,
+          value: setting.value,
+        ),
+      );
     }
   }
 }
