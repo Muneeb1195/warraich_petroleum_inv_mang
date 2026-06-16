@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../providers/onboarding_provider.dart';
+import '../../utils/constants.dart';
 import '../home_shell.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -16,7 +17,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final _pages = [
     _OnboardingPage(
       icon: Icons.local_gas_station,
-      title: 'Warraich Petroleum',
+      title: kAppName,
       description: 'Complete petrol pump management system. Track sales, manage inventory, handle expenses, and generate reports — all in one place.',
     ),
     _OnboardingPage(

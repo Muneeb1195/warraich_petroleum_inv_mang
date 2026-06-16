@@ -570,7 +570,7 @@ class _AddFuelSheetState extends ConsumerState<_AddFuelSheet> {
             TextField(
               controller: _amountController,
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'Amount (Rs.)', prefixIcon: Icon(Icons.attach_money)),
+              decoration: const InputDecoration(labelText: 'Amount ($kCurrency)', prefixIcon: Icon(Icons.attach_money)),
             ),
             const SizedBox(height: 20),
             FilledButton(

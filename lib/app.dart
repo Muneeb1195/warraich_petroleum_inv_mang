@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'theme/app_theme.dart';
+import 'utils/constants.dart';
 import 'providers/auth_provider.dart';
 import 'providers/backup_provider.dart';
 import 'providers/onboarding_provider.dart';
@@ -50,7 +51,7 @@ class _WarraichPetroleumAppState extends ConsumerState<WarraichPetroleumApp> wit
     return DynamicColorBuilder(
       builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) {
         return MaterialApp(
-          title: 'Warraich Petroleum',
+          title: kAppName,
           debugShowCheckedModeBanner: false,
           theme: AppTheme.light(lightDynamic),
           darkTheme: AppTheme.dark(darkDynamic),

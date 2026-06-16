@@ -2,7 +2,6 @@ import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_riverpod/legacy.dart';
 import 'package:warraich_petroleum/app.dart';
 import 'package:warraich_petroleum/database/app_database.dart';
 import 'package:warraich_petroleum/providers/backup_provider.dart';

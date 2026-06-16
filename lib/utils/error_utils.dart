@@ -19,13 +19,3 @@ extension SnackbarUtils on BuildContext {
   }
 }
 
-Future<void> guardedAsync(BuildContext context, Future<void> Function() fn, {VoidCallback? onSuccess, String? source}) async {
-  try {
-    await fn();
-    onSuccess?.call();
-  } catch (e) {
-    if (context.mounted) {
-      context.showError(e, source: source);
-    }
-  }
-}

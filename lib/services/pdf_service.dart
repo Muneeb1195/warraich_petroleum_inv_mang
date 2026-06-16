@@ -22,7 +22,7 @@ class PdfService {
           pw.Header(
             level: 0,
             child: pw.Text(
-              'Warraich Petroleum',
+              kAppName,
               style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold),
             ),
           ),
@@ -97,7 +97,7 @@ class PdfService {
           pw.Header(
             level: 0,
             child: pw.Text(
-              'Warraich Petroleum',
+              kAppName,
               style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold),
             ),
           ),

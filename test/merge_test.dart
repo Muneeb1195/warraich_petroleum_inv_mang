@@ -56,7 +56,7 @@ void main() {
       final backup = AppDatabase(executor: NativeDatabase.memory());
 
       // Current DB: Employee "Ali"
-      final aliId = await current.into(current.employees).insert(
+      await current.into(current.employees).insert(
         EmployeesCompanion.insert(name: 'Ali', role: 'Operator'),
       );
 

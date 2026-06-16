@@ -107,7 +107,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
             controller: _amountController,
             keyboardType: TextInputType.number,
             decoration: const InputDecoration(
-              labelText: 'Amount (Rs.)',
+              labelText: 'Amount ($kCurrency)',
               prefixIcon: Icon(Icons.attach_money),
             ),
           ),

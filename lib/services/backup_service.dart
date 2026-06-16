@@ -253,7 +253,7 @@ class BackupService {
 
         if (downloadResponse.statusCode == 200) {
           final dir = await getApplicationDocumentsDirectory();
-          final tempPath = p.join(dir.path, 'restore_temp.db');
+          final tempPath = p.join(dir.path, 'restore_${DateTime.now().millisecondsSinceEpoch}.db');
           final file = File(tempPath);
           await file.writeAsBytes(downloadResponse.bodyBytes);
           return file;

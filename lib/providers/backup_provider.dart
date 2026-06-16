@@ -40,7 +40,7 @@ class BackupNotifier extends StateNotifier<AsyncValue<void>> {
   }
 
   Future<void> _tryAutoBackup() async {
-    if (_autoBackupInProgress) return;
+    if (_autoBackupInProgress || state.isLoading) return;
     _autoBackupInProgress = true;
     try {
       const storage = FlutterSecureStorage();
@@ -108,38 +108,6 @@ class BackupNotifier extends StateNotifier<AsyncValue<void>> {
     return result;
   }
 
-  Future<bool> restoreFromDrive(File targetFile) async {
-    state = const AsyncValue.loading();
-    try {
-      // 1. Download backup to temp file
-      final tempFile = await _service.restoreLatestBackup();
-      if (tempFile == null) {
-        state = const AsyncValue.error('Download failed', StackTrace.empty);
-        return false;
-      }
-
-      // 2. Open both databases and merge
-      final currentDb = _ref.read(databaseProvider);
-      final backupDb = AppDatabase(executor: NativeDatabase(tempFile));
-      try {
-        await MergeService.mergeDatabases(currentDb, backupDb);
-      } finally {
-        await backupDb.close();
-        try { await tempFile.delete(); } catch (_) {}
-      }
-
-      // 3. Invalidate provider so database re-initializes
-      _ref.invalidate(databaseProvider);
-
-      state = const AsyncValue.data(null);
-      return true;
-    } catch (e) {
-      _ref.invalidate(databaseProvider);
-      state = AsyncValue.error('Restore failed: $e', StackTrace.empty);
-      return false;
-    }
-  }
-
   Future<void> signOut() async {
     await _service.signOut();
   }
@@ -156,30 +124,26 @@ class BackupNotifier extends StateNotifier<AsyncValue<void>> {
     if (state.isLoading) return false;
     state = const AsyncValue.loading();
     try {
-      // 1. Download backup to temp file
       final tempFile = await _service.restoreFromId(fileId);
       if (tempFile == null) {
         state = const AsyncValue.error('Cloud restore failed', StackTrace.empty);
         return false;
       }
 
-      // 2. Open both databases and merge
-      final currentDb = _ref.read(databaseProvider);
-      final backupDb = AppDatabase(executor: NativeDatabase(tempFile));
+      AppDatabase? backupDb;
       try {
+        final currentDb = _ref.read(databaseProvider);
+        backupDb = AppDatabase(executor: NativeDatabase(tempFile));
         await MergeService.mergeDatabases(currentDb, backupDb);
       } finally {
-        await backupDb.close();
+        try { await backupDb?.close(); } catch (_) {}
         try { await tempFile.delete(); } catch (_) {}
       }
 
-      // 3. Invalidate provider so database re-initializes
       _ref.invalidate(databaseProvider);
-
       state = const AsyncValue.data(null);
       return true;
     } catch (e) {
-      _ref.invalidate(databaseProvider);
       state = const AsyncValue.error('Cloud restore failed', StackTrace.empty);
       return false;
     }
@@ -211,23 +175,20 @@ class BackupNotifier extends StateNotifier<AsyncValue<void>> {
         return false;
       }
 
-      // 2. Open both databases and merge
-      final currentDb = _ref.read(databaseProvider);
-      final backupDb = AppDatabase(executor: NativeDatabase(tempFile));
+      AppDatabase? backupDb;
       try {
+        final currentDb = _ref.read(databaseProvider);
+        backupDb = AppDatabase(executor: NativeDatabase(tempFile));
         await MergeService.mergeDatabases(currentDb, backupDb);
       } finally {
-        await backupDb.close();
+        try { await backupDb?.close(); } catch (_) {}
         try { await tempFile.delete(); } catch (_) {}
       }
 
-      // 3. Invalidate provider so database re-initializes
       _ref.invalidate(databaseProvider);
-
       state = const AsyncValue.data(null);
       return true;
     } catch (e) {
-      _ref.invalidate(databaseProvider);
       state = const AsyncValue.error('Local restore failed', StackTrace.empty);
       return false;
     }

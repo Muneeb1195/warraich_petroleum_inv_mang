@@ -101,7 +101,7 @@ class _FuelPricesScreenState extends ConsumerState<FuelPricesScreen> {
                 controller: costController,
                 keyboardType: TextInputType.number,
                 decoration: const InputDecoration(
-                  labelText: 'Cost Price (Rs.)',
+                  labelText: 'Cost Price ($kCurrency)',
                   prefixIcon: Icon(Icons.shopping_cart),
                 ),
               ),
@@ -110,7 +110,7 @@ class _FuelPricesScreenState extends ConsumerState<FuelPricesScreen> {
                 controller: sellingController,
                 keyboardType: TextInputType.number,
                 decoration: const InputDecoration(
-                  labelText: 'Selling Price (Rs.)',
+                  labelText: 'Selling Price ($kCurrency)',
                   prefixIcon: Icon(Icons.sell),
                 ),
               ),

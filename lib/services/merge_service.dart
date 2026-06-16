@@ -6,32 +6,34 @@ class MergeService {
   static Future<void> mergeDatabases(AppDatabase current, AppDatabase backup) async {
     log('merge: starting merge...');
 
-    final productMap = await _mergeProducts(current, backup);
-    log('merge: products done (${productMap.length} remapped)');
+    await current.transaction(() async {
+      final productMap = await _mergeProducts(current, backup);
+      log('merge: products done (${productMap.length} remapped)');
 
-    final employeeMap = await _mergeEmployees(current, backup);
-    log('merge: employees done (${employeeMap.length} remapped)');
+      final employeeMap = await _mergeEmployees(current, backup);
+      log('merge: employees done (${employeeMap.length} remapped)');
 
-    await _mergeInventory(current, backup, productMap);
-    log('merge: inventory done');
+      await _mergeInventory(current, backup, productMap);
+      log('merge: inventory done');
 
-    await _mergeInventoryTransactions(current, backup, productMap);
-    log('merge: inventory transactions done');
+      final shiftMap = await _mergeShifts(current, backup, employeeMap);
+      log('merge: shifts done (${shiftMap.length} remapped)');
 
-    final shiftMap = await _mergeShifts(current, backup, employeeMap);
-    log('merge: shifts done (${shiftMap.length} remapped)');
+      await _mergeInventoryTransactions(current, backup, productMap, shiftMap);
+      log('merge: inventory transactions done');
 
-    await _mergeShiftSales(current, backup, shiftMap, productMap);
-    log('merge: shift sales done');
+      await _mergeShiftSales(current, backup, shiftMap, productMap);
+      log('merge: shift sales done');
 
-    await _mergeExpenses(current, backup, shiftMap, employeeMap);
-    log('merge: expenses done');
+      await _mergeExpenses(current, backup, shiftMap, employeeMap);
+      log('merge: expenses done');
 
-    await _mergePayroll(current, backup, employeeMap);
-    log('merge: payroll done');
+      await _mergePayroll(current, backup, employeeMap);
+      log('merge: payroll done');
 
-    await _mergeSettings(current, backup);
-    log('merge: settings done');
+      await _mergeSettings(current, backup);
+      log('merge: settings done');
+    });
 
     log('merge: complete');
   }
@@ -43,11 +45,11 @@ class MergeService {
 
     final currentByName = <String, Product>{};
     for (final p in currentProducts) {
-      currentByName['${p.name}|${p.category}'] = p;
+      currentByName['${p.name}|${p.category}|${p.unit}'] = p;
     }
 
     for (final bp in backupProducts) {
-      final key = '${bp.name}|${bp.category}';
+      final key = '${bp.name}|${bp.category}|${bp.unit}';
       final existing = currentByName[key];
 
       if (existing != null) {
@@ -81,11 +83,11 @@ class MergeService {
 
     final currentByName = <String, Employee>{};
     for (final e in currentEmployees) {
-      currentByName['${e.name}|${e.role}'] = e;
+      currentByName['${e.name}|${e.role}|${e.phone ?? ''}'] = e;
     }
 
     for (final be in backupEmployees) {
-      final key = '${be.name}|${be.role}';
+      final key = '${be.name}|${be.role}|${be.phone ?? ''}';
       final existing = currentByName[key];
 
       if (existing != null) {
@@ -145,22 +147,35 @@ class MergeService {
     }
   }
 
-  static Future<void> _mergeInventoryTransactions(AppDatabase current, AppDatabase backup, Map<int, int> productMap) async {
+  static Future<void> _mergeInventoryTransactions(AppDatabase current, AppDatabase backup, Map<int, int> productMap, Map<int, int> shiftMap) async {
     final backupTxns = await backup.select(backup.inventoryTransactions).get();
     final currentTxns = await current.select(current.inventoryTransactions).get();
-    final currentKeys = currentTxns.map((t) => '${t.createdAt}|${t.type}|${t.productId}').toSet();
+    final currentByKey = <String, InventoryTransaction>{};
+    for (final t in currentTxns) {
+      currentByKey['${t.createdAt}|${t.type}|${t.productId}|${t.quantity}'] = t;
+    }
 
     for (final bt in backupTxns) {
       final newProductId = productMap[bt.productId] ?? bt.productId;
-      final key = '${bt.createdAt}|${bt.type}|$newProductId';
-      if (!currentKeys.contains(key)) {
+      final key = '${bt.createdAt}|${bt.type}|$newProductId|${bt.quantity}';
+      final existing = currentByKey[key];
+
+      if (existing != null) {
+        if (bt.createdAt.isAfter(existing.createdAt)) {
+          await current.update(current.inventoryTransactions).replace(bt.copyWith(
+            id: existing.id,
+            productId: newProductId,
+            referenceId: Value(bt.referenceId != null ? (shiftMap[bt.referenceId!] ?? bt.referenceId) : null),
+          ));
+        }
+      } else {
         await current.into(current.inventoryTransactions).insert(
           InventoryTransactionsCompanion.insert(
             productId: newProductId,
             type: bt.type,
             quantity: bt.quantity,
             unitCost: Value(bt.unitCost),
-            referenceId: Value(bt.referenceId),
+            referenceId: Value(bt.referenceId != null ? (shiftMap[bt.referenceId!] ?? bt.referenceId) : null),
             notes: Value(bt.notes),
             createdAt: Value(bt.createdAt),
           ),
@@ -217,14 +232,26 @@ class MergeService {
   static Future<void> _mergeShiftSales(AppDatabase current, AppDatabase backup, Map<int, int> shiftMap, Map<int, int> productMap) async {
     final backupSales = await backup.select(backup.shiftSales).get();
     final currentSales = await current.select(current.shiftSales).get();
-    final currentKeys = currentSales.map((s) => '${s.shiftId}|${s.productId}|${s.openingReading}').toSet();
+    final currentByKey = <String, ShiftSale>{};
+    for (final s in currentSales) {
+      currentByKey['${s.shiftId}|${s.productId}|${s.openingReading.toStringAsFixed(6)}'] = s;
+    }
 
     for (final bs in backupSales) {
       final newShiftId = shiftMap[bs.shiftId] ?? bs.shiftId;
       final newProductId = productMap[bs.productId] ?? bs.productId;
-      final key = '$newShiftId|$newProductId|${bs.openingReading}';
+      final key = '$newShiftId|$newProductId|${bs.openingReading.toStringAsFixed(6)}';
+      final existing = currentByKey[key];
 
-      if (!currentKeys.contains(key)) {
+      if (existing != null) {
+        if (bs.updatedAt.isAfter(existing.updatedAt)) {
+          await current.update(current.shiftSales).replace(bs.copyWith(
+            id: existing.id,
+            shiftId: newShiftId,
+            productId: newProductId,
+          ));
+        }
+      } else {
         await current.into(current.shiftSales).insert(
           ShiftSalesCompanion.insert(
             shiftId: newShiftId,
@@ -246,11 +273,26 @@ class MergeService {
   static Future<void> _mergeExpenses(AppDatabase current, AppDatabase backup, Map<int, int> shiftMap, Map<int, int> employeeMap) async {
     final backupExpenses = await backup.select(backup.expenses).get();
     final currentExpenses = await current.select(current.expenses).get();
-    final currentKeys = currentExpenses.map((e) => '${e.date}|${e.category}|${e.amount}|${e.description}').toSet();
+    final currentByKey = <String, Expense>{};
+    for (final e in currentExpenses) {
+      currentByKey['${e.date}|${e.category}|${e.amount}|${e.description}|${e.createdAt}'] = e;
+    }
 
     for (final be in backupExpenses) {
-      final key = '${be.date}|${be.category}|${be.amount}|${be.description}';
-      if (!currentKeys.contains(key)) {
+      final key = '${be.date}|${be.category}|${be.amount}|${be.description}|${be.createdAt}';
+      final existing = currentByKey[key];
+
+      if (existing != null) {
+        if (be.updatedAt.isAfter(existing.updatedAt)) {
+          final newShiftId = be.shiftId != null ? (shiftMap[be.shiftId!] ?? be.shiftId) : null;
+          final newCreatedBy = be.createdBy != null ? (employeeMap[be.createdBy!] ?? be.createdBy) : null;
+          await current.update(current.expenses).replace(be.copyWith(
+            id: existing.id,
+            shiftId: Value(newShiftId),
+            createdBy: Value(newCreatedBy),
+          ));
+        }
+      } else {
         final newShiftId = be.shiftId != null ? (shiftMap[be.shiftId!] ?? be.shiftId) : null;
         final newCreatedBy = be.createdBy != null ? (employeeMap[be.createdBy!] ?? be.createdBy) : null;
 
@@ -273,13 +315,24 @@ class MergeService {
   static Future<void> _mergePayroll(AppDatabase current, AppDatabase backup, Map<int, int> employeeMap) async {
     final backupPayroll = await backup.select(backup.payroll).get();
     final currentPayroll = await current.select(current.payroll).get();
-    final currentKeys = currentPayroll.map((p) => '${p.employeeId}|${p.month}|${p.year}').toSet();
+    final currentByKey = <String, PayrollData>{};
+    for (final p in currentPayroll) {
+      currentByKey['${p.employeeId}|${p.month}|${p.year}'] = p;
+    }
 
     for (final bp in backupPayroll) {
       final newEmployeeId = employeeMap[bp.employeeId] ?? bp.employeeId;
       final key = '$newEmployeeId|${bp.month}|${bp.year}';
+      final existing = currentByKey[key];
 
-      if (!currentKeys.contains(key)) {
+      if (existing != null) {
+        if (bp.updatedAt.isAfter(existing.updatedAt)) {
+          await current.update(current.payroll).replace(bp.copyWith(
+            id: existing.id,
+            employeeId: newEmployeeId,
+          ));
+        }
+      } else {
         await current.into(current.payroll).insert(
           PayrollCompanion.insert(
             employeeId: newEmployeeId,
@@ -301,14 +354,18 @@ class MergeService {
   }
 
   static Future<void> _mergeSettings(AppDatabase current, AppDatabase backup) async {
+    final currentSettings = await current.select(current.appSettings).get();
+    final currentKeys = currentSettings.map((s) => s.key).toSet();
     final backupSettings = await backup.select(backup.appSettings).get();
     for (final setting in backupSettings) {
-      await current.into(current.appSettings).insertOnConflictUpdate(
-        AppSettingsCompanion.insert(
-          key: setting.key,
-          value: setting.value,
-        ),
-      );
+      if (!currentKeys.contains(setting.key)) {
+        await current.into(current.appSettings).insert(
+          AppSettingsCompanion.insert(
+            key: setting.key,
+            value: setting.value,
+          ),
+        );
+      }
     }
   }
 }

@@ -6,6 +6,7 @@ import '../../providers/format_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../services/error_logger.dart';
 import '../../utils/error_utils.dart';
+import '../../utils/constants.dart';
 import '../../utils/responsive.dart';
 import 'help_screen.dart';
 import 'backup_screen.dart';
@@ -109,7 +110,7 @@ class SettingsScreen extends ConsumerWidget {
             children: [
               Icon(Icons.local_gas_station, size: 48, color: colorScheme.primary),
               const SizedBox(height: 8),
-              Text('Warraich Petroleum', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+              Text(kAppName, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
               const SizedBox(height: 4),
               FutureBuilder<PackageInfo>(
                 future: PackageInfo.fromPlatform(),

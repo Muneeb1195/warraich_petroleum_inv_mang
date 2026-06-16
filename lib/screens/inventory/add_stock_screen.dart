@@ -68,7 +68,7 @@ class _AddStockScreenState extends ConsumerState<AddStockScreen> {
           const SizedBox(height: 16),
           TextField(controller: _quantityController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Quantity')),
           const SizedBox(height: 16),
-          TextField(controller: _costController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Unit Cost (Rs.)')),
+          TextField(controller: _costController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Unit Cost ($kCurrency)')),
           if (_totalCost > 0) ...[
             const SizedBox(height: 8),
             Container(

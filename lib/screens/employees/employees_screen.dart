@@ -110,7 +110,7 @@ class _AddEmployeeScreenState extends ConsumerState<AddEmployeeScreen> {
               onChanged: (v) { if (v != null) setState(() => _selectedShift = v); },
             ),
             const SizedBox(height: 16),
-            TextField(controller: _salaryController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Monthly Salary (Rs.)', prefixIcon: Icon(Icons.attach_money))),
+            TextField(controller: _salaryController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Monthly Salary ($kCurrency)', prefixIcon: Icon(Icons.attach_money))),
             const SizedBox(height: 24),
             FilledButton(
               onPressed: employeeState.isLoading ? null : () async {

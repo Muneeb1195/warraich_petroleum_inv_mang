@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:window_manager/window_manager.dart';
 import 'app.dart';
+import 'utils/constants.dart';
 import 'services/error_logger.dart';
 
 void main() async {
@@ -16,7 +17,7 @@ void main() async {
       size: Size(1200, 800),
       minimumSize: Size(900, 600),
       center: true,
-      title: 'Warraich Petroleum',
+      title: kAppName,
     );
     await windowManager.waitUntilReadyToShow(windowOptions, () async {
       await windowManager.show();
