@@ -64,6 +64,10 @@ class BackupService {
         log('backup: Android token retrieval failed');
       } else {
         _credentials ??= await _getDesktopSignIn.silentSignIn();
+        if (_credentials == null) {
+          // Token expired, try re-authenticating
+          _credentials = await _getDesktopSignIn.signIn();
+        }
         if (_credentials != null) {
           return {'Authorization': 'Bearer ${_credentials!.accessToken}', 'Content-Type': 'application/json'};
         }
