@@ -107,6 +107,8 @@ jobs:
 
       - name: Build Windows Desktop
         shell: bash
+        env:
+          CMAKE_POLICY_VERSION_MINIMUM: "3.5"
         run: |
           flutter build windows --release \
             --dart-define=GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }} \
