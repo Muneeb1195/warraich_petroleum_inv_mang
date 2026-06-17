@@ -107,19 +107,52 @@ class PayrollScreen extends ConsumerWidget {
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
                               TextButton(
-                                onPressed: () async {
-                                  try {
-                                    await ref
-                                        .read(payrollNotifierProvider.notifier)
-                                        .markAsPaid(row.payrollEntry.id);
-                                    if (context.mounted)
-                                      context.showSuccess(
-                                        '${row.employee.name} marked as paid',
-                                      );
-                                  } catch (e) {
-                                    if (context.mounted)
-                                      context.showError(e, source: 'markPaid');
-                                  }
+                                onPressed: () {
+                                  showDialog(
+                                    context: context,
+                                    builder: (ctx) => AlertDialog(
+                                      title: const Text('Mark as Paid'),
+                                      content: Text(
+                                        'Mark ${row.employee.name}\'s salary of '
+                                        '$kCurrency ${row.payrollEntry.netPay.toStringAsFixed(0)} '
+                                        'as paid? This cannot be undone.',
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () => Navigator.pop(ctx),
+                                          child: const Text('Cancel'),
+                                        ),
+                                        FilledButton(
+                                          onPressed: () async {
+                                            Navigator.pop(ctx);
+                                            try {
+                                              await ref
+                                                  .read(
+                                                    payrollNotifierProvider
+                                                        .notifier,
+                                                  )
+                                                  .markAsPaid(
+                                                    row.payrollEntry.id,
+                                                  );
+                                              if (context.mounted) {
+                                                context.showSuccess(
+                                                  '${row.employee.name} marked as paid',
+                                                );
+                                              }
+                                            } catch (e) {
+                                              if (context.mounted) {
+                                                context.showError(
+                                                  e,
+                                                  source: 'markPaid',
+                                                );
+                                              }
+                                            }
+                                          },
+                                          child: const Text('Confirm'),
+                                        ),
+                                      ],
+                                    ),
+                                  );
                                 },
                                 child: const Text('Mark Paid'),
                               ),
