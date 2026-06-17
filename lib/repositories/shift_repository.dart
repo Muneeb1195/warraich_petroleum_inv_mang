@@ -41,19 +41,40 @@ class ShiftRepository {
     final totalAmount = cash + card + credit;
     if (totalAmount <= 0) throw Exception('Sale amount must be greater than 0');
 
-    return _shiftDao.addSaleToShift(
-      ShiftSalesCompanion.insert(
-        shiftId: shiftId,
-        productId: productId,
-        openingReading: Value(openingReading),
-        closingReading: Value(closingReading),
-        quantitySold: Value(quantity),
-        totalAmount: Value(totalAmount),
-        cashCollected: Value(cash),
-        cardCollected: Value(card),
-        creditCollected: Value(credit),
-      ),
-    );
+    return _db.transaction(() async {
+      final inventory = await _productDao.getInventory(productId);
+      if (inventory != null && inventory.currentStock < quantity) {
+        throw Exception(
+          'Insufficient stock: ${inventory.currentStock.toStringAsFixed(1)} available, ${quantity.toStringAsFixed(1)} requested',
+        );
+      }
+
+      final existingSales = await _shiftDao.getShiftSales(shiftId);
+      final existingQtyForProduct = existingSales
+          .where((row) => row.product.id == productId)
+          .fold<double>(0.0, (sum, row) => sum + row.sale.quantitySold);
+
+      if (inventory != null &&
+          (existingQtyForProduct + quantity) > inventory.currentStock) {
+        throw Exception(
+          'Sale would exceed available stock: ${(inventory.currentStock - existingQtyForProduct).toStringAsFixed(1)} remaining for this product',
+        );
+      }
+
+      return _shiftDao.addSaleToShift(
+        ShiftSalesCompanion.insert(
+          shiftId: shiftId,
+          productId: productId,
+          openingReading: Value(openingReading),
+          closingReading: Value(closingReading),
+          quantitySold: Value(quantity),
+          totalAmount: Value(totalAmount),
+          cashCollected: Value(cash),
+          cardCollected: Value(card),
+          creditCollected: Value(credit),
+        ),
+      );
+    });
   }
 
   Future<void> updateSaleInShift(
@@ -72,20 +93,37 @@ class ShiftRepository {
     final totalAmount = cash + card + credit;
     if (totalAmount <= 0) throw Exception('Sale amount must be greater than 0');
 
-    await _shiftDao.updateSaleInShift(
-      saleId,
-      ShiftSalesCompanion(
-        shiftId: Value(shiftId),
-        productId: Value(productId),
-        openingReading: Value(openingReading),
-        closingReading: Value(closingReading),
-        quantitySold: Value(quantity),
-        totalAmount: Value(totalAmount),
-        cashCollected: Value(cash),
-        cardCollected: Value(card),
-        creditCollected: Value(credit),
-      ),
-    );
+    await _db.transaction(() async {
+      final inventory = await _productDao.getInventory(productId);
+      final existingSales = await _shiftDao.getShiftSales(shiftId);
+      final existingQtyForProduct = existingSales
+          .where(
+            (row) => row.product.id == productId && row.sale.id != saleId,
+          )
+          .fold<double>(0.0, (sum, row) => sum + row.sale.quantitySold);
+
+      if (inventory != null &&
+          (existingQtyForProduct + quantity) > inventory.currentStock) {
+        throw Exception(
+          'Update would exceed available stock: ${(inventory.currentStock - existingQtyForProduct).toStringAsFixed(1)} remaining for this product',
+        );
+      }
+
+      await _shiftDao.updateSaleInShift(
+        saleId,
+        ShiftSalesCompanion(
+          shiftId: Value(shiftId),
+          productId: Value(productId),
+          openingReading: Value(openingReading),
+          closingReading: Value(closingReading),
+          quantitySold: Value(quantity),
+          totalAmount: Value(totalAmount),
+          cashCollected: Value(cash),
+          cardCollected: Value(card),
+          creditCollected: Value(credit),
+        ),
+      );
+    });
   }
 
   Future<void> deleteSaleFromShift(int saleId) async {

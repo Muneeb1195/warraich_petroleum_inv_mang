@@ -60,7 +60,6 @@ class MergeService {
 
       if (existing != null) {
         idMap[bp.id] = existing.id;
-        // Always update from backup (backup is the source of truth for restore)
         await current
             .update(current.products)
             .replace(bp.copyWith(id: existing.id));
@@ -149,7 +148,6 @@ class MergeService {
       final existing = currentByProductId[newProductId];
 
       if (existing != null) {
-        // Always update from backup (backup is the source of truth for restore)
         await current
             .update(current.inventory)
             .replace(bi.copyWith(id: existing.id, productId: newProductId));
@@ -181,7 +179,8 @@ class MergeService {
         .get();
     final currentByKey = <String, InventoryTransaction>{};
     for (final t in currentTxns) {
-      currentByKey['${t.createdAt}|${t.type}|${t.productId}|${t.quantity}'] = t;
+      currentByKey['${t.createdAt.millisecondsSinceEpoch}|${t.type}|${t.productId}|${t.quantity}'] =
+          t;
     }
 
     for (final bt in backupTxns) {
@@ -190,7 +189,12 @@ class MergeService {
       final newRefId = bt.referenceId != null
           ? shiftMap[bt.referenceId!]
           : null;
-      final key = '${bt.createdAt}|${bt.type}|$newProductId|${bt.quantity}';
+      if (bt.referenceId != null && newRefId == null) {
+        log('merge: skipping inventory txn #${bt.id} — shift ${bt.referenceId} not found in current DB');
+        continue;
+      }
+      final key =
+          '${bt.createdAt.millisecondsSinceEpoch}|${bt.type}|$newProductId|${bt.quantity}';
       final existing = currentByKey[key];
 
       if (existing != null) {
@@ -234,11 +238,11 @@ class MergeService {
 
     final currentByDate = <String, Shift>{};
     for (final s in currentShifts) {
-      currentByDate['${s.startDate}|${s.type}'] = s;
+      currentByDate['${s.startDate.millisecondsSinceEpoch}|${s.type}'] = s;
     }
 
     for (final bs in backupShifts) {
-      final key = '${bs.startDate}|${bs.type}';
+      final key = '${bs.startDate.millisecondsSinceEpoch}|${bs.type}';
       final existing = currentByDate[key];
 
       if (existing != null) {
@@ -282,7 +286,7 @@ class MergeService {
     final currentSales = await current.select(current.shiftSales).get();
     final currentByKey = <String, ShiftSale>{};
     for (final s in currentSales) {
-      currentByKey['${s.shiftId}|${s.productId}|${s.openingReading.toStringAsFixed(6)}'] =
+      currentByKey['${s.shiftId}|${s.productId}|${s.openingReading.hashCode}|${s.closingReading.hashCode}|${s.quantitySold.hashCode}'] =
           s;
     }
 
@@ -291,7 +295,7 @@ class MergeService {
       final newProductId = productMap[bs.productId];
       if (newShiftId == null || newProductId == null) continue;
       final key =
-          '$newShiftId|$newProductId|${bs.openingReading.toStringAsFixed(6)}';
+          '$newShiftId|$newProductId|${bs.openingReading.hashCode}|${bs.closingReading.hashCode}|${bs.quantitySold.hashCode}';
       final existing = currentByKey[key];
 
       if (existing != null) {
@@ -337,18 +341,21 @@ class MergeService {
     final currentExpenses = await current.select(current.expenses).get();
     final currentByKey = <String, Expense>{};
     for (final e in currentExpenses) {
-      currentByKey['${e.date}|${e.category}|${e.amount}|${e.description}|${e.updatedAt}'] =
+      currentByKey['${e.date.millisecondsSinceEpoch}|${e.category}|${e.amount}|${e.description ?? ''}'] =
           e;
     }
 
     for (final be in backupExpenses) {
       final key =
-          '${be.date}|${be.category}|${be.amount}|${be.description}|${be.updatedAt}';
+          '${be.date.millisecondsSinceEpoch}|${be.category}|${be.amount}|${be.description ?? ''}';
       final existing = currentByKey[key];
 
       if (existing != null) {
         if (be.updatedAt.isAfter(existing.updatedAt)) {
           final newShiftId = be.shiftId != null ? shiftMap[be.shiftId!] : null;
+          if (be.shiftId != null && newShiftId == null) {
+            log('merge: expense #${be.id} references missing shift ${be.shiftId}, clearing shiftId');
+          }
           await current
               .update(current.expenses)
               .replace(
@@ -360,6 +367,9 @@ class MergeService {
         }
       } else {
         final newShiftId = be.shiftId != null ? shiftMap[be.shiftId!] : null;
+        if (be.shiftId != null && newShiftId == null) {
+          log('merge: expense #${be.id} references missing shift ${be.shiftId}, clearing shiftId');
+        }
 
         await current
             .into(current.expenses)

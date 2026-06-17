@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../database/app_database.dart';
 import '../../providers/employee_provider.dart';
+import '../../providers/format_provider.dart';
 import '../../utils/constants.dart';
 import '../../utils/error_utils.dart';
 import '../../utils/responsive.dart';
@@ -46,7 +47,7 @@ class EmployeesScreen extends ConsumerWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      '$kCurrency ${employee.salary.toStringAsFixed(0)}',
+                      fm(ref, employee.salary),
                       style: TextStyle(
                         color: colorScheme.primary,
                         fontWeight: FontWeight.bold,

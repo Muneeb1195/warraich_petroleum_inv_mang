@@ -1,5 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_riverpod/legacy.dart';
 import '../database/app_database.dart';
 import '../repositories/expense_repository.dart';
 import 'database_provider.dart';
@@ -34,6 +33,7 @@ class ExpenseNotifier extends StateNotifier<AsyncValue<void>> {
     String? description,
     required DateTime date,
   }) async {
+    state = const AsyncValue.data(null);
     state = await AsyncValue.guard(() async {
       await _repo.addExpense(
         shiftId: shiftId,
@@ -53,6 +53,7 @@ class ExpenseNotifier extends StateNotifier<AsyncValue<void>> {
     String? description,
     required DateTime date,
   }) async {
+    state = const AsyncValue.data(null);
     state = await AsyncValue.guard(
       () => _repo.updateExpense(
         id: id,
@@ -66,6 +67,7 @@ class ExpenseNotifier extends StateNotifier<AsyncValue<void>> {
   }
 
   Future<void> deleteExpense(int id) async {
+    state = const AsyncValue.data(null);
     state = await AsyncValue.guard(() => _repo.deleteExpense(id));
   }
 }

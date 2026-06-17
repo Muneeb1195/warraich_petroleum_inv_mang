@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/product_provider.dart';
+import '../../providers/format_provider.dart';
 import '../../providers/shift_provider.dart';
 import '../../utils/constants.dart';
 import '../../utils/error_utils.dart';
@@ -97,7 +98,7 @@ class _AddStockScreenState extends ConsumerState<AddStockScreen> {
                     style: TextStyle(color: colorScheme.onPrimaryContainer),
                   ),
                   Text(
-                    '$kCurrency ${_totalCost.toStringAsFixed(0)}',
+                    fm(ref, _totalCost),
                     style: TextStyle(
                       color: colorScheme.onPrimaryContainer,
                       fontWeight: FontWeight.bold,

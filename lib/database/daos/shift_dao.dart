@@ -38,7 +38,7 @@ class ShiftDao extends DatabaseAccessor<AppDatabase> with _$ShiftDaoMixin {
 
   Future<List<Shift>> getShiftsByDateRange(DateTime start, DateTime end) async {
     final query = select(shifts)
-      ..where((s) => s.startDate.isBetweenValues(start, end))
+      ..where((s) => s.startDate.isBiggerOrEqualValue(start) & s.startDate.isSmallerThanValue(end))
       ..orderBy([(s) => OrderingTerm.desc(s.startDate)]);
     return query.get();
   }
@@ -114,7 +114,8 @@ class ShiftDao extends DatabaseAccessor<AppDatabase> with _$ShiftDaoMixin {
     final todayShifts =
         await (select(shifts)..where(
               (s) =>
-                  s.startDate.isBetweenValues(startOfDay, endOfDay) &
+                  s.startDate.isBiggerOrEqualValue(startOfDay) &
+                  s.startDate.isSmallerThanValue(endOfDay) &
                   s.status.equals('closed'),
             ))
             .get();
@@ -122,7 +123,8 @@ class ShiftDao extends DatabaseAccessor<AppDatabase> with _$ShiftDaoMixin {
     final todayExpenses =
         await (select(db.expenses)..where(
               (e) =>
-                  e.date.isBetweenValues(startOfDay, endOfDay) &
+                  e.date.isBiggerOrEqualValue(startOfDay) &
+                  e.date.isSmallerThanValue(endOfDay) &
                   e.category.equals('Supplier').not(),
             ))
             .get();
@@ -152,7 +154,8 @@ class ShiftDao extends DatabaseAccessor<AppDatabase> with _$ShiftDaoMixin {
     final allShifts =
         await (select(shifts)..where(
               (s) =>
-                  s.startDate.isBetweenValues(sevenDaysAgo, endOfToday) &
+                  s.startDate.isBiggerOrEqualValue(sevenDaysAgo) &
+                  s.startDate.isSmallerThanValue(endOfToday) &
                   s.status.equals('closed'),
             ))
             .get();
@@ -190,7 +193,8 @@ class ShiftDao extends DatabaseAccessor<AppDatabase> with _$ShiftDaoMixin {
     final allExpenses =
         await (select(db.expenses)..where(
               (e) =>
-                  e.date.isBetweenValues(sevenDaysAgo, endOfToday) &
+                  e.date.isBiggerOrEqualValue(sevenDaysAgo) &
+                  e.date.isSmallerThanValue(endOfToday) &
                   e.category.equals('Supplier').not(),
             ))
             .get();
@@ -233,7 +237,8 @@ class ShiftDao extends DatabaseAccessor<AppDatabase> with _$ShiftDaoMixin {
     final monthShifts =
         await (select(shifts)..where(
               (s) =>
-                  s.startDate.isBetweenValues(start, end) &
+                  s.startDate.isBiggerOrEqualValue(start) &
+                  s.startDate.isSmallerThanValue(end) &
                   s.status.equals('closed'),
             ))
             .get();
@@ -241,7 +246,8 @@ class ShiftDao extends DatabaseAccessor<AppDatabase> with _$ShiftDaoMixin {
     final monthExpenses =
         await (select(db.expenses)..where(
               (e) =>
-                  e.date.isBetweenValues(start, end) &
+                  e.date.isBiggerOrEqualValue(start) &
+                  e.date.isSmallerThanValue(end) &
                   e.category.equals('Supplier').not(),
             ))
             .get();

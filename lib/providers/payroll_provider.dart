@@ -1,5 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_riverpod/legacy.dart';
 import '../database/app_database.dart';
 import '../repositories/payroll_repository.dart';
 import 'database_provider.dart';
@@ -19,12 +18,14 @@ class PayrollNotifier extends StateNotifier<AsyncValue<void>> {
   PayrollNotifier(this._repo) : super(const AsyncValue.data(null));
 
   Future<void> generatePayroll(int employeeId, int month, int year) async {
+    state = const AsyncValue.data(null);
     state = await AsyncValue.guard(() async {
       await _repo.generatePayroll(employeeId, month, year);
     });
   }
 
   Future<void> markAsPaid(int payrollId) async {
+    state = const AsyncValue.data(null);
     state = await AsyncValue.guard(() => _repo.markAsPaid(payrollId));
   }
 }

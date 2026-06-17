@@ -1,5 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_riverpod/legacy.dart';
 import '../database/app_database.dart';
 import '../repositories/shift_repository.dart';
 import 'database_provider.dart';
@@ -83,6 +82,7 @@ class ShiftNotifier extends StateNotifier<AsyncValue<void>> {
     double card,
     double credit,
   ) async {
+    state = const AsyncValue.data(null);
     state = await AsyncValue.guard(() async {
       final quantity = closingReading - openingReading;
       if (quantity <= 0)
@@ -114,6 +114,7 @@ class ShiftNotifier extends StateNotifier<AsyncValue<void>> {
     double card,
     double credit,
   ) async {
+    state = const AsyncValue.data(null);
     state = await AsyncValue.guard(() async {
       final quantity = closingReading - openingReading;
       if (quantity <= 0)
@@ -136,6 +137,7 @@ class ShiftNotifier extends StateNotifier<AsyncValue<void>> {
   }
 
   Future<void> deleteSaleFromShift(int saleId) async {
+    state = const AsyncValue.data(null);
     state = await AsyncValue.guard(() => _repo.deleteSaleFromShift(saleId));
   }
 

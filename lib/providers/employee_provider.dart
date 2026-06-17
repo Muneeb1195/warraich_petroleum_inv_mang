@@ -1,5 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_riverpod/legacy.dart';
 import '../database/app_database.dart';
 import '../repositories/employee_repository.dart';
 import 'database_provider.dart';
@@ -24,6 +23,7 @@ class EmployeeNotifier extends StateNotifier<AsyncValue<void>> {
     String defaultShift = 'both',
     double salary = 0,
   }) async {
+    state = const AsyncValue.data(null);
     state = await AsyncValue.guard(() async {
       await _repo.addEmployee(
         name: name,
@@ -36,10 +36,12 @@ class EmployeeNotifier extends StateNotifier<AsyncValue<void>> {
   }
 
   Future<void> updateEmployee(int id, EmployeesCompanion data) async {
+    state = const AsyncValue.data(null);
     state = await AsyncValue.guard(() => _repo.updateEmployee(id, data));
   }
 
   Future<void> deactivateEmployee(int id) async {
+    state = const AsyncValue.data(null);
     state = await AsyncValue.guard(() => _repo.deactivateEmployee(id));
   }
 }

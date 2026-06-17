@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/payroll_provider.dart';
+import '../../providers/format_provider.dart';
 import '../../providers/employee_provider.dart';
 import '../../utils/extensions.dart';
 import '../../utils/constants.dart';
@@ -81,7 +82,7 @@ class PayrollScreen extends ConsumerWidget {
                     ),
                     title: Text(row.employee.name),
                     subtitle: Text(
-                      'Monthly Salary: $kCurrency ${row.payrollEntry.baseSalary.toStringAsFixed(0)}',
+                      'Monthly Salary: ${fm(ref, row.payrollEntry.baseSalary)}',
                     ),
                     trailing: row.payrollEntry.isPaid
                         ? Column(
@@ -94,7 +95,7 @@ class PayrollScreen extends ConsumerWidget {
                                 size: 20,
                               ),
                               Text(
-                                '$kCurrency ${row.payrollEntry.netPay.toStringAsFixed(0)}',
+                                fm(ref, row.payrollEntry.netPay),
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   color: colorScheme.primary,
@@ -114,7 +115,7 @@ class PayrollScreen extends ConsumerWidget {
                                       title: const Text('Mark as Paid'),
                                       content: Text(
                                         'Mark ${row.employee.name}\'s salary of '
-                                        '$kCurrency ${row.payrollEntry.netPay.toStringAsFixed(0)} '
+                                        '${fm(ref, row.payrollEntry.netPay)} '
                                         'as paid? This cannot be undone.',
                                       ),
                                       actions: [
@@ -157,7 +158,7 @@ class PayrollScreen extends ConsumerWidget {
                                 child: const Text('Mark Paid'),
                               ),
                               Text(
-                                '$kCurrency ${row.payrollEntry.netPay.toStringAsFixed(0)}',
+                                fm(ref, row.payrollEntry.netPay),
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   color: colorScheme.primary,

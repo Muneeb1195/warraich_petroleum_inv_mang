@@ -68,6 +68,7 @@ class BackupService {
 
       return await _createFolder(headers);
     } catch (e) {
+      log('backup: _getFolderId error: $e');
       return null;
     }
   }
@@ -93,6 +94,7 @@ class BackupService {
       }
       return null;
     } catch (e) {
+      log('backup: _createFolder error: $e');
       return null;
     }
   }
@@ -140,6 +142,7 @@ class BackupService {
       }
       return false;
     } catch (e) {
+      log('backup: backupDatabase error: $e');
       return false;
     }
   }
@@ -175,7 +178,7 @@ class BackupService {
         }
       }
     } catch (e) {
-      // Ignore cleanup errors
+      log('backup: _enforceMaxBackups error: $e');
     }
   }
 
@@ -224,6 +227,7 @@ class BackupService {
       }
       return null;
     } catch (e) {
+      log('backup: restoreLatestBackup error: $e');
       return null;
     }
   }
@@ -260,6 +264,7 @@ class BackupService {
       }
       return [];
     } catch (e) {
+      log('backup: listBackups error: $e');
       return [];
     }
   }
@@ -330,6 +335,7 @@ class BackupService {
       }
       return true;
     } catch (e) {
+      log('backup: localBackup error: $e');
       return false;
     }
   }
@@ -352,6 +358,7 @@ class BackupService {
       await latest.copy(tempPath);
       return File(tempPath);
     } catch (e) {
+      log('backup: localRestore error: $e');
       return null;
     }
   }

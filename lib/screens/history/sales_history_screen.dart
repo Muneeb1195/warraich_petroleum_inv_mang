@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../database/app_database.dart';
 import '../../providers/shift_provider.dart';
+import '../../providers/format_provider.dart';
 import '../../utils/extensions.dart';
 import '../../utils/constants.dart';
 import '../../utils/responsive.dart';
@@ -127,14 +128,14 @@ class _SalesHistoryScreenState extends ConsumerState<SalesHistoryScreen> {
                   '${shift.type.toUpperCase()} - ${shift.startDate.formattedDate}',
                 ),
                 subtitle: Text(
-                  'Sales: $kCurrency ${shift.totalSales.toStringAsFixed(0)} | Exp: $kCurrency ${shift.totalExpenses.toStringAsFixed(0)}',
+                  'Sales: ${fm(ref, shift.totalSales)} | Exp: ${fm(ref, shift.totalExpenses)}',
                 ),
                 trailing: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
-                      '$kCurrency ${profit.toStringAsFixed(0)}',
+                      fm(ref, profit),
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         color: profit >= 0 ? colorScheme.tertiary : colorScheme.error,

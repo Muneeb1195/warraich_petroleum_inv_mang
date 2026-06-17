@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../database/app_database.dart';
 import '../../providers/shift_provider.dart';
+import '../../providers/format_provider.dart';
 import '../../utils/constants.dart';
 import '../../utils/responsive.dart';
 import 'new_shift_screen.dart';
@@ -121,14 +122,14 @@ class ShiftsScreen extends ConsumerWidget {
                           ? DateFormat(
                               'EEEE, dd MMM yyyy',
                             ).format(shift.startDate)
-                          : '${DateFormat('EEEE, dd MMM yyyy').format(shift.startDate)} | Exp: $kCurrency ${shift.totalExpenses.toStringAsFixed(0)}',
+                          : '${DateFormat('EEEE, dd MMM yyyy').format(shift.startDate)} | Exp: ${fm(ref, shift.totalExpenses)}',
                     ),
                     trailing: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Text(
-                          '$kCurrency ${shift.totalSales.toStringAsFixed(0)}',
+                          fm(ref, shift.totalSales),
                           style: TextStyle(
                             color: Theme.of(context).colorScheme.primary,
                             fontWeight: FontWeight.bold,
@@ -137,8 +138,8 @@ class ShiftsScreen extends ConsumerWidget {
                         if (!isActive)
                           Text(
                             profit >= 0
-                                ? '+${profit.toStringAsFixed(0)}'
-                                : profit.toStringAsFixed(0),
+                                ? '+${fm(ref, profit)}'
+                                : fm(ref, profit),
                             style: TextStyle(
                               fontSize: 11,
                               color: profit >= 0 ? colorScheme.tertiary : colorScheme.error,

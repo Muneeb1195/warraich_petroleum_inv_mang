@@ -1,5 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_riverpod/legacy.dart';
 import '../database/app_database.dart';
 import '../repositories/product_repository.dart';
 import 'database_provider.dart';
@@ -22,6 +21,7 @@ class ProductNotifier extends StateNotifier<AsyncValue<void>> {
   ProductNotifier(this._repo) : super(const AsyncValue.data(null));
 
   Future<void> updatePrice(int productId, double price, double cost) async {
+    state = const AsyncValue.data(null);
     state = await AsyncValue.guard(
       () => _repo.updatePrice(productId, price, cost),
     );
@@ -33,6 +33,7 @@ class ProductNotifier extends StateNotifier<AsyncValue<void>> {
     double cost,
     String? notes,
   ) async {
+    state = const AsyncValue.data(null);
     state = await AsyncValue.guard(
       () => _repo.addStock(productId, quantity, cost, notes),
     );
