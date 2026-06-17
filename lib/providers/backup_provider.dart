@@ -101,7 +101,6 @@ class BackupNotifier extends StateNotifier<AsyncValue<void>> {
     );
   }
 
-  @override
   void dispose() {
     _autoTimer?.cancel();
     super.dispose();

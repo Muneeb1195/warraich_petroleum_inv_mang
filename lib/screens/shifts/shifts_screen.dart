@@ -4,7 +4,6 @@ import 'package:intl/intl.dart';
 import '../../database/app_database.dart';
 import '../../providers/shift_provider.dart';
 import '../../providers/format_provider.dart';
-import '../../utils/constants.dart';
 import '../../utils/responsive.dart';
 import 'new_shift_screen.dart';
 import 'shift_detail_screen.dart';

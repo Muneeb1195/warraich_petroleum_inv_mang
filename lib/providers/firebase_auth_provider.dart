@@ -31,7 +31,6 @@ class FirebaseSignInNotifier extends StateNotifier<AsyncValue<AppUser?>> {
     });
   }
 
-  @override
   void dispose() {
     _authSub?.cancel();
     super.dispose();
