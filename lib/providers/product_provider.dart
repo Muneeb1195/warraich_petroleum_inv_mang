@@ -16,10 +16,6 @@ final allInventoryProvider = StreamProvider<List<InventoryRow>>((ref) {
   return ref.watch(productRepositoryProvider).watchAllInventory();
 });
 
-final lowStockProvider = FutureProvider<List<InventoryRow>>((ref) {
-  return ref.watch(productRepositoryProvider).getLowStock();
-});
-
 class ProductNotifier extends StateNotifier<AsyncValue<void>> {
   final ProductRepository _repo;
 

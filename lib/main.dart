@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:developer' show log;
 import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -21,7 +22,7 @@ void main() async {
     log('Firebase initialization skipped: $e');
   }
 
-  if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+  if (!kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
     await windowManager.ensureInitialized();
     const windowOptions = WindowOptions(
       size: Size(1200, 800),

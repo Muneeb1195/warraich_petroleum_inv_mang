@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 
@@ -10,9 +11,11 @@ class ErrorLogger {
 
   static Future<File> get _logFile async {
     Directory? dir;
-    try {
-      dir = await getExternalStorageDirectory();
-    } catch (_) {}
+    if (!kIsWeb && Platform.isAndroid) {
+      try {
+        dir = await getExternalStorageDirectory();
+      } catch (_) {}
+    }
     dir ??= await getApplicationDocumentsDirectory();
     return File(p.join(dir.path, _fileName));
   }
@@ -37,11 +40,14 @@ class ErrorLogger {
       }
       buffer.writeln('---');
 
-      // Truncate if too large
+      // Truncate if too large — read last half and rewrite
       if (await file.exists() && await file.length() > _maxLogSize) {
         final content = await file.readAsString();
-        final lines = content.split('\n');
-        final trimmed = lines.sublist(lines.length ~/ 2).join('\n');
+        final halfIndex = content.length ~/ 2;
+        final firstNewline = content.indexOf('\n', halfIndex);
+        final trimmed = firstNewline >= 0
+            ? content.substring(firstNewline + 1)
+            : content.substring(halfIndex);
         await file.writeAsString(trimmed);
       }
 

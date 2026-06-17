@@ -24,7 +24,6 @@ class DashboardScreen extends ConsumerWidget {
     final weeklySales = ref.watch(weeklySalesProvider);
     final weeklyExpenses = ref.watch(weeklyExpensesProvider);
     final weeklyProfit = ref.watch(weeklyProfitProvider);
-    final lowStock = ref.watch(lowStockProvider);
     final colorScheme = Theme.of(context).colorScheme;
     final abbreviate = ref.watch(abbreviateAmountsProvider);
 
@@ -51,7 +50,6 @@ class DashboardScreen extends ConsumerWidget {
                 weeklyProfit,
                 activeShift,
                 allInventory,
-                lowStock,
                 colorScheme,
                 abbreviate: abbreviate,
               )
@@ -62,7 +60,6 @@ class DashboardScreen extends ConsumerWidget {
                 weeklySales,
                 activeShift,
                 allInventory,
-                lowStock,
                 colorScheme,
                 abbreviate: abbreviate,
               ),
@@ -72,12 +69,19 @@ class DashboardScreen extends ConsumerWidget {
 
   Widget _buildLowStockBanner(
     BuildContext context,
-    AsyncValue<List<InventoryRow>> lowStock,
+    AsyncValue<List<dynamic>> allInventory,
     ColorScheme colorScheme,
   ) {
-    final lowStockItems = lowStock.asData?.value;
-    if (lowStockItems == null || lowStockItems.isEmpty)
-      return const SizedBox.shrink();
+    final items = allInventory.asData?.value;
+    if (items == null) return const SizedBox.shrink();
+    final lowStockItems = items
+        .where(
+          (i) =>
+              i.inventoryEntry.currentStock <= i.inventoryEntry.minStock &&
+              i.inventoryEntry.minStock > 0,
+        )
+        .toList();
+    if (lowStockItems.isEmpty) return const SizedBox.shrink();
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Card(
@@ -111,14 +115,13 @@ class DashboardScreen extends ConsumerWidget {
     AsyncValue<List<MapEntry<DateTime, double>>> weeklySales,
     AsyncValue<Shift?> activeShift,
     AsyncValue<List<dynamic>> allInventory,
-    AsyncValue<List<InventoryRow>> lowStock,
     ColorScheme colorScheme, {
     bool abbreviate = true,
   }) {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        _buildLowStockBanner(context, lowStock, colorScheme),
+        _buildLowStockBanner(context, allInventory, colorScheme),
         _buildTodaySummary(
           context,
           todaySummary,
@@ -150,7 +153,6 @@ class DashboardScreen extends ConsumerWidget {
     AsyncValue<List<MapEntry<DateTime, double>>> weeklyProfit,
     AsyncValue<Shift?> activeShift,
     AsyncValue<List<dynamic>> allInventory,
-    AsyncValue<List<InventoryRow>> lowStock,
     ColorScheme colorScheme, {
     bool abbreviate = true,
   }) {
@@ -165,7 +167,7 @@ class DashboardScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildLowStockBanner(context, lowStock, colorScheme),
+              _buildLowStockBanner(context, allInventory, colorScheme),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

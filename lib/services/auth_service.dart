@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:developer' show log;
 import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in_all_platforms/google_sign_in_all_platforms.dart'
     as gsap;
@@ -45,7 +46,7 @@ class AuthService {
     );
 
     // Desktop OAuth service for Linux (uses xdg-open + HttpServer directly)
-    if (Platform.isLinux) {
+    if (!kIsWeb && Platform.isLinux) {
       _linuxOAuth = DesktopOAuthService(
         clientId: AppConfig.googleClientId,
         clientSecret: AppConfig.googleClientSecret,
@@ -72,7 +73,7 @@ class AuthService {
   /// Try to restore a previous session from stored tokens.
   /// Also restores the Google Drive access token.
   Future<void> _restoreSession() async {
-    if (!Platform.isLinux) {
+    if (kIsWeb || !Platform.isLinux) {
       _sessionCheckCompleter.complete();
       return;
     }

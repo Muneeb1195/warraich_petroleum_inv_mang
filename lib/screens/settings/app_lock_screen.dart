@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/auth_provider.dart';
@@ -9,13 +10,13 @@ class AppLockScreen extends ConsumerWidget {
   const AppLockScreen({super.key});
 
   bool get _isDesktop =>
-      Platform.isWindows || Platform.isLinux || Platform.isMacOS;
+      !kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authStateProvider);
     final colorScheme = Theme.of(context).colorScheme;
-    final isMobile = Platform.isAndroid || Platform.isIOS;
+    final isMobile = !kIsWeb && (Platform.isAndroid || Platform.isIOS);
 
     Widget body = ListView(
       padding: const EdgeInsets.all(16),

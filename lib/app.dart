@@ -81,7 +81,32 @@ class _WarraichPetroleumAppState extends ConsumerState<WarraichPetroleumApp>
             loading: () => const Scaffold(
               body: Center(child: CircularProgressIndicator()),
             ),
-            error: (_, _) => const HomeShell(),
+            error: (e, _) => Scaffold(
+              body: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.error_outline, size: 64),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Something went wrong',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      e.toString(),
+                      style: Theme.of(context).textTheme.bodyMedium,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 24),
+                    FilledButton(
+                      onPressed: () => ref.invalidate(onboardingProvider),
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
         );
       },

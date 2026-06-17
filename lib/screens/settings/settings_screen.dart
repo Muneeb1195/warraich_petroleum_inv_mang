@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -72,7 +73,7 @@ class SettingsScreen extends ConsumerWidget {
               MaterialPageRoute(builder: (_) => const BackupScreen()),
             ),
           ),
-          if (Platform.isAndroid || Platform.isIOS)
+          if (!kIsWeb && (Platform.isAndroid || Platform.isIOS))
             _MenuItem(
               icon: Icons.lock,
               title: 'App Lock',

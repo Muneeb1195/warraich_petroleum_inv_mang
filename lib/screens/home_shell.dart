@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../screens/dashboard/dashboard_screen.dart';
@@ -44,7 +45,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
   ];
 
   bool get _isDesktop =>
-      Platform.isWindows || Platform.isLinux || Platform.isMacOS;
+      !kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS);
 
   @override
   Widget build(BuildContext context) {
