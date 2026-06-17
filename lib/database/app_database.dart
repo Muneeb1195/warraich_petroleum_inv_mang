@@ -154,6 +154,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   Future<void> _seedProducts() async {
+    // Seed with zero prices — user sets prices before first shift via Settings
     await transaction(() async {
       await into(products).insert(
         ProductsCompanion.insert(

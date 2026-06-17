@@ -17,6 +17,8 @@ class ShiftDetailScreen extends ConsumerStatefulWidget {
 }
 
 class _ShiftDetailScreenState extends ConsumerState<ShiftDetailScreen> {
+  bool _isClosing = false;
+
   @override
   Widget build(BuildContext context) {
     final shiftSales = ref.watch(shiftSalesProvider(widget.shiftId));
@@ -107,7 +109,9 @@ class _ShiftDetailScreenState extends ConsumerState<ShiftDetailScreen> {
                   children: [
                     Expanded(
                       child: OutlinedButton.icon(
-                        onPressed: () => _confirmCloseShift(context),
+                        onPressed: _isClosing
+                            ? null
+                            : () => _confirmCloseShift(context),
                         icon: const Icon(Icons.stop_circle),
                         label: const Text('Close Shift'),
                         style: OutlinedButton.styleFrom(
@@ -278,13 +282,13 @@ class _ShiftDetailScreenState extends ConsumerState<ShiftDetailScreen> {
     String paymentLabel = '';
     Color paymentColor = colorScheme.onSurface;
     if (sale.cashCollected > 0) {
-      paymentLabel = 'Cash: ${sale.cashCollected.toStringAsFixed(0)}';
+      paymentLabel = 'Cash: ${sale.cashCollected.toStringAsFixed(2)}';
       paymentColor = colorScheme.tertiary;
     } else if (sale.cardCollected > 0) {
-      paymentLabel = 'Card/Raast: ${sale.cardCollected.toStringAsFixed(0)}';
+      paymentLabel = 'Card/Raast: ${sale.cardCollected.toStringAsFixed(2)}';
       paymentColor = colorScheme.primary;
     } else if (sale.creditCollected > 0) {
-      paymentLabel = 'Credit: ${sale.creditCollected.toStringAsFixed(0)}';
+      paymentLabel = 'Credit: ${sale.creditCollected.toStringAsFixed(2)}';
       paymentColor = colorScheme.tertiary;
     }
 
@@ -401,8 +405,10 @@ class _ShiftDetailScreenState extends ConsumerState<ShiftDetailScreen> {
                 await ref
                     .read(shiftNotifierProvider.notifier)
                     .deleteSaleFromShift(saleId);
-                ref.invalidate(shiftSalesProvider(widget.shiftId));
-                if (context.mounted) context.showSuccess('Entry deleted');
+                if (context.mounted) {
+                  ref.invalidate(shiftSalesProvider(widget.shiftId));
+                  context.showSuccess('Entry deleted');
+                }
               } catch (e) {
                 if (context.mounted) context.showError(e, source: 'deleteSale');
               }
@@ -431,6 +437,7 @@ class _ShiftDetailScreenState extends ConsumerState<ShiftDetailScreen> {
             onPressed: () async {
               try {
                 Navigator.pop(ctx);
+                setState(() => _isClosing = true);
                 await ref
                     .read(shiftNotifierProvider.notifier)
                     .closeShift(widget.shiftId);
@@ -570,6 +577,15 @@ class _AddFuelSheetState extends ConsumerState<_AddFuelSheet> {
     final opening = double.tryParse(_openingController.text) ?? 0;
     final closing = double.tryParse(_closingController.text) ?? 0;
     return closing - opening;
+  }
+
+  String? get _readingError {
+    final opening = double.tryParse(_openingController.text);
+    final closing = double.tryParse(_closingController.text);
+    if (opening == null || closing == null) return 'Enter valid numeric readings';
+    if (opening < 0 || closing < 0) return 'Readings cannot be negative';
+    if (closing <= opening) return 'Closing reading must be greater than opening';
+    return null;
   }
 
   double get _totalAmount => _quantity * _pricePerUnit;
@@ -803,6 +819,7 @@ class _AddFuelSheetState extends ConsumerState<_AddFuelSheet> {
             FilledButton(
               onPressed:
                   (_selectedProductId == null ||
+                      _readingError != null ||
                       _quantity <= 0 ||
                       _exceedsInventory ||
                       _isSubmitting)
@@ -814,6 +831,7 @@ class _AddFuelSheetState extends ConsumerState<_AddFuelSheet> {
                             double.tryParse(_amountController.text) ??
                             _totalAmount;
                         final cash = _paymentMethod == 'cash' ? amount : 0.0;
+                        // Raast mapped to card column for accounting consistency
                         final card =
                             (_paymentMethod == 'card' ||
                                 _paymentMethod == 'raast')
@@ -851,8 +869,10 @@ class _AddFuelSheetState extends ConsumerState<_AddFuelSheet> {
                                 credit,
                               );
                         }
-                        ref.invalidate(shiftSalesProvider(widget.shiftId));
-                        if (context.mounted) Navigator.pop(context);
+                        if (context.mounted) {
+                          ref.invalidate(shiftSalesProvider(widget.shiftId));
+                          Navigator.pop(context);
+                        }
                       } catch (e) {
                         if (context.mounted)
                           context.showError(e, source: 'saveSale');

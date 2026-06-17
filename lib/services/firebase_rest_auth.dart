@@ -43,7 +43,7 @@ class FirebaseRestAuth {
       );
       if (response.statusCode != 200) {
         log(
-          'rest_auth: signInWithIdp failed: ${response.statusCode} ${response.body}',
+          'rest_auth: signInWithIdp failed: ${response.statusCode}',
         );
         return null;
       }
@@ -110,7 +110,7 @@ class FirebaseRestAuth {
       );
       if (response.statusCode != 200) {
         log(
-          'rest_auth: refresh failed: ${response.statusCode} ${response.body}',
+          'rest_auth: refresh failed: ${response.statusCode}',
         );
         return null;
       }

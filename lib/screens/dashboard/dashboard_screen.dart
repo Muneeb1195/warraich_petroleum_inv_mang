@@ -67,6 +67,11 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
+  static bool _isLowStock(InventoryRow item) {
+    return item.inventoryEntry.currentStock <= item.inventoryEntry.minStock &&
+        item.inventoryEntry.minStock > 0;
+  }
+
   Widget _buildLowStockBanner(
     BuildContext context,
     AsyncValue<List<dynamic>> allInventory,
@@ -74,13 +79,7 @@ class DashboardScreen extends ConsumerWidget {
   ) {
     final items = allInventory.asData?.value;
     if (items == null) return const SizedBox.shrink();
-    final lowStockItems = items
-        .where(
-          (i) =>
-              i.inventoryEntry.currentStock <= i.inventoryEntry.minStock &&
-              i.inventoryEntry.minStock > 0,
-        )
-        .toList();
+    final lowStockItems = items.where((i) => _isLowStock(i)).toList();
     if (lowStockItems.isEmpty) return const SizedBox.shrink();
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -926,10 +925,7 @@ class DashboardScreen extends ConsumerWidget {
                 }
                 return Column(
                   children: fuelItems.map((item) {
-                    final isLow =
-                        item.inventoryEntry.currentStock <=
-                            item.inventoryEntry.minStock &&
-                        item.inventoryEntry.minStock > 0;
+                    final isLow = _isLowStock(item);
                     final maxStock = item.inventoryEntry.minStock > 0
                         ? item.inventoryEntry.minStock * 3
                         : item.inventoryEntry.currentStock * 1.5;

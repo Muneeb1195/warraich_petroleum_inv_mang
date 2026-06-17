@@ -169,8 +169,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  void _finish(BuildContext context) {
-    completeOnboarding();
+  void _finish(BuildContext context) async {
+    await completeOnboarding();
+    if (!context.mounted) return;
     Navigator.of(
       context,
     ).pushReplacement(MaterialPageRoute(builder: (_) => const HomeShell()));
