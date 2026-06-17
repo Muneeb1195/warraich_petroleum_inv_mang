@@ -9,10 +9,13 @@ import 'package:path/path.dart' as p;
 import '../database/app_database.dart';
 import '../services/backup_service.dart';
 import '../services/merge_service.dart';
+import '../utils/constants.dart';
+import 'firebase_auth_provider.dart';
 import 'database_provider.dart';
 
 final backupServiceProvider = Provider<BackupService>((ref) {
-  return BackupService();
+  final authService = ref.watch(authServiceProvider);
+  return BackupService(authService);
 });
 
 class BackupNotifier extends StateNotifier<AsyncValue<void>> {
@@ -50,11 +53,13 @@ class BackupNotifier extends StateNotifier<AsyncValue<void>> {
       final lastBackup = await storage.read(key: _lastAutoBackupKey);
       if (lastBackup != null) {
         final lastDate = DateTime.tryParse(lastBackup);
-        if (lastDate != null && DateTime.now().difference(lastDate).inHours < 24) return;
+        if (lastDate != null &&
+            DateTime.now().difference(lastDate).inHours < 24)
+          return;
       }
 
       final dir = await getApplicationDocumentsDirectory();
-      final dbFile = File(p.join(dir.path, 'warraich_petroleum.db'));
+      final dbFile = File(p.join(dir.path, kDbFileName));
       if (!dbFile.existsSync()) return;
 
       // WAL checkpoint — wrapped in try-catch in case DB is corrupted
@@ -67,13 +72,19 @@ class BackupNotifier extends StateNotifier<AsyncValue<void>> {
 
       final cloudResult = await _service.backupDatabase(dbFile);
       if (cloudResult) {
-        await storage.write(key: _lastAutoBackupKey, value: DateTime.now().toIso8601String());
+        await storage.write(
+          key: _lastAutoBackupKey,
+          value: DateTime.now().toIso8601String(),
+        );
         return;
       }
 
       final localResult = await _service.localBackup(dbFile);
       if (localResult) {
-        await storage.write(key: _lastAutoBackupKey, value: DateTime.now().toIso8601String());
+        await storage.write(
+          key: _lastAutoBackupKey,
+          value: DateTime.now().toIso8601String(),
+        );
       }
     } catch (_) {
       // Silent — auto-backup should never crash the app
@@ -84,7 +95,10 @@ class BackupNotifier extends StateNotifier<AsyncValue<void>> {
 
   Future<void> _saveBackupTimestamp() async {
     const storage = FlutterSecureStorage();
-    await storage.write(key: _lastAutoBackupKey, value: DateTime.now().toIso8601String());
+    await storage.write(
+      key: _lastAutoBackupKey,
+      value: DateTime.now().toIso8601String(),
+    );
   }
 
   @override
@@ -98,11 +112,18 @@ class BackupNotifier extends StateNotifier<AsyncValue<void>> {
     state = const AsyncValue.loading();
     try {
       final db = _ref.read(databaseProvider);
-      final checkpointResult = await db.customSelect('PRAGMA wal_checkpoint(TRUNCATE)').get();
-      final resultCode = checkpointResult.first.data['status'] as int;
-      if (resultCode != 0) {
-        state = const AsyncValue.error('WAL checkpoint failed - DB may be busy', StackTrace.empty);
-        return false;
+      final checkpointResult = await db
+          .customSelect('PRAGMA wal_checkpoint(TRUNCATE)')
+          .get();
+      if (checkpointResult.isNotEmpty) {
+        final resultCode = checkpointResult.first.data['status'] as int;
+        if (resultCode != 0) {
+          state = const AsyncValue.error(
+            'WAL checkpoint failed - DB may be busy',
+            StackTrace.empty,
+          );
+          return false;
+        }
       }
     } catch (_) {}
     final result = await _service.backupDatabase(dbFile);
@@ -138,13 +159,16 @@ class BackupNotifier extends StateNotifier<AsyncValue<void>> {
       // Pre-merge backup of current DB
       final currentDb = _ref.read(databaseProvider);
       final dir = await getApplicationDocumentsDirectory();
-      final preRestoreBackup = File(p.join(dir.path, 'pre_restore_backup.db'));
-      final currentDbPath = p.join(dir.path, 'warraich_petroleum.db');
+      final preRestoreBackup = File(p.join(dir.path, kPreRestoreDbFileName));
+      final currentDbPath = p.join(dir.path, kDbFileName);
       await File(currentDbPath).copy(preRestoreBackup.path);
 
       final tempFile = await _service.restoreFromId(fileId);
       if (tempFile == null) {
-        state = const AsyncValue.error('Cloud restore failed', StackTrace.empty);
+        state = const AsyncValue.error(
+          'Cloud restore failed',
+          StackTrace.empty,
+        );
         return false;
       }
 
@@ -153,8 +177,12 @@ class BackupNotifier extends StateNotifier<AsyncValue<void>> {
         backupDb = AppDatabase(executor: NativeDatabase(tempFile));
         await MergeService.mergeDatabases(currentDb, backupDb);
       } finally {
-        try { await backupDb?.close(); } catch (_) {}
-        try { await tempFile.delete(); } catch (_) {}
+        try {
+          await backupDb?.close();
+        } catch (_) {}
+        try {
+          await tempFile.delete();
+        } catch (_) {}
       }
 
       _ref.invalidate(databaseProvider);
@@ -171,11 +199,18 @@ class BackupNotifier extends StateNotifier<AsyncValue<void>> {
     state = const AsyncValue.loading();
     try {
       final db = _ref.read(databaseProvider);
-      final checkpointResult = await db.customSelect('PRAGMA wal_checkpoint(TRUNCATE)').get();
-      final resultCode = checkpointResult.first.data['status'] as int;
-      if (resultCode != 0) {
-        state = const AsyncValue.error('WAL checkpoint failed - DB may be busy', StackTrace.empty);
-        return false;
+      final checkpointResult = await db
+          .customSelect('PRAGMA wal_checkpoint(TRUNCATE)')
+          .get();
+      if (checkpointResult.isNotEmpty) {
+        final resultCode = checkpointResult.first.data['status'] as int;
+        if (resultCode != 0) {
+          state = const AsyncValue.error(
+            'WAL checkpoint failed - DB may be busy',
+            StackTrace.empty,
+          );
+          return false;
+        }
       }
     } catch (_) {}
     final result = await _service.localBackup(dbFile);
@@ -199,13 +234,16 @@ class BackupNotifier extends StateNotifier<AsyncValue<void>> {
       // Pre-merge backup of current DB
       final currentDb = _ref.read(databaseProvider);
       final dir = await getApplicationDocumentsDirectory();
-      final preRestoreBackup = File(p.join(dir.path, 'pre_restore_backup.db'));
-      final currentDbPath = p.join(dir.path, 'warraich_petroleum.db');
+      final preRestoreBackup = File(p.join(dir.path, kPreRestoreDbFileName));
+      final currentDbPath = p.join(dir.path, kDbFileName);
       await File(currentDbPath).copy(preRestoreBackup.path);
 
       final tempFile = await _service.localRestore();
       if (tempFile == null) {
-        state = const AsyncValue.error('Local restore failed', StackTrace.empty);
+        state = const AsyncValue.error(
+          'Local restore failed',
+          StackTrace.empty,
+        );
         return false;
       }
 
@@ -214,8 +252,12 @@ class BackupNotifier extends StateNotifier<AsyncValue<void>> {
         backupDb = AppDatabase(executor: NativeDatabase(tempFile));
         await MergeService.mergeDatabases(currentDb, backupDb);
       } finally {
-        try { await backupDb?.close(); } catch (_) {}
-        try { await tempFile.delete(); } catch (_) {}
+        try {
+          await backupDb?.close();
+        } catch (_) {}
+        try {
+          await tempFile.delete();
+        } catch (_) {}
       }
 
       _ref.invalidate(databaseProvider);
@@ -228,6 +270,7 @@ class BackupNotifier extends StateNotifier<AsyncValue<void>> {
   }
 }
 
-final backupNotifierProvider = StateNotifierProvider<BackupNotifier, AsyncValue<void>>((ref) {
-  return BackupNotifier(ref.read(backupServiceProvider), ref);
-});
+final backupNotifierProvider =
+    StateNotifierProvider<BackupNotifier, AsyncValue<void>>((ref) {
+      return BackupNotifier(ref.read(backupServiceProvider), ref);
+    });

@@ -1,5 +1,7 @@
 const kAppName = 'Warraich Petroleum';
 const kCurrency = 'Rs.';
+const kDbFileName = 'warraich_petroleum.db';
+const kPreRestoreDbFileName = 'pre_restore_backup.db';
 
 const kExpenseCategories = [
   'Electricity',
@@ -10,7 +12,13 @@ const kExpenseCategories = [
 ];
 
 const kShiftTypes = ['morning', 'evening'];
-const kEmployeeRoles = ['Operator', 'Manager', 'Cleaner', 'Supervisor', 'Other'];
+const kEmployeeRoles = [
+  'Operator',
+  'Manager',
+  'Cleaner',
+  'Supervisor',
+  'Other',
+];
 const kDefaultShifts = ['morning', 'evening', 'both'];
 
 String formatMoney(double value, {bool abbreviate = true}) {

@@ -5,9 +5,11 @@ class Employees extends Table {
   TextColumn get name => text().withLength(min: 1, max: 100)();
   TextColumn get phone => text().nullable()();
   TextColumn get role => text()(); // operator/manager/cleaner/etc
-  TextColumn get defaultShift => text().withDefault(const Constant('both'))(); // morning/evening/both
+  TextColumn get defaultShift =>
+      text().withDefault(const Constant('both'))(); // morning/evening/both
   RealColumn get salary => real().withDefault(const Constant(0))();
-  DateTimeColumn get joiningDate => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get joiningDate =>
+      dateTime().withDefault(currentDateAndTime)();
   BoolColumn get isActive => boolean().withDefault(const Constant(true))();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 }

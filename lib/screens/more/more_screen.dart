@@ -20,38 +20,56 @@ class MoreScreen extends StatelessWidget {
             icon: Icons.people,
             title: 'Employees',
             subtitle: 'Manage staff',
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EmployeesScreen())),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const EmployeesScreen()),
+            ),
           ),
           _MoreItem(
             icon: Icons.payments,
             title: 'Payroll',
             subtitle: 'Generate and manage payroll',
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PayrollScreen())),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const PayrollScreen()),
+            ),
           ),
           _MoreItem(
             icon: Icons.history,
             title: 'Sales History',
             subtitle: 'View all past shifts',
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SalesHistoryScreen())),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const SalesHistoryScreen()),
+            ),
           ),
           _MoreItem(
             icon: Icons.picture_as_pdf,
             title: 'Reports',
             subtitle: 'Generate PDF reports',
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PdfReportScreen())),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const PdfReportScreen()),
+            ),
           ),
           _MoreItem(
             icon: Icons.local_gas_station,
             title: 'Fuel Prices',
             subtitle: 'Manage product prices',
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FuelPricesScreen())),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const FuelPricesScreen()),
+            ),
           ),
           const Divider(),
           _MoreItem(
             icon: Icons.settings,
             title: 'Settings',
             subtitle: 'Backup, theme, and more',
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen())),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const SettingsScreen()),
+            ),
           ),
         ],
       ),
@@ -65,7 +83,12 @@ class _MoreItem extends StatelessWidget {
   final String subtitle;
   final VoidCallback onTap;
 
-  const _MoreItem({required this.icon, required this.title, required this.subtitle, required this.onTap});
+  const _MoreItem({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {

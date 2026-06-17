@@ -17,7 +17,11 @@ class ErrorLogger {
     return File(p.join(dir.path, _fileName));
   }
 
-  static Future<void> log(String message, {String? source, StackTrace? stackTrace}) async {
+  static Future<void> log(
+    String message, {
+    String? source,
+    StackTrace? stackTrace,
+  }) async {
     final prev = _writeMutex;
     final completer = Completer<void>();
     _writeMutex = completer.future;

@@ -17,7 +17,10 @@ final allShiftsProvider = StreamProvider<List<Shift>>((ref) {
   return ref.watch(shiftRepositoryProvider).watchAllShifts();
 });
 
-final shiftSalesProvider = FutureProvider.family<List<ShiftSalesRow>, int>((ref, shiftId) {
+final shiftSalesProvider = FutureProvider.family<List<ShiftSalesRow>, int>((
+  ref,
+  shiftId,
+) {
   return ref.watch(shiftRepositoryProvider).getShiftSales(shiftId);
 });
 
@@ -25,21 +28,29 @@ final todaySummaryProvider = FutureProvider<Map<String, double>>((ref) {
   return ref.watch(shiftRepositoryProvider).getTodaySummary();
 });
 
-final weeklySalesProvider = FutureProvider<List<MapEntry<DateTime, double>>>((ref) {
+final weeklySalesProvider = FutureProvider<List<MapEntry<DateTime, double>>>((
+  ref,
+) {
   return ref.watch(shiftRepositoryProvider).getWeeklySalesData();
 });
 
-final weeklyExpensesProvider = FutureProvider<List<MapEntry<DateTime, double>>>((ref) {
-  return ref.watch(shiftRepositoryProvider).getWeeklyExpensesData();
-});
+final weeklyExpensesProvider = FutureProvider<List<MapEntry<DateTime, double>>>(
+  (ref) {
+    return ref.watch(shiftRepositoryProvider).getWeeklyExpensesData();
+  },
+);
 
-final weeklyProfitProvider = FutureProvider<List<MapEntry<DateTime, double>>>((ref) {
+final weeklyProfitProvider = FutureProvider<List<MapEntry<DateTime, double>>>((
+  ref,
+) {
   return ref.watch(shiftRepositoryProvider).getWeeklyProfitData();
 });
 
 final monthlySummaryProvider = FutureProvider<Map<String, double>>((ref) {
   final now = DateTime.now();
-  return ref.watch(shiftRepositoryProvider).getMonthlySummary(now.month, now.year);
+  return ref
+      .watch(shiftRepositoryProvider)
+      .getMonthlySummary(now.month, now.year);
 });
 
 final recentExpensesProvider = FutureProvider<List<Expense>>((ref) {
@@ -74,12 +85,20 @@ class ShiftNotifier extends StateNotifier<AsyncValue<void>> {
   ) async {
     state = await AsyncValue.guard(() async {
       final quantity = closingReading - openingReading;
-      if (quantity <= 0) throw Exception('Sale quantity must be greater than 0');
+      if (quantity <= 0)
+        throw Exception('Sale quantity must be greater than 0');
       final totalAmount = cash + card + credit;
-      if (totalAmount <= 0) throw Exception('Sale amount must be greater than 0');
+      if (totalAmount <= 0)
+        throw Exception('Sale amount must be greater than 0');
       await _repo.addSaleToShift(
-        shiftId, productId, openingReading, closingReading,
-        pricePerUnit, cash, card, credit,
+        shiftId,
+        productId,
+        openingReading,
+        closingReading,
+        pricePerUnit,
+        cash,
+        card,
+        credit,
       );
     });
   }
@@ -97,12 +116,21 @@ class ShiftNotifier extends StateNotifier<AsyncValue<void>> {
   ) async {
     state = await AsyncValue.guard(() async {
       final quantity = closingReading - openingReading;
-      if (quantity <= 0) throw Exception('Sale quantity must be greater than 0');
+      if (quantity <= 0)
+        throw Exception('Sale quantity must be greater than 0');
       final totalAmount = cash + card + credit;
-      if (totalAmount <= 0) throw Exception('Sale amount must be greater than 0');
+      if (totalAmount <= 0)
+        throw Exception('Sale amount must be greater than 0');
       await _repo.updateSaleInShift(
-        saleId, shiftId, productId, openingReading, closingReading,
-        pricePerUnit, cash, card, credit,
+        saleId,
+        shiftId,
+        productId,
+        openingReading,
+        closingReading,
+        pricePerUnit,
+        cash,
+        card,
+        credit,
       );
     });
   }
@@ -111,14 +139,13 @@ class ShiftNotifier extends StateNotifier<AsyncValue<void>> {
     state = await AsyncValue.guard(() => _repo.deleteSaleFromShift(saleId));
   }
 
-  Future<void> closeShift(int shiftId, int? closedBy) async {
+  Future<void> closeShift(int shiftId) async {
     state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() => _repo.closeShift(shiftId, closedBy));
+    state = await AsyncValue.guard(() => _repo.closeShift(shiftId));
   }
 }
 
-final shiftNotifierProvider = StateNotifierProvider<ShiftNotifier, AsyncValue<void>>((ref) {
-  return ShiftNotifier(
-    ref.watch(shiftRepositoryProvider),
-  );
-});
+final shiftNotifierProvider =
+    StateNotifierProvider<ShiftNotifier, AsyncValue<void>>((ref) {
+      return ShiftNotifier(ref.watch(shiftRepositoryProvider));
+    });

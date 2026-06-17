@@ -8,28 +8,40 @@ part 'expense_dao.g.dart';
 class ExpenseDao extends DatabaseAccessor<AppDatabase> with _$ExpenseDaoMixin {
   ExpenseDao(super.db);
 
-  Future<int> addExpense(ExpensesCompanion expense) => into(expenses).insert(expense);
+  Future<int> addExpense(ExpensesCompanion expense) =>
+      into(expenses).insert(expense);
 
   Future<List<Expense>> getAllExpenses() async {
-    return (select(expenses)..orderBy([(e) => OrderingTerm.desc(e.date)])).get();
+    return (select(
+      expenses,
+    )..orderBy([(e) => OrderingTerm.desc(e.date)])).get();
   }
 
   Stream<List<Expense>> watchAllExpenses() {
-    return (select(expenses)..orderBy([(e) => OrderingTerm.desc(e.date)])).watch();
+    return (select(
+      expenses,
+    )..orderBy([(e) => OrderingTerm.desc(e.date)])).watch();
   }
 
-  Future<List<Expense>> getExpensesByDateRange(DateTime start, DateTime end) async {
+  Future<List<Expense>> getExpensesByDateRange(
+    DateTime start,
+    DateTime end,
+  ) async {
     return (select(expenses)
           ..where((e) => e.date.isBetweenValues(start, end))
           ..orderBy([(e) => OrderingTerm.desc(e.date)]))
         .get();
   }
 
-  Future<Map<String, double>> getExpenseSummaryByCategory(DateTime start, DateTime end) async {
+  Future<Map<String, double>> getExpenseSummaryByCategory(
+    DateTime start,
+    DateTime end,
+  ) async {
     final expensesList = await getExpensesByDateRange(start, end);
     final summary = <String, double>{};
     for (final expense in expensesList) {
-      summary[expense.category] = (summary[expense.category] ?? 0) + expense.amount;
+      summary[expense.category] =
+          (summary[expense.category] ?? 0) + expense.amount;
     }
     return summary;
   }

@@ -26,11 +26,6 @@ class _AddStockScreenState extends ConsumerState<AddStockScreen> {
   }
 
   @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
   void dispose() {
     _quantityController.dispose();
     _costController.dispose();
@@ -53,11 +48,18 @@ class _AddStockScreenState extends ConsumerState<AddStockScreen> {
             data: (products) => DropdownButtonFormField<int>(
               initialValue: _selectedProductId,
               decoration: const InputDecoration(labelText: 'Product'),
-              items: products.map((p) => DropdownMenuItem(value: p.id, child: Text(p.name))).toList(),
+              items: products
+                  .map(
+                    (p) => DropdownMenuItem(value: p.id, child: Text(p.name)),
+                  )
+                  .toList(),
               onChanged: (value) {
                 setState(() => _selectedProductId = value);
                 if (value != null) {
-                  final product = products.firstWhere((p) => p.id == value, orElse: () => products.first);
+                  final product = products.firstWhere(
+                    (p) => p.id == value,
+                    orElse: () => products.first,
+                  );
                   _costController.text = product.costPerUnit.toString();
                 }
               },
@@ -66,58 +68,104 @@ class _AddStockScreenState extends ConsumerState<AddStockScreen> {
             error: (e, _) => Text('Error: $e'),
           ),
           const SizedBox(height: 16),
-          TextField(controller: _quantityController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Quantity')),
+          TextField(
+            controller: _quantityController,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(labelText: 'Quantity'),
+          ),
           const SizedBox(height: 16),
-          TextField(controller: _costController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Unit Cost ($kCurrency)')),
+          TextField(
+            controller: _costController,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(
+              labelText: 'Unit Cost ($kCurrency)',
+            ),
+          ),
           if (_totalCost > 0) ...[
             const SizedBox(height: 8),
             Container(
               padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(color: colorScheme.primaryContainer.withValues(alpha: 0.5), borderRadius: BorderRadius.circular(8)),
+              decoration: BoxDecoration(
+                color: colorScheme.primaryContainer.withValues(alpha: 0.5),
+                borderRadius: BorderRadius.circular(8),
+              ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Total Cost', style: TextStyle(color: colorScheme.onPrimaryContainer)),
-                  Text('$kCurrency ${_totalCost.toStringAsFixed(0)}', style: TextStyle(color: colorScheme.onPrimaryContainer, fontWeight: FontWeight.bold, fontSize: 16)),
+                  Text(
+                    'Total Cost',
+                    style: TextStyle(color: colorScheme.onPrimaryContainer),
+                  ),
+                  Text(
+                    '$kCurrency ${_totalCost.toStringAsFixed(0)}',
+                    style: TextStyle(
+                      color: colorScheme.onPrimaryContainer,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
                 ],
               ),
             ),
           ],
           const SizedBox(height: 16),
-          TextField(controller: _notesController, decoration: const InputDecoration(labelText: 'Notes (optional)')),
+          TextField(
+            controller: _notesController,
+            decoration: const InputDecoration(labelText: 'Notes (optional)'),
+          ),
           const SizedBox(height: 16),
           FilledButton(
             onPressed: _selectedProductId == null || productState.isLoading
                 ? null
                 : () async {
-                    final quantity = double.tryParse(_quantityController.text) ?? 0;
+                    final quantity =
+                        double.tryParse(_quantityController.text) ?? 0;
                     if (quantity <= 0) {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Enter a valid quantity')));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Enter a valid quantity')),
+                      );
                       return;
                     }
                     final cost = double.tryParse(_costController.text) ?? 0;
                     if (cost < 0) {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Unit cost cannot be negative')));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Unit cost cannot be negative'),
+                        ),
+                      );
                       return;
                     }
                     try {
-                      await ref.read(productNotifierProvider.notifier).addStock(
+                      await ref
+                          .read(productNotifierProvider.notifier)
+                          .addStock(
                             _selectedProductId!,
                             quantity,
                             cost,
-                            _notesController.text.isNotEmpty ? _notesController.text : null,
+                            _notesController.text.isNotEmpty
+                                ? _notesController.text
+                                : null,
                           );
                       ref.invalidate(allInventoryProvider);
                       ref.invalidate(todaySummaryProvider);
                       if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Stock added')),
+                        );
                         Navigator.pop(context);
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Stock added')));
                       }
                     } catch (e) {
-                      if (context.mounted) context.showError(e, source: 'addStock');
+                      if (context.mounted)
+                        context.showError(e, source: 'addStock');
                     }
                   },
-            child: productState.isLoading ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2)) : const Text('Add Stock'),
+            child: productState.isLoading
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Text('Add Stock'),
           ),
         ],
       ),
@@ -126,7 +174,12 @@ class _AddStockScreenState extends ConsumerState<AddStockScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Add Stock')),
       body: isWide(context)
-          ? Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 1000), child: body))
+          ? Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: kMaxContentWidth),
+                child: body,
+              ),
+            )
           : body,
     );
   }

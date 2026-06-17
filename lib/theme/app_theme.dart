@@ -71,7 +71,10 @@ class AppTheme {
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: colorScheme.primary, width: 2),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -100,10 +103,7 @@ class AppTheme {
               fontSize: 12,
             );
           }
-          return TextStyle(
-            color: colorScheme.onSurfaceVariant,
-            fontSize: 12,
-          );
+          return TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 12);
         }),
       ),
       bottomSheetTheme: const BottomSheetThemeData(

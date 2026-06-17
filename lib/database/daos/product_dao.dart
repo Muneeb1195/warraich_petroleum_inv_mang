@@ -20,7 +20,11 @@ class ProductDao extends DatabaseAccessor<AppDatabase> with _$ProductDaoMixin {
     return (select(products)..where((p) => p.id.equals(id))).getSingleOrNull();
   }
 
-  Future<int> updateProductPrice(int productId, double price, double cost) async {
+  Future<int> updateProductPrice(
+    int productId,
+    double price,
+    double cost,
+  ) async {
     return (update(products)..where((p) => p.id.equals(productId))).write(
       ProductsCompanion(
         pricePerUnit: Value(price),
@@ -31,21 +35,21 @@ class ProductDao extends DatabaseAccessor<AppDatabase> with _$ProductDaoMixin {
   }
 
   Future<InventoryData?> getInventory(int productId) async {
-    return (select(inventory)
-          ..where((i) => i.productId.equals(productId)))
-        .getSingleOrNull();
+    return (select(
+      inventory,
+    )..where((i) => i.productId.equals(productId))).getSingleOrNull();
   }
 
   Stream<InventoryData?> watchInventory(int productId) {
-    return (select(inventory)
-          ..where((i) => i.productId.equals(productId)))
-        .watchSingleOrNull();
+    return (select(
+      inventory,
+    )..where((i) => i.productId.equals(productId))).watchSingleOrNull();
   }
 
   Future<List<InventoryRow>> getAllInventory() async {
-    final query = select(inventory).join([
-      innerJoin(products, products.id.equalsExp(inventory.productId)),
-    ]);
+    final query = select(
+      inventory,
+    ).join([innerJoin(products, products.id.equalsExp(inventory.productId))]);
     final results = await query.get();
     return results.map((row) {
       return InventoryRow(
@@ -56,9 +60,9 @@ class ProductDao extends DatabaseAccessor<AppDatabase> with _$ProductDaoMixin {
   }
 
   Stream<List<InventoryRow>> watchAllInventory() {
-    final query = select(inventory).join([
-      innerJoin(products, products.id.equalsExp(inventory.productId)),
-    ]);
+    final query = select(
+      inventory,
+    ).join([innerJoin(products, products.id.equalsExp(inventory.productId))]);
     return query.watch().map((rows) {
       return rows.map((row) {
         return InventoryRow(
@@ -69,17 +73,26 @@ class ProductDao extends DatabaseAccessor<AppDatabase> with _$ProductDaoMixin {
     });
   }
 
-  Future<void> addStock(int productId, double quantity, double unitCost, String? notes) async {
+  Future<void> addStock(
+    int productId,
+    double quantity,
+    double unitCost,
+    String? notes,
+  ) async {
     await transaction(() async {
-      final product = await (select(products)..where((p) => p.id.equals(productId))).getSingleOrNull();
+      final product = await (select(
+        products,
+      )..where((p) => p.id.equals(productId))).getSingleOrNull();
 
-      await into(inventoryTransactions).insert(InventoryTransactionsCompanion.insert(
-        productId: productId,
-        type: 'purchase',
-        quantity: quantity,
-        unitCost: Value(unitCost),
-        notes: Value(notes),
-      ));
+      await into(inventoryTransactions).insert(
+        InventoryTransactionsCompanion.insert(
+          productId: productId,
+          type: 'purchase',
+          quantity: quantity,
+          unitCost: Value(unitCost),
+          notes: Value(notes),
+        ),
+      );
 
       final current = await getInventory(productId);
       if (current != null) {
@@ -93,14 +106,18 @@ class ProductDao extends DatabaseAccessor<AppDatabase> with _$ProductDaoMixin {
 
       final totalCost = quantity * unitCost;
       if (totalCost > 0) {
-        final description = StringBuffer('Stock: ${product?.name ?? "Unknown"}');
+        final description = StringBuffer(
+          'Stock: ${product?.name ?? "Unknown"}',
+        );
         if (notes != null && notes.isNotEmpty) description.write(' - $notes');
-        await into(expenses).insert(ExpensesCompanion.insert(
-          category: 'Supplier',
-          amount: totalCost,
-          date: DateTime.now(),
-          description: Value(description.toString()),
-        ));
+        await into(expenses).insert(
+          ExpensesCompanion.insert(
+            category: 'Supplier',
+            amount: totalCost,
+            date: Value(DateTime.now()),
+            description: Value(description.toString()),
+          ),
+        );
       }
     });
   }
@@ -110,16 +127,18 @@ class ProductDao extends DatabaseAccessor<AppDatabase> with _$ProductDaoMixin {
       final current = await getInventory(productId);
       if (current == null) return;
 
-        if (current.currentStock < quantity) {
-          throw Exception('Insufficient stock for $productId');
-        }
+      if (current.currentStock < quantity) {
+        throw Exception('Insufficient stock for $productId');
+      }
 
-      await into(inventoryTransactions).insert(InventoryTransactionsCompanion.insert(
-        productId: productId,
-        type: 'sale',
-        quantity: -quantity,
-        referenceId: Value(shiftId),
-      ));
+      await into(inventoryTransactions).insert(
+        InventoryTransactionsCompanion.insert(
+          productId: productId,
+          type: 'sale',
+          quantity: -quantity,
+          referenceId: Value(shiftId),
+        ),
+      );
 
       await (update(inventory)..where((i) => i.id.equals(current.id))).write(
         InventoryCompanion(
@@ -140,8 +159,10 @@ class ProductDao extends DatabaseAccessor<AppDatabase> with _$ProductDaoMixin {
   Future<List<InventoryRow>> getLowStockProducts() async {
     final query = select(inventory).join([
       innerJoin(products, products.id.equalsExp(inventory.productId)),
-    ])
-      ..where(inventory.currentStock.isSmallerThan(inventory.minStock));
+    ])..where(
+        inventory.currentStock.isSmallerOrEqual(inventory.minStock) &
+            inventory.minStock.isBiggerThanValue(0),
+      );
     final results = await query.get();
     return results.map((row) {
       return InventoryRow(

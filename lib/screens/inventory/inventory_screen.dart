@@ -27,59 +27,94 @@ class InventoryScreen extends ConsumerWidget {
         label: const Text('Add Stock'),
       ),
       body: RefreshIndicator(
-        onRefresh: () async { ref.invalidate(allInventoryProvider); },
+        onRefresh: () async {
+          ref.invalidate(allInventoryProvider);
+        },
         child: _buildBody(context, ref, allInventory, colorScheme),
       ),
     );
   }
 
-  Widget _buildBody(BuildContext context, WidgetRef ref, AsyncValue allInventory, ColorScheme colorScheme) {
+  Widget _buildBody(
+    BuildContext context,
+    WidgetRef ref,
+    AsyncValue allInventory,
+    ColorScheme colorScheme,
+  ) {
     final content = allInventory.when(
       data: (items) {
         if (items.isEmpty) {
           return const Center(child: Text('No inventory data'));
         }
-        final fuelItems = items.where((i) => i.product.category == 'fuel').toList();
-        final lubeItems = items.where((i) => i.product.category == 'lube').toList();
+        final fuelItems = items
+            .where((i) => i.product.category == 'fuel')
+            .toList();
+        final lubeItems = items
+            .where((i) => i.product.category == 'lube')
+            .toList();
 
         return ListView(
           padding: const EdgeInsets.all(16),
           children: [
             Text(
               'Fuel Products',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             if (isWide(context))
               GridView.count(
-                crossAxisCount: fuelItems.isEmpty ? 1 : (fuelItems.length <= 3 ? fuelItems.length : 2),
+                crossAxisCount: fuelItems.isEmpty
+                    ? 1
+                    : (fuelItems.length <= 3 ? fuelItems.length : 2),
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 mainAxisSpacing: 12,
                 crossAxisSpacing: 12,
                 childAspectRatio: 2.8,
-                children: fuelItems.map((item) => _buildInventoryCard(context, ref, item, colorScheme)).toList().cast<Widget>(),
+                children: fuelItems
+                    .map(
+                      (item) =>
+                          _buildInventoryCard(context, ref, item, colorScheme),
+                    )
+                    .toList()
+                    .cast<Widget>(),
               )
             else
-              ...fuelItems.map((item) => _buildInventoryCard(context, ref, item, colorScheme)),
+              ...fuelItems.map(
+                (item) => _buildInventoryCard(context, ref, item, colorScheme),
+              ),
             const SizedBox(height: 16),
             Text(
               'Lube Products',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             if (isWide(context))
               GridView.count(
-                crossAxisCount: lubeItems.isEmpty ? 1 : (lubeItems.length <= 3 ? lubeItems.length : 2),
+                crossAxisCount: lubeItems.isEmpty
+                    ? 1
+                    : (lubeItems.length <= 3 ? lubeItems.length : 2),
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 mainAxisSpacing: 12,
                 crossAxisSpacing: 12,
                 childAspectRatio: 2.8,
-                children: lubeItems.map((item) => _buildInventoryCard(context, ref, item, colorScheme)).toList().cast<Widget>(),
+                children: lubeItems
+                    .map(
+                      (item) =>
+                          _buildInventoryCard(context, ref, item, colorScheme),
+                    )
+                    .toList()
+                    .cast<Widget>(),
               )
             else
-              ...lubeItems.map((item) => _buildInventoryCard(context, ref, item, colorScheme)),
+              ...lubeItems.map(
+                (item) => _buildInventoryCard(context, ref, item, colorScheme),
+              ),
           ],
         );
       },
@@ -90,7 +125,7 @@ class InventoryScreen extends ConsumerWidget {
     if (isWide(context)) {
       return Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 1000),
+          constraints: const BoxConstraints(maxWidth: kMaxContentWidth),
           child: content,
         ),
       );
@@ -98,7 +133,12 @@ class InventoryScreen extends ConsumerWidget {
     return content;
   }
 
-  Widget _buildInventoryCard(BuildContext context, WidgetRef ref, dynamic item, ColorScheme colorScheme) {
+  Widget _buildInventoryCard(
+    BuildContext context,
+    WidgetRef ref,
+    dynamic item,
+    ColorScheme colorScheme,
+  ) {
     final stock = item.inventoryEntry.currentStock;
     final minStock = item.inventoryEntry.minStock;
     final maxStock = item.inventoryEntry.maxStock;
@@ -108,9 +148,9 @@ class InventoryScreen extends ConsumerWidget {
     if (isLow) {
       levelColor = colorScheme.error;
     } else if (maxStock > 0 && stock > maxStock * 0.9) {
-      levelColor = Colors.orange;
+      levelColor = colorScheme.tertiary;
     } else {
-      levelColor = Colors.green;
+      levelColor = colorScheme.primary;
     }
 
     final double fillRatio;
@@ -137,10 +177,14 @@ class InventoryScreen extends ConsumerWidget {
               Row(
                 children: [
                   CircleAvatar(
-                    backgroundColor: isLow ? colorScheme.errorContainer : colorScheme.primaryContainer,
+                    backgroundColor: isLow
+                        ? colorScheme.errorContainer
+                        : colorScheme.primaryContainer,
                     child: Icon(
                       isLow ? Icons.warning_amber : Icons.check_circle,
-                      color: isLow ? colorScheme.onErrorContainer : colorScheme.onPrimaryContainer,
+                      color: isLow
+                          ? colorScheme.onErrorContainer
+                          : colorScheme.onPrimaryContainer,
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -148,14 +192,20 @@ class InventoryScreen extends ConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(item.product.name, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                        Text(
+                          item.product.name,
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.bold),
+                        ),
                         Text(
                           hasLimits
                               ? 'Min: ${minStock.toStringAsFixed(0)} | Max: ${maxStock.toStringAsFixed(0)} ${item.product.unit}'
                               : 'Tap to set stock levels',
                           style: TextStyle(
                             fontSize: 12,
-                            color: hasLimits ? colorScheme.onSurfaceVariant : colorScheme.primary,
+                            color: hasLimits
+                                ? colorScheme.onSurfaceVariant
+                                : colorScheme.primary,
                           ),
                         ),
                       ],
@@ -169,10 +219,15 @@ class InventoryScreen extends ConsumerWidget {
                         style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
-                          color: isLow ? colorScheme.error : colorScheme.onSurface,
+                          color: isLow
+                              ? colorScheme.error
+                              : colorScheme.onSurface,
                         ),
                       ),
-                      Text(item.product.unit, style: Theme.of(context).textTheme.bodySmall),
+                      Text(
+                        item.product.unit,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
                     ],
                   ),
                 ],
@@ -192,13 +247,24 @@ class InventoryScreen extends ConsumerWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    isLow ? 'Low stock' : maxStock > 0 && stock > maxStock * 0.9 ? 'Near full' : 'Good',
-                    style: TextStyle(fontSize: 11, color: levelColor, fontWeight: FontWeight.w600),
+                    isLow
+                        ? 'Low stock'
+                        : maxStock > 0 && stock > maxStock * 0.9
+                        ? 'Near full'
+                        : 'Good',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: levelColor,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   if (maxStock > 0)
                     Text(
                       '${(fillRatio * 100).toInt()}% full',
-                      style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant),
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
                     ),
                 ],
               ),
@@ -209,9 +275,15 @@ class InventoryScreen extends ConsumerWidget {
     );
   }
 
-  void _showTransactionHistory(BuildContext context, WidgetRef ref, dynamic item) {
+  void _showTransactionHistory(
+    BuildContext context,
+    WidgetRef ref,
+    dynamic item,
+  ) {
     final database = ref.read(databaseProvider);
-    final transactionsFuture = database.productDao.getTransactions(item.product.id);
+    final transactionsFuture = database.productDao.getTransactions(
+      item.product.id,
+    );
 
     showModalBottomSheet(
       context: context,
@@ -222,6 +294,7 @@ class InventoryScreen extends ConsumerWidget {
         maxChildSize: 0.9,
         expand: false,
         builder: (context, scrollController) {
+          final sheetColorScheme = Theme.of(context).colorScheme;
           return FutureBuilder(
             future: transactionsFuture,
             builder: (context, snapshot) {
@@ -235,7 +308,9 @@ class InventoryScreen extends ConsumerWidget {
                     padding: const EdgeInsets.all(16),
                     child: Text(
                       '${item.product.name} - History',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                   const Divider(height: 1),
@@ -248,14 +323,18 @@ class InventoryScreen extends ConsumerWidget {
                             itemBuilder: (context, index) {
                               final t = transactions[index];
                               final isPurchase = t.type == 'purchase';
-                              return ListTile(
+                               return ListTile(
                                 leading: CircleAvatar(
                                   backgroundColor: isPurchase
-                                      ? Colors.green.withValues(alpha: 0.1)
-                                      : Colors.red.withValues(alpha: 0.1),
+                                       ? sheetColorScheme.tertiary.withValues(alpha: 0.1)
+                                       : sheetColorScheme.error.withValues(alpha: 0.1),
                                   child: Icon(
-                                    isPurchase ? Icons.add_circle : Icons.remove_circle,
-                                    color: isPurchase ? Colors.green : Colors.red,
+                                    isPurchase
+                                        ? Icons.add_circle
+                                        : Icons.remove_circle,
+                                    color: isPurchase
+                                         ? sheetColorScheme.tertiary
+                                         : sheetColorScheme.error,
                                     size: 20,
                                   ),
                                 ),
@@ -282,10 +361,14 @@ class InventoryScreen extends ConsumerWidget {
 
   void _showStockDialog(BuildContext context, WidgetRef ref, dynamic item) {
     final minController = TextEditingController(
-      text: item.inventoryEntry.minStock > 0 ? item.inventoryEntry.minStock.toString() : '',
+      text: item.inventoryEntry.minStock > 0
+          ? item.inventoryEntry.minStock.toString()
+          : '',
     );
     final maxController = TextEditingController(
-      text: item.inventoryEntry.maxStock > 0 ? item.inventoryEntry.maxStock.toString() : '',
+      text: item.inventoryEntry.maxStock > 0
+          ? item.inventoryEntry.maxStock.toString()
+          : '',
     );
 
     showDialog(
@@ -317,37 +400,56 @@ class InventoryScreen extends ConsumerWidget {
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
           FilledButton(
             onPressed: () async {
               final minStock = double.tryParse(minController.text) ?? 0;
               final maxStock = double.tryParse(maxController.text) ?? 0;
               if (minStock < 0) {
-                if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Minimum stock cannot be negative')));
+                if (context.mounted)
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Minimum stock cannot be negative'),
+                    ),
+                  );
                 return;
               }
               if (maxStock < minStock) {
-                if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Maximum stock must be >= minimum stock')));
+                if (context.mounted)
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Maximum stock must be >= minimum stock'),
+                    ),
+                  );
                 return;
               }
               final database = ref.read(databaseProvider);
               try {
-                await (database.update(database.inventory)
-                      ..where((i) => i.id.equals(item.inventoryEntry.id)))
-                    .write(InventoryCompanion(
-                      minStock: Value(minStock),
-                      maxStock: Value(maxStock),
-                    ));
+                await (database.update(
+                  database.inventory,
+                )..where((i) => i.id.equals(item.inventoryEntry.id))).write(
+                  InventoryCompanion(
+                    minStock: Value(minStock),
+                    maxStock: Value(maxStock),
+                  ),
+                );
                 ref.invalidate(allInventoryProvider);
                 if (context.mounted) Navigator.pop(context);
               } catch (e) {
-                if (context.mounted) context.showError(e, source: 'updateMinStock');
+                if (context.mounted)
+                  context.showError(e, source: 'updateMinStock');
               }
             },
             child: const Text('Save'),
           ),
         ],
       ),
-    ).then((_) { minController.dispose(); maxController.dispose(); });
+    ).then((_) {
+      minController.dispose();
+      maxController.dispose();
+    });
   }
 }

@@ -7,7 +7,8 @@ class Inventory extends Table {
   RealColumn get currentStock => real().withDefault(const Constant(0))();
   RealColumn get minStock => real().withDefault(const Constant(0))();
   RealColumn get maxStock => real().withDefault(const Constant(0))();
-  DateTimeColumn get lastUpdated => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get lastUpdated =>
+      dateTime().withDefault(currentDateAndTime)();
 }
 
 class InventoryTransactions extends Table {

@@ -7,7 +7,9 @@ final biometricServiceProvider = Provider<BiometricService>((ref) {
   return BiometricService();
 });
 
-final authStateProvider = StateNotifierProvider<AuthStateNotifier, AuthState>((ref) {
+final authStateProvider = StateNotifierProvider<AuthStateNotifier, AuthState>((
+  ref,
+) {
   return AuthStateNotifier(ref.read(biometricServiceProvider));
 });
 
@@ -49,7 +51,12 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
   Future<void> init() async {
     final lockEnabled = await _storage.read(key: _lockEnabledKey);
     if (lockEnabled == 'true') {
-      state = state.copyWith(biometricEnabled: true, isLocked: true, isAuthenticated: false, isLoading: true);
+      state = state.copyWith(
+        biometricEnabled: true,
+        isLocked: true,
+        isAuthenticated: false,
+        isLoading: true,
+      );
       await authenticate();
     }
   }
@@ -71,7 +78,11 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
 
   Future<void> disableLock() async {
     await _storage.write(key: _lockEnabledKey, value: 'false');
-    state = state.copyWith(biometricEnabled: false, isLocked: false, isAuthenticated: true);
+    state = state.copyWith(
+      biometricEnabled: false,
+      isLocked: false,
+      isAuthenticated: true,
+    );
   }
 
   void lock() {

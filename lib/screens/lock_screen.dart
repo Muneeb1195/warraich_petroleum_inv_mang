@@ -52,15 +52,15 @@ class _LockScreenState extends ConsumerState<LockScreen> {
                 Text(
                   kAppName,
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   'Authenticate to continue',
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
+                    color: colorScheme.onSurfaceVariant,
+                  ),
                 ),
                 const SizedBox(height: 40),
                 if (authState.isLoading)
@@ -75,8 +75,8 @@ class _LockScreenState extends ConsumerState<LockScreen> {
                   Text(
                     'Tap the button and use your fingerprint or face',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
+                      color: colorScheme.onSurfaceVariant,
+                    ),
                     textAlign: TextAlign.center,
                   ),
                 ],

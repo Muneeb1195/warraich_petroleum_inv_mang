@@ -25,50 +25,113 @@ class PayrollScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(DateTime.now().formattedMonth, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                Text(
+                  DateTime.now().formattedMonth,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                ),
                 const SizedBox(height: 8),
-                Text('Generate payroll for this month', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant)),
+                Text(
+                  'Generate payroll for this month',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
               ],
             ),
           ),
         ),
         const SizedBox(height: 16),
-        Text('Payroll Records', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+        Text(
+          'Payroll Records',
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+        ),
         const SizedBox(height: 8),
         payrollData.when(
           data: (records) {
             if (records.isEmpty) {
-              return const Center(child: Padding(padding: EdgeInsets.all(32), child: Text('No payroll records for this month. Tap Generate Payroll to start.')));
+              return const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(32),
+                  child: Text(
+                    'No payroll records for this month. Tap Generate Payroll to start.',
+                  ),
+                ),
+              );
             }
             return Column(
               children: records.map((row) {
                 return Card(
                   child: ListTile(
                     leading: CircleAvatar(
-                      backgroundColor: row.payrollEntry.isPaid ? colorScheme.primaryContainer : colorScheme.errorContainer,
-                      child: Icon(row.payrollEntry.isPaid ? Icons.check_circle : Icons.pending, color: row.payrollEntry.isPaid ? colorScheme.onPrimaryContainer : colorScheme.onErrorContainer),
+                      backgroundColor: row.payrollEntry.isPaid
+                          ? colorScheme.primaryContainer
+                          : colorScheme.errorContainer,
+                      child: Icon(
+                        row.payrollEntry.isPaid
+                            ? Icons.check_circle
+                            : Icons.pending,
+                        color: row.payrollEntry.isPaid
+                            ? colorScheme.onPrimaryContainer
+                            : colorScheme.onErrorContainer,
+                      ),
                     ),
                     title: Text(row.employee.name),
-                    subtitle: Text('Monthly Salary: $kCurrency ${row.payrollEntry.baseSalary.toStringAsFixed(0)}'),
+                    subtitle: Text(
+                      'Monthly Salary: $kCurrency ${row.payrollEntry.baseSalary.toStringAsFixed(0)}',
+                    ),
                     trailing: row.payrollEntry.isPaid
-                        ? Column(mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.end, children: [
-                            const Icon(Icons.check_circle, color: Colors.green, size: 20),
-                            Text('$kCurrency ${row.payrollEntry.netPay.toStringAsFixed(0)}', style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.primary)),
-                          ])
-                        : Column(mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.end, children: [
-                            TextButton(
-                              onPressed: () async {
-                                try {
-                                  await ref.read(payrollNotifierProvider.notifier).markAsPaid(row.payrollEntry.id);
-                                  if (context.mounted) context.showSuccess('${row.employee.name} marked as paid');
-                                } catch (e) {
-                                  if (context.mounted) context.showError(e, source: 'markPaid');
-                                }
-                              },
-                              child: const Text('Mark Paid'),
-                            ),
-                            Text('$kCurrency ${row.payrollEntry.netPay.toStringAsFixed(0)}', style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.primary)),
-                          ]),
+                        ? Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Icon(
+                                Icons.check_circle,
+                                color: colorScheme.tertiary,
+                                size: 20,
+                              ),
+                              Text(
+                                '$kCurrency ${row.payrollEntry.netPay.toStringAsFixed(0)}',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: colorScheme.primary,
+                                ),
+                              ),
+                            ],
+                          )
+                        : Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              TextButton(
+                                onPressed: () async {
+                                  try {
+                                    await ref
+                                        .read(payrollNotifierProvider.notifier)
+                                        .markAsPaid(row.payrollEntry.id);
+                                    if (context.mounted)
+                                      context.showSuccess(
+                                        '${row.employee.name} marked as paid',
+                                      );
+                                  } catch (e) {
+                                    if (context.mounted)
+                                      context.showError(e, source: 'markPaid');
+                                  }
+                                },
+                                child: const Text('Mark Paid'),
+                              ),
+                              Text(
+                                '$kCurrency ${row.payrollEntry.netPay.toStringAsFixed(0)}',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: colorScheme.primary,
+                                ),
+                              ),
+                            ],
+                          ),
                   ),
                 );
               }).toList(),
@@ -88,15 +151,26 @@ class PayrollScreen extends ConsumerWidget {
         label: const Text('Generate Payroll'),
       ),
       body: isWide(context)
-          ? Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 1000), child: body))
+          ? Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: kMaxContentWidth),
+                child: body,
+              ),
+            )
           : body,
     );
   }
 
-  void _generatePayroll(BuildContext context, WidgetRef ref, AsyncValue<List<dynamic>> employees) {
+  void _generatePayroll(
+    BuildContext context,
+    WidgetRef ref,
+    AsyncValue<List<dynamic>> employees,
+  ) {
     employees.whenData((empList) {
       if (empList.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Add employees first')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Add employees first')));
         return;
       }
       final now = DateTime.now();
@@ -104,9 +178,14 @@ class PayrollScreen extends ConsumerWidget {
         context: context,
         builder: (ctx) => AlertDialog(
           title: const Text('Generate Payroll'),
-          content: Text('Generate payroll for ${empList.length} employees for ${now.month}/${now.year}?'),
+          content: Text(
+            'Generate payroll for ${empList.length} employees for ${now.month}/${now.year}?',
+          ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
             FilledButton(
               onPressed: () async {
                 Navigator.pop(ctx);
@@ -130,7 +209,9 @@ class PayrollScreen extends ConsumerWidget {
                 int failed = 0;
                 for (final emp in empList) {
                   try {
-                    await ref.read(payrollNotifierProvider.notifier).generatePayroll(emp.id, now.month, now.year);
+                    await ref
+                        .read(payrollNotifierProvider.notifier)
+                        .generatePayroll(emp.id, now.month, now.year);
                     success++;
                   } catch (_) {
                     failed++;
@@ -139,8 +220,12 @@ class PayrollScreen extends ConsumerWidget {
                 ref.invalidate(currentMonthPayrollProvider);
                 if (context.mounted) {
                   Navigator.of(context, rootNavigator: true).pop();
-                  final msg = failed > 0 ? 'Generated $success/${empList.length} payrolls ($failed failed)' : 'Payroll generated for $success employees';
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+                  final msg = failed > 0
+                      ? 'Generated $success/${empList.length} payrolls ($failed failed)'
+                      : 'Payroll generated for $success employees';
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: Text(msg)));
                 }
               },
               child: const Text('Generate'),

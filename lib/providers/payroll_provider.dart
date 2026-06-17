@@ -29,8 +29,7 @@ class PayrollNotifier extends StateNotifier<AsyncValue<void>> {
   }
 }
 
-final payrollNotifierProvider = StateNotifierProvider<PayrollNotifier, AsyncValue<void>>((ref) {
-  return PayrollNotifier(
-    ref.watch(payrollRepositoryProvider),
-  );
-});
+final payrollNotifierProvider =
+    StateNotifierProvider<PayrollNotifier, AsyncValue<void>>((ref) {
+      return PayrollNotifier(ref.watch(payrollRepositoryProvider));
+    });

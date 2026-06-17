@@ -17,38 +17,62 @@ class ShiftDetailScreen extends ConsumerStatefulWidget {
 }
 
 class _ShiftDetailScreenState extends ConsumerState<ShiftDetailScreen> {
-
   @override
   Widget build(BuildContext context) {
     final shiftSales = ref.watch(shiftSalesProvider(widget.shiftId));
     final activeShift = ref.watch(activeShiftProvider);
     final colorScheme = Theme.of(context).colorScheme;
 
-    final isShiftActive = activeShift.hasValue && 
-        activeShift.value != null && 
+    final isShiftActive =
+        activeShift.hasValue &&
+        activeShift.value != null &&
         activeShift.value!.id == widget.shiftId;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Shift Details')),
       body: shiftSales.when(
         data: (sales) {
-          final totalSales = sales.fold<double>(0, (sum, row) => sum + row.sale.totalAmount);
-          final totalCash = sales.fold<double>(0, (sum, row) => sum + row.sale.cashCollected);
-          final totalCard = sales.fold<double>(0, (sum, row) => sum + row.sale.cardCollected);
-          final totalCredit = sales.fold<double>(0, (sum, row) => sum + row.sale.creditCollected);
+          final totalSales = sales.fold<double>(
+            0,
+            (sum, row) => sum + row.sale.totalAmount,
+          );
+          final totalCash = sales.fold<double>(
+            0,
+            (sum, row) => sum + row.sale.cashCollected,
+          );
+          final totalCard = sales.fold<double>(
+            0,
+            (sum, row) => sum + row.sale.cardCollected,
+          );
+          final totalCredit = sales.fold<double>(
+            0,
+            (sum, row) => sum + row.sale.creditCollected,
+          );
 
           if (isWide(context)) {
             return Center(
               child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 1000),
+                constraints: const BoxConstraints(maxWidth: kMaxContentWidth),
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.all(24),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildSummaryCard(context, colorScheme, totalSales, totalCash, totalCard, totalCredit),
+                      _buildSummaryCard(
+                        context,
+                        colorScheme,
+                        totalSales,
+                        totalCash,
+                        totalCard,
+                        totalCredit,
+                      ),
                       const SizedBox(height: 16),
-                      _buildSalesList(context, colorScheme, sales, isShiftActive),
+                      _buildSalesList(
+                        context,
+                        colorScheme,
+                        sales,
+                        isShiftActive,
+                      ),
                     ],
                   ),
                 ),
@@ -59,7 +83,14 @@ class _ShiftDetailScreenState extends ConsumerState<ShiftDetailScreen> {
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              _buildSummaryCard(context, colorScheme, totalSales, totalCash, totalCard, totalCredit),
+              _buildSummaryCard(
+                context,
+                colorScheme,
+                totalSales,
+                totalCash,
+                totalCard,
+                totalCredit,
+              ),
               const SizedBox(height: 16),
               _buildSalesList(context, colorScheme, sales, isShiftActive),
             ],
@@ -92,7 +123,9 @@ class _ShiftDetailScreenState extends ConsumerState<ShiftDetailScreen> {
                         onPressed: () => _showAddFuelDialog(context),
                         icon: const Icon(Icons.add),
                         label: const Text('Add Entry'),
-                        style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14)),
+                        style: FilledButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
                       ),
                     ),
                   ],
@@ -103,28 +136,68 @@ class _ShiftDetailScreenState extends ConsumerState<ShiftDetailScreen> {
     );
   }
 
-  Widget _buildSummaryCard(BuildContext context, ColorScheme colorScheme, double total, double cash, double card, double credit) {
+  Widget _buildSummaryCard(
+    BuildContext context,
+    ColorScheme colorScheme,
+    double total,
+    double cash,
+    double card,
+    double credit,
+  ) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Shift Summary', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+            Text(
+              'Shift Summary',
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 12),
             Row(
               children: [
-                Expanded(child: _SummaryTile(label: 'Total Sales', value: fm(ref, total), color: colorScheme.primary, icon: Icons.trending_up)),
+                Expanded(
+                  child: _SummaryTile(
+                    label: 'Total Sales',
+                    value: fm(ref, total),
+                    color: colorScheme.primary,
+                    icon: Icons.trending_up,
+                  ),
+                ),
                 const SizedBox(width: 8),
-                Expanded(child: _SummaryTile(label: 'Cash', value: fm(ref, cash), color: Colors.green, icon: Icons.money)),
+                Expanded(
+                  child: _SummaryTile(
+                    label: 'Cash',
+                    value: fm(ref, cash),
+                    color: colorScheme.tertiary,
+                    icon: Icons.money,
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 8),
             Row(
               children: [
-                Expanded(child: _SummaryTile(label: 'Card/Raast', value: fm(ref, card), color: Colors.blue, icon: Icons.credit_card)),
+                Expanded(
+                  child: _SummaryTile(
+                    label: 'Card/Raast',
+                    value: fm(ref, card),
+                    color: colorScheme.primary,
+                    icon: Icons.credit_card,
+                  ),
+                ),
                 const SizedBox(width: 8),
-                Expanded(child: _SummaryTile(label: 'Credit', value: fm(ref, credit), color: Colors.orange, icon: Icons.receipt_long)),
+                Expanded(
+                  child: _SummaryTile(
+                    label: 'Credit',
+                    value: fm(ref, credit),
+                    color: colorScheme.tertiary,
+                    icon: Icons.receipt_long,
+                  ),
+                ),
               ],
             ),
           ],
@@ -133,7 +206,12 @@ class _ShiftDetailScreenState extends ConsumerState<ShiftDetailScreen> {
     );
   }
 
-  Widget _buildSalesList(BuildContext context, ColorScheme colorScheme, List<ShiftSalesRow> sales, bool isShiftActive) {
+  Widget _buildSalesList(
+    BuildContext context,
+    ColorScheme colorScheme,
+    List<ShiftSalesRow> sales,
+    bool isShiftActive,
+  ) {
     if (sales.isEmpty) {
       return Card(
         child: Padding(
@@ -141,11 +219,24 @@ class _ShiftDetailScreenState extends ConsumerState<ShiftDetailScreen> {
           child: Center(
             child: Column(
               children: [
-                Icon(Icons.local_gas_station, size: 48, color: colorScheme.onSurfaceVariant),
+                Icon(
+                  Icons.local_gas_station,
+                  size: 48,
+                  color: colorScheme.onSurfaceVariant,
+                ),
                 const SizedBox(height: 8),
-                Text('No entries yet', style: TextStyle(color: colorScheme.onSurfaceVariant)),
+                Text(
+                  'No entries yet',
+                  style: TextStyle(color: colorScheme.onSurfaceVariant),
+                ),
                 const SizedBox(height: 4),
-                Text('Tap Add Entry to begin', style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 12)),
+                Text(
+                  'Tap Add Entry to begin',
+                  style: TextStyle(
+                    color: colorScheme.onSurfaceVariant,
+                    fontSize: 12,
+                  ),
+                ),
               ],
             ),
           ),
@@ -159,16 +250,28 @@ class _ShiftDetailScreenState extends ConsumerState<ShiftDetailScreen> {
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-            child: Text('Entries (${sales.length})', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+            child: Text(
+              'Entries (${sales.length})',
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            ),
           ),
           const Divider(height: 1),
-          ...sales.map((row) => _buildSaleTile(context, colorScheme, row, isShiftActive)),
+          ...sales.map(
+            (row) => _buildSaleTile(context, colorScheme, row, isShiftActive),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildSaleTile(BuildContext context, ColorScheme colorScheme, ShiftSalesRow row, bool isShiftActive) {
+  Widget _buildSaleTile(
+    BuildContext context,
+    ColorScheme colorScheme,
+    ShiftSalesRow row,
+    bool isShiftActive,
+  ) {
     final sale = row.sale;
     final product = row.product;
 
@@ -176,26 +279,35 @@ class _ShiftDetailScreenState extends ConsumerState<ShiftDetailScreen> {
     Color paymentColor = colorScheme.onSurface;
     if (sale.cashCollected > 0) {
       paymentLabel = 'Cash: ${sale.cashCollected.toStringAsFixed(0)}';
-      paymentColor = Colors.green;
+      paymentColor = colorScheme.tertiary;
     } else if (sale.cardCollected > 0) {
       paymentLabel = 'Card/Raast: ${sale.cardCollected.toStringAsFixed(0)}';
-      paymentColor = Colors.blue;
+      paymentColor = colorScheme.primary;
     } else if (sale.creditCollected > 0) {
       paymentLabel = 'Credit: ${sale.creditCollected.toStringAsFixed(0)}';
-      paymentColor = Colors.orange;
+      paymentColor = colorScheme.tertiary;
     }
 
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       leading: CircleAvatar(
-        backgroundColor: product.category == 'fuel' ? colorScheme.primaryContainer : colorScheme.tertiaryContainer,
+        backgroundColor: product.category == 'fuel'
+            ? colorScheme.primaryContainer
+            : colorScheme.tertiaryContainer,
         child: Icon(
-          product.category == 'fuel' ? Icons.local_gas_station : Icons.oil_barrel,
-          color: product.category == 'fuel' ? colorScheme.onPrimaryContainer : colorScheme.onTertiaryContainer,
+          product.category == 'fuel'
+              ? Icons.local_gas_station
+              : Icons.oil_barrel,
+          color: product.category == 'fuel'
+              ? colorScheme.onPrimaryContainer
+              : colorScheme.onTertiaryContainer,
           size: 20,
         ),
       ),
-      title: Text(product.name, style: const TextStyle(fontWeight: FontWeight.w600)),
+      title: Text(
+        product.name,
+        style: const TextStyle(fontWeight: FontWeight.w600),
+      ),
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -215,14 +327,30 @@ class _ShiftDetailScreenState extends ConsumerState<ShiftDetailScreen> {
         children: [
           Text(
             fm(ref, sale.totalAmount),
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: colorScheme.primary),
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+              color: colorScheme.primary,
+            ),
           ),
           if (isShiftActive) ...[
             const SizedBox(width: 4),
             PopupMenuButton<String>(
               itemBuilder: (context) => [
-                const PopupMenuItem(value: 'edit', child: ListTile(leading: Icon(Icons.edit), title: Text('Edit'))),
-                const PopupMenuItem(value: 'delete', child: ListTile(leading: Icon(Icons.delete, color: Colors.red), title: Text('Delete'))),
+                const PopupMenuItem(
+                  value: 'edit',
+                  child: ListTile(
+                    leading: Icon(Icons.edit),
+                    title: Text('Edit'),
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'delete',
+                  child: ListTile(
+                    leading: Icon(Icons.delete, color: colorScheme.error),
+                    title: Text('Delete'),
+                  ),
+                ),
               ],
               onSelected: (value) {
                 if (value == 'edit') {
@@ -250,7 +378,8 @@ class _ShiftDetailScreenState extends ConsumerState<ShiftDetailScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      builder: (context) => _AddFuelSheet(shiftId: widget.shiftId, existingSale: row),
+      builder: (context) =>
+          _AddFuelSheet(shiftId: widget.shiftId, existingSale: row),
     );
   }
 
@@ -261,12 +390,17 @@ class _ShiftDetailScreenState extends ConsumerState<ShiftDetailScreen> {
         title: const Text('Delete Entry?'),
         content: const Text('This entry will be permanently removed.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
           FilledButton(
             onPressed: () async {
               try {
                 Navigator.pop(ctx);
-                await ref.read(shiftNotifierProvider.notifier).deleteSaleFromShift(saleId);
+                await ref
+                    .read(shiftNotifierProvider.notifier)
+                    .deleteSaleFromShift(saleId);
                 ref.invalidate(shiftSalesProvider(widget.shiftId));
                 if (context.mounted) context.showSuccess('Entry deleted');
               } catch (e) {
@@ -285,17 +419,25 @@ class _ShiftDetailScreenState extends ConsumerState<ShiftDetailScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Close Shift?'),
-        content: const Text('This action is irreversible. All sales records will be finalized and inventory will be deducted.'),
+        content: const Text(
+          'This action is irreversible. All sales records will be finalized and inventory will be deducted.',
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
           FilledButton(
             onPressed: () async {
               try {
                 Navigator.pop(ctx);
-                await ref.read(shiftNotifierProvider.notifier).closeShift(widget.shiftId, null);
+                await ref
+                    .read(shiftNotifierProvider.notifier)
+                    .closeShift(widget.shiftId);
                 final closeState = ref.read(shiftNotifierProvider);
                 if (closeState.hasError) {
-                  if (context.mounted) context.showError(closeState.error!, source: 'closeShift');
+                  if (context.mounted)
+                    context.showError(closeState.error!, source: 'closeShift');
                   return;
                 }
                 if (context.mounted) {
@@ -327,19 +469,44 @@ class _SummaryTile extends StatelessWidget {
   final Color color;
   final IconData icon;
 
-  const _SummaryTile({required this.label, required this.value, required this.color, required this.icon});
+  const _SummaryTile({
+    required this.label,
+    required this.value,
+    required this.color,
+    required this.icon,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(children: [Icon(icon, color: color, size: 16), const SizedBox(width: 4), Text(label, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: color))]),
+          Row(
+            children: [
+              Icon(icon, color: color, size: 16),
+              const SizedBox(width: 4),
+              Text(
+                label,
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: color),
+              ),
+            ],
+          ),
           const SizedBox(height: 4),
-          Text(value, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: color)),
+          Text(
+            value,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
         ],
       ),
     );
@@ -357,8 +524,18 @@ class _PaymentChip extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(right: 4),
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(4)),
-      child: Text(label, style: TextStyle(fontSize: 10, color: color, fontWeight: FontWeight.w600)),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 10,
+          color: color,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
     );
   }
 }
@@ -401,7 +578,11 @@ class _AddFuelSheetState extends ConsumerState<_AddFuelSheet> {
     if (_selectedProductId == null) return false;
     if (_availableStock <= 0) return _quantity > 0;
     final existingQty = _existingSales
-        .where((row) => row.product.id == _selectedProductId && (!_isEditing || row.sale.id != widget.existingSale?.sale.id))
+        .where(
+          (row) =>
+              row.product.id == _selectedProductId &&
+              (!_isEditing || row.sale.id != widget.existingSale?.sale.id),
+        )
         .fold<double>(0, (sum, row) => sum + row.sale.quantitySold);
     return (existingQty + _quantity) > _availableStock;
   }
@@ -415,13 +596,21 @@ class _AddFuelSheetState extends ConsumerState<_AddFuelSheet> {
   void _readProductData() {
     _products = ref.read(allProductsProvider).asData?.value ?? [];
     _inventory = ref.read(allInventoryProvider).asData?.value ?? [];
-    _existingSales = ref.read(shiftSalesProvider(widget.shiftId)).asData?.value ?? [];
+    _existingSales =
+        ref.read(shiftSalesProvider(widget.shiftId)).asData?.value ?? [];
     _availableStock = _selectedProductId != null
-        ? _inventory.where((i) => i.product.id == _selectedProductId).firstOrNull?.inventoryEntry.currentStock ?? 0
+        ? _inventory
+                  .where((i) => i.product.id == _selectedProductId)
+                  .firstOrNull
+                  ?.inventoryEntry
+                  .currentStock ??
+              0
         : 0;
     if (_selectedProductId != null) {
       try {
-        _pricePerUnit = _products.firstWhere((p) => p.id == _selectedProductId).pricePerUnit;
+        _pricePerUnit = _products
+            .firstWhere((p) => p.id == _selectedProductId)
+            .pricePerUnit;
       } catch (_) {
         _pricePerUnit = 0;
       }
@@ -484,7 +673,12 @@ class _AddFuelSheetState extends ConsumerState<_AddFuelSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(_isEditing ? 'Edit Entry' : 'Add Entry', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+            Text(
+              _isEditing ? 'Edit Entry' : 'Add Entry',
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 16),
             Row(
               children: [
@@ -525,15 +719,35 @@ class _AddFuelSheetState extends ConsumerState<_AddFuelSheet> {
               const SizedBox(height: 8),
               Text(
                 'Available: ${_availableStock.toStringAsFixed(1)} units | Price: $kCurrency ${_pricePerUnit.toStringAsFixed(1)} / unit',
-                style: TextStyle(color: colorScheme.primary, fontWeight: FontWeight.w600, fontSize: 12),
+                style: TextStyle(
+                  color: colorScheme.primary,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 12,
+                ),
               ),
             ],
             const SizedBox(height: 12),
             Row(
               children: [
-                Expanded(child: TextField(controller: _openingController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Opening Reading'))),
+                Expanded(
+                  child: TextField(
+                    controller: _openingController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Opening Reading',
+                    ),
+                  ),
+                ),
                 const SizedBox(width: 12),
-                Expanded(child: TextField(controller: _closingController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Closing Reading'))),
+                Expanded(
+                  child: TextField(
+                    controller: _closingController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Closing Reading',
+                    ),
+                  ),
+                ),
               ],
             ),
             if (_quantity != 0) ...[
@@ -541,23 +755,33 @@ class _AddFuelSheetState extends ConsumerState<_AddFuelSheet> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: _exceedsInventory ? colorScheme.errorContainer.withValues(alpha: 0.5) : colorScheme.primaryContainer.withValues(alpha: 0.5),
+                  color: _exceedsInventory
+                      ? colorScheme.errorContainer.withValues(alpha: 0.5)
+                      : colorScheme.primaryContainer.withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      _exceedsInventory ? 'Exceeds available stock!' : 'Qty: ${_quantity.toStringAsFixed(1)} units',
+                      _exceedsInventory
+                          ? 'Exceeds available stock!'
+                          : 'Qty: ${_quantity.toStringAsFixed(1)} units',
                       style: TextStyle(
-                        color: _exceedsInventory ? colorScheme.onErrorContainer : colorScheme.onPrimaryContainer,
-                        fontWeight: _exceedsInventory ? FontWeight.bold : FontWeight.normal,
+                        color: _exceedsInventory
+                            ? colorScheme.onErrorContainer
+                            : colorScheme.onPrimaryContainer,
+                        fontWeight: _exceedsInventory
+                            ? FontWeight.bold
+                            : FontWeight.normal,
                       ),
                     ),
                     Text(
                       'Total: ${fm(ref, _totalAmount)}',
                       style: TextStyle(
-                        color: _exceedsInventory ? colorScheme.onErrorContainer : colorScheme.onPrimaryContainer,
+                        color: _exceedsInventory
+                            ? colorScheme.onErrorContainer
+                            : colorScheme.onPrimaryContainer,
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
                       ),
@@ -570,22 +794,39 @@ class _AddFuelSheetState extends ConsumerState<_AddFuelSheet> {
             TextField(
               controller: _amountController,
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'Amount ($kCurrency)', prefixIcon: Icon(Icons.attach_money)),
+              decoration: const InputDecoration(
+                labelText: 'Amount ($kCurrency)',
+                prefixIcon: Icon(Icons.attach_money),
+              ),
             ),
             const SizedBox(height: 20),
             FilledButton(
-              onPressed: (_selectedProductId == null || _quantity <= 0 || _exceedsInventory || _isSubmitting)
+              onPressed:
+                  (_selectedProductId == null ||
+                      _quantity <= 0 ||
+                      _exceedsInventory ||
+                      _isSubmitting)
                   ? null
                   : () async {
                       setState(() => _isSubmitting = true);
                       try {
-                        final amount = double.tryParse(_amountController.text) ?? _totalAmount;
+                        final amount =
+                            double.tryParse(_amountController.text) ??
+                            _totalAmount;
                         final cash = _paymentMethod == 'cash' ? amount : 0.0;
-                        final card = (_paymentMethod == 'card' || _paymentMethod == 'raast') ? amount : 0.0;
-                        final credit = _paymentMethod == 'credit' ? amount : 0.0;
+                        final card =
+                            (_paymentMethod == 'card' ||
+                                _paymentMethod == 'raast')
+                            ? amount
+                            : 0.0;
+                        final credit = _paymentMethod == 'credit'
+                            ? amount
+                            : 0.0;
 
                         if (_isEditing) {
-                          await ref.read(shiftNotifierProvider.notifier).updateSaleInShift(
+                          await ref
+                              .read(shiftNotifierProvider.notifier)
+                              .updateSaleInShift(
                                 widget.existingSale!.sale.id,
                                 widget.shiftId,
                                 _selectedProductId!,
@@ -597,7 +838,9 @@ class _AddFuelSheetState extends ConsumerState<_AddFuelSheet> {
                                 credit,
                               );
                         } else {
-                          await ref.read(shiftNotifierProvider.notifier).addSaleToShift(
+                          await ref
+                              .read(shiftNotifierProvider.notifier)
+                              .addSaleToShift(
                                 widget.shiftId,
                                 _selectedProductId!,
                                 double.tryParse(_openingController.text) ?? 0,
@@ -611,12 +854,19 @@ class _AddFuelSheetState extends ConsumerState<_AddFuelSheet> {
                         ref.invalidate(shiftSalesProvider(widget.shiftId));
                         if (context.mounted) Navigator.pop(context);
                       } catch (e) {
-                        if (context.mounted) context.showError(e, source: 'saveSale');
+                        if (context.mounted)
+                          context.showError(e, source: 'saveSale');
                       } finally {
                         if (mounted) setState(() => _isSubmitting = false);
                       }
                     },
-              child: _isSubmitting ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2)) : Text(_isEditing ? 'Update Entry' : 'Add Entry'),
+              child: _isSubmitting
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : Text(_isEditing ? 'Update Entry' : 'Add Entry'),
             ),
             const SizedBox(height: 16),
           ],

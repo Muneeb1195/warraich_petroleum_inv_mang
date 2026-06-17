@@ -12,9 +12,15 @@ final allExpensesProvider = StreamProvider<List<Expense>>((ref) {
   return ref.watch(expenseRepositoryProvider).watchAll();
 });
 
-final expenseSummaryProvider = FutureProvider.family<Map<String, double>, ({DateTime start, DateTime end})>((ref, dates) {
-  return ref.watch(expenseRepositoryProvider).getSummaryByCategory(dates.start, dates.end);
-});
+final expenseSummaryProvider =
+    FutureProvider.family<
+      Map<String, double>,
+      ({DateTime start, DateTime end})
+    >((ref, dates) {
+      return ref
+          .watch(expenseRepositoryProvider)
+          .getSummaryByCategory(dates.start, dates.end);
+    });
 
 class ExpenseNotifier extends StateNotifier<AsyncValue<void>> {
   final ExpenseRepository _repo;
@@ -22,41 +28,41 @@ class ExpenseNotifier extends StateNotifier<AsyncValue<void>> {
   ExpenseNotifier(this._repo) : super(const AsyncValue.data(null));
 
   Future<void> addExpense({
+    int? shiftId,
     required String category,
     required double amount,
     String? description,
     required DateTime date,
-    int? shiftId,
-    int? createdBy,
   }) async {
     state = await AsyncValue.guard(() async {
       await _repo.addExpense(
+        shiftId: shiftId,
         category: category,
         amount: amount,
         description: description,
         date: date,
-        shiftId: shiftId,
-        createdBy: createdBy,
       );
     });
   }
 
   Future<void> updateExpense({
     required int id,
+    int? shiftId,
     required String category,
     required double amount,
     String? description,
     required DateTime date,
-    int? shiftId,
   }) async {
-    state = await AsyncValue.guard(() => _repo.updateExpense(
-      id: id,
-      category: category,
-      amount: amount,
-      description: description,
-      date: date,
-      shiftId: shiftId,
-    ));
+    state = await AsyncValue.guard(
+      () => _repo.updateExpense(
+        id: id,
+        shiftId: shiftId,
+        category: category,
+        amount: amount,
+        description: description,
+        date: date,
+      ),
+    );
   }
 
   Future<void> deleteExpense(int id) async {
@@ -64,8 +70,7 @@ class ExpenseNotifier extends StateNotifier<AsyncValue<void>> {
   }
 }
 
-final expenseNotifierProvider = StateNotifierProvider<ExpenseNotifier, AsyncValue<void>>((ref) {
-  return ExpenseNotifier(
-    ref.watch(expenseRepositoryProvider),
-  );
-});
+final expenseNotifierProvider =
+    StateNotifierProvider<ExpenseNotifier, AsyncValue<void>>((ref) {
+      return ExpenseNotifier(ref.watch(expenseRepositoryProvider));
+    });

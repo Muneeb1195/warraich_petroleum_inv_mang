@@ -8,7 +8,6 @@ mixin _$ProductDaoMixin on DatabaseAccessor<AppDatabase> {
   $InventoryTable get inventory => attachedDatabase.inventory;
   $InventoryTransactionsTable get inventoryTransactions =>
       attachedDatabase.inventoryTransactions;
-  $EmployeesTable get employees => attachedDatabase.employees;
   $ShiftsTable get shifts => attachedDatabase.shifts;
   $ExpensesTable get expenses => attachedDatabase.expenses;
   ProductDaoManager get managers => ProductDaoManager(this);
@@ -26,8 +25,6 @@ class ProductDaoManager {
         _db.attachedDatabase,
         _db.inventoryTransactions,
       );
-  $$EmployeesTableTableManager get employees =>
-      $$EmployeesTableTableManager(_db.attachedDatabase, _db.employees);
   $$ShiftsTableTableManager get shifts =>
       $$ShiftsTableTableManager(_db.attachedDatabase, _db.shifts);
   $$ExpensesTableTableManager get expenses =>

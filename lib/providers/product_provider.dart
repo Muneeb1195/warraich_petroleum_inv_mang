@@ -26,16 +26,24 @@ class ProductNotifier extends StateNotifier<AsyncValue<void>> {
   ProductNotifier(this._repo) : super(const AsyncValue.data(null));
 
   Future<void> updatePrice(int productId, double price, double cost) async {
-    state = await AsyncValue.guard(() => _repo.updatePrice(productId, price, cost));
+    state = await AsyncValue.guard(
+      () => _repo.updatePrice(productId, price, cost),
+    );
   }
 
-  Future<void> addStock(int productId, double quantity, double cost, String? notes) async {
-    state = await AsyncValue.guard(() => _repo.addStock(productId, quantity, cost, notes));
+  Future<void> addStock(
+    int productId,
+    double quantity,
+    double cost,
+    String? notes,
+  ) async {
+    state = await AsyncValue.guard(
+      () => _repo.addStock(productId, quantity, cost, notes),
+    );
   }
 }
 
-final productNotifierProvider = StateNotifierProvider<ProductNotifier, AsyncValue<void>>((ref) {
-  return ProductNotifier(
-    ref.watch(productRepositoryProvider),
-  );
-});
+final productNotifierProvider =
+    StateNotifierProvider<ProductNotifier, AsyncValue<void>>((ref) {
+      return ProductNotifier(ref.watch(productRepositoryProvider));
+    });

@@ -18,22 +18,26 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     _OnboardingPage(
       icon: Icons.local_gas_station,
       title: kAppName,
-      description: 'Complete petrol pump management system. Track sales, manage inventory, handle expenses, and generate reports — all in one place.',
+      description:
+          'Complete petrol pump management system. Track sales, manage inventory, handle expenses, and generate reports — all in one place.',
     ),
     _OnboardingPage(
       icon: Icons.schedule,
       title: 'Shifts & Sales',
-      description: 'Manage morning and evening shifts. Record fuel sales with pump readings, track cash/card/credit payments, and view daily summaries.',
+      description:
+          'Manage morning and evening shifts. Record fuel sales with pump readings, track cash/card/credit payments, and view daily summaries.',
     ),
     _OnboardingPage(
       icon: Icons.receipt_long,
       title: 'Expenses & Inventory',
-      description: 'Log expenses by category, track stock levels for fuel and lubricants, set minimum stock alerts, and manage supplier payments.',
+      description:
+          'Log expenses by category, track stock levels for fuel and lubricants, set minimum stock alerts, and manage supplier payments.',
     ),
     _OnboardingPage(
       icon: Icons.people,
       title: 'Employees & Reports',
-      description: 'Manage staff, generate payroll, view sales history with date filters, and export PDF reports for accounting.',
+      description:
+          'Manage staff, generate payroll, view sales history with date filters, and export PDF reports for accounting.',
     ),
   ];
 
@@ -63,7 +67,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               child: PageView(
                 controller: _pageController,
                 onPageChanged: (i) => setState(() => _currentPage = i),
-                children: _pages.map((page) => _buildPage(context, page, colorScheme)).toList(),
+                children: _pages
+                    .map((page) => _buildPage(context, page, colorScheme))
+                    .toList(),
               ),
             ),
             _buildBottomBar(context, colorScheme),
@@ -73,7 +79,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  Widget _buildPage(BuildContext context, _OnboardingPage page, ColorScheme colorScheme) {
+  Widget _buildPage(
+    BuildContext context,
+    _OnboardingPage page,
+    ColorScheme colorScheme,
+  ) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 40),
       child: Column(
@@ -85,18 +95,26 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               color: colorScheme.primaryContainer,
               shape: BoxShape.circle,
             ),
-            child: Icon(page.icon, size: 64, color: colorScheme.onPrimaryContainer),
+            child: Icon(
+              page.icon,
+              size: 64,
+              color: colorScheme.onPrimaryContainer,
+            ),
           ),
           const SizedBox(height: 40),
           Text(
             page.title,
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+            style: Theme.of(
+              context,
+            ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
           Text(
             page.description,
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: colorScheme.onSurfaceVariant),
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
             textAlign: TextAlign.center,
           ),
         ],
@@ -119,7 +137,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 width: _currentPage == i ? 24 : 8,
                 height: 8,
                 decoration: BoxDecoration(
-                  color: _currentPage == i ? colorScheme.primary : colorScheme.surfaceContainerHighest,
+                  color: _currentPage == i
+                      ? colorScheme.primary
+                      : colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(4),
                 ),
               );
@@ -139,7 +159,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   _finish(context);
                 }
               },
-              child: Text(_currentPage < _pages.length - 1 ? 'Next' : 'Get Started'),
+              child: Text(
+                _currentPage < _pages.length - 1 ? 'Next' : 'Get Started',
+              ),
             ),
           ),
         ],
@@ -149,9 +171,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   void _finish(BuildContext context) {
     completeOnboarding();
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const _AppShell()),
-    );
+    Navigator.of(
+      context,
+    ).pushReplacement(MaterialPageRoute(builder: (_) => const HomeShell()));
   }
 }
 
@@ -159,13 +181,9 @@ class _OnboardingPage {
   final IconData icon;
   final String title;
   final String description;
-  const _OnboardingPage({required this.icon, required this.title, required this.description});
-}
-
-class _AppShell extends StatelessWidget {
-  const _AppShell();
-  @override
-  Widget build(BuildContext context) {
-    return const HomeShell();
-  }
+  const _OnboardingPage({
+    required this.icon,
+    required this.title,
+    required this.description,
+  });
 }

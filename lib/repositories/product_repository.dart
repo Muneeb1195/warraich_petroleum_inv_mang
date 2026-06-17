@@ -9,7 +9,12 @@ class ProductRepository {
     await _dao.updateProductPrice(productId, price, cost);
   }
 
-  Future<void> addStock(int productId, double quantity, double cost, String? notes) async {
+  Future<void> addStock(
+    int productId,
+    double quantity,
+    double cost,
+    String? notes,
+  ) async {
     await _dao.addStock(productId, quantity, cost, notes);
   }
 

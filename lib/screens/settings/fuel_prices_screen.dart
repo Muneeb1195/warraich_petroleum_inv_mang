@@ -13,7 +13,6 @@ class FuelPricesScreen extends ConsumerStatefulWidget {
 }
 
 class _FuelPricesScreenState extends ConsumerState<FuelPricesScreen> {
-
   @override
   Widget build(BuildContext context) {
     final allProducts = ref.watch(allProductsProvider);
@@ -30,12 +29,16 @@ class _FuelPricesScreenState extends ConsumerState<FuelPricesScreen> {
           if (isWide(context)) {
             return Center(
               child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 1000),
+                constraints: const BoxConstraints(maxWidth: kMaxContentWidth),
                 child: ListView.builder(
                   padding: const EdgeInsets.all(24),
                   itemCount: products.length,
                   itemBuilder: (context, index) {
-                    return _buildPriceCard(context, products[index], colorScheme);
+                    return _buildPriceCard(
+                      context,
+                      products[index],
+                      colorScheme,
+                    );
                   },
                 ),
               ),
@@ -56,7 +59,11 @@ class _FuelPricesScreenState extends ConsumerState<FuelPricesScreen> {
     );
   }
 
-  Widget _buildPriceCard(BuildContext context, dynamic product, ColorScheme colorScheme) {
+  Widget _buildPriceCard(
+    BuildContext context,
+    dynamic product,
+    ColorScheme colorScheme,
+  ) {
     return Card(
       child: ListTile(
         leading: CircleAvatar(
@@ -64,7 +71,9 @@ class _FuelPricesScreenState extends ConsumerState<FuelPricesScreen> {
               ? colorScheme.primaryContainer
               : colorScheme.tertiaryContainer,
           child: Icon(
-            product.category == 'fuel' ? Icons.local_gas_station : Icons.oil_barrel,
+            product.category == 'fuel'
+                ? Icons.local_gas_station
+                : Icons.oil_barrel,
             color: product.category == 'fuel'
                 ? colorScheme.onPrimaryContainer
                 : colorScheme.onTertiaryContainer,
@@ -127,31 +136,43 @@ class _FuelPricesScreenState extends ConsumerState<FuelPricesScreen> {
               final selling = double.tryParse(sellingController.text) ?? 0;
               final cost = double.tryParse(costController.text) ?? 0;
               if (selling <= 0) {
-                if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Selling price must be greater than 0')));
+                if (context.mounted)
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Selling price must be greater than 0'),
+                    ),
+                  );
                 return;
               }
               if (cost < 0) {
-                if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Cost price cannot be negative')));
+                if (context.mounted)
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Cost price cannot be negative'),
+                    ),
+                  );
                 return;
               }
               try {
-                await ref.read(productNotifierProvider.notifier).updatePrice(
-                      product.id,
-                      selling,
-                      cost,
-                    );
+                await ref
+                    .read(productNotifierProvider.notifier)
+                    .updatePrice(product.id, selling, cost);
                 if (context.mounted) {
                   Navigator.pop(context);
                   context.showSuccess('${product.name} prices updated');
                 }
               } catch (e) {
-                if (context.mounted) context.showError(e, source: 'updatePrice');
+                if (context.mounted)
+                  context.showError(e, source: 'updatePrice');
               }
             },
             child: const Text('Save'),
           ),
         ],
       ),
-    ).then((_) { sellingController.dispose(); costController.dispose(); });
+    ).then((_) {
+      sellingController.dispose();
+      costController.dispose();
+    });
   }
 }

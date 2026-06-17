@@ -3,143 +3,39 @@ import 'dart:developer' show log;
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
-import 'package:google_sign_in_all_platforms/google_sign_in_all_platforms.dart' as gsap;
-import 'package:google_sign_in/google_sign_in.dart' as gs;
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import '../config/app_config.dart';
+import 'auth_service.dart';
 
 class BackupService {
   static const _maxBackups = 5;
   static const _folderName = 'WarraichPetroleum';
   static const _httpTimeout = Duration(seconds: 60);
 
-  gsap.GoogleSignIn? _desktopSignIn;
-  gsap.GoogleSignInCredentials? _credentials;
-  gs.GoogleSignInAccount? _androidAccount;
-  bool _androidInitialized = false;
+  final AuthService _authService;
 
-  gsap.GoogleSignIn get _getDesktopSignIn =>
-      _desktopSignIn ??= gsap.GoogleSignIn(
-        params: gsap.GoogleSignInParams(
-          clientId: AppConfig.googleClientId,
-          clientSecret: AppConfig.googleClientSecret,
-          scopes: [
-            'https://www.googleapis.com/auth/drive.file',
-            'https://www.googleapis.com/auth/drive.appdata',
-          ],
-        ),
-      );
-
-  Future<void> _initAndroid() async {
-    if (!_androidInitialized) {
-      await gs.GoogleSignIn.instance.initialize(
-        serverClientId: AppConfig.googleClientId,
-      );
-      _androidInitialized = true;
-    }
-  }
-
-  Future<String?> _getAndroidToken() async {
-    if (_androidAccount == null) return null;
-    try {
-      final authz = await _androidAccount!.authorizationClient.authorizeScopes([
-        'https://www.googleapis.com/auth/drive.file',
-        'https://www.googleapis.com/auth/drive.appdata',
-      ]);
-      return authz.accessToken;
-    } catch (_) {
-      return null;
-    }
-  }
-
-  Future<gsap.GoogleSignInCredentials?> _refreshAccessToken() async {
-    if (_credentials?.refreshToken == null) return null;
-    try {
-      final res = await http.post(
-        Uri.https('oauth2.googleapis.com', '/token', {
-          'client_id': AppConfig.googleClientId,
-          'client_secret': AppConfig.googleClientSecret,
-          'refresh_token': _credentials!.refreshToken,
-          'grant_type': 'refresh_token',
-        }),
-      );
-      if (res.statusCode == 200) {
-        final data = jsonDecode(res.body) as Map<String, dynamic>;
-        _credentials = _credentials!.copyWith(
-          accessToken: data['access_token'] as String,
-          expiresIn: DateTime.now().add(Duration(seconds: data['expires_in'] as int)),
-        );
-        log('backup: token refreshed successfully');
-        return _credentials;
-      }
-      log('backup: token refresh failed: ${res.statusCode}');
-    } catch (e) {
-      log('backup: token refresh error: $e');
-    }
-    return null;
-  }
+  BackupService(this._authService);
 
   Future<Map<String, String>> _getHeaders() async {
     try {
-      if (Platform.isAndroid) {
-        await _initAndroid();
-        // Try lightweight sign-in first (uses Credential Manager, no UI)
-        final lightweightCreds = await _getDesktopSignIn.lightweightSignIn();
-        if (lightweightCreds != null) {
-          return {'Authorization': 'Bearer ${lightweightCreds.accessToken}', 'Content-Type': 'application/json'};
-        }
-        // No stored credentials, show account picker
-        final success = await signIn();
-        if (success) {
-          final token = await _getAndroidToken();
-          if (token != null) {
-            return {'Authorization': 'Bearer $token', 'Content-Type': 'application/json'};
-          }
-        }
-        log('backup: Android token retrieval failed');
-      } else {
-        _credentials ??= await _getDesktopSignIn.silentSignIn();
-        if (_credentials == null) {
-          // No stored credentials, show browser
-          _credentials = await _getDesktopSignIn.signIn();
-        } else if (_credentials!.expiresIn != null && _credentials!.expiresIn!.isBefore(DateTime.now())) {
-          // Access token expired, try refresh token
-          final refreshed = await _refreshAccessToken();
-          if (refreshed == null) {
-            _credentials = await _getDesktopSignIn.signIn();
-          }
-        }
-        if (_credentials != null) {
-          return {'Authorization': 'Bearer ${_credentials!.accessToken}', 'Content-Type': 'application/json'};
-        }
-      }
+      final token = await _authService.getDriveAccessToken();
+      if (token == null || token.isEmpty) return {};
+      return {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      };
     } catch (e) {
       log('backup: _getHeaders error: $e');
+      return {};
     }
-    return {};
   }
 
   Future<bool> signIn() async {
     if (!AppConfig.isGoogleDriveConfigured) return false;
     try {
-      if (Platform.isAndroid) {
-        await _initAndroid();
-        _androidAccount = await gs.GoogleSignIn.instance.authenticate(
-          scopeHint: [
-            'https://www.googleapis.com/auth/drive.file',
-            'https://www.googleapis.com/auth/drive.appdata',
-          ],
-        );
-        if (_androidAccount != null) {
-          final token = await _getAndroidToken();
-          return token != null;
-        }
-        return false;
-      } else {
-        _credentials = await _getDesktopSignIn.signIn();
-        return _credentials != null;
-      }
+      final credential = await _authService.signInWithGoogle();
+      return credential != null;
     } catch (e) {
       log('backup: signIn error: $e');
       return false;
@@ -147,18 +43,7 @@ class BackupService {
   }
 
   Future<void> signOut() async {
-    try {
-      if (Platform.isAndroid) {
-        await gs.GoogleSignIn.instance.signOut();
-        _androidAccount = null;
-      } else {
-        await _getDesktopSignIn.signOut();
-        _credentials = null;
-      }
-    } catch (_) {
-      _androidAccount = null;
-      _credentials = null;
-    }
+    await _authService.signOut();
   }
 
   Future<String?> _getFolderId() async {
@@ -166,10 +51,14 @@ class BackupService {
       final headers = await _getHeaders();
       if (headers.isEmpty) return null;
 
-      final response = await http.get(
-        Uri.parse('https://www.googleapis.com/drive/v3/files?q=name%3D%27$_folderName%27%20and%20mimeType%3D%27application%2Fvnd.google-apps.folder%27%20and%20trashed%3Dfalse'),
-        headers: headers,
-      ).timeout(_httpTimeout);
+      final response = await http
+          .get(
+            Uri.parse(
+              'https://www.googleapis.com/drive/v3/files?q=name%3D%27$_folderName%27%20and%20mimeType%3D%27application%2Fvnd.google-apps.folder%27%20and%20trashed%3Dfalse',
+            ),
+            headers: headers,
+          )
+          .timeout(_httpTimeout);
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -190,11 +79,13 @@ class BackupService {
         'mimeType': 'application/vnd.google-apps.folder',
       });
 
-      final response = await http.post(
-        Uri.parse('https://www.googleapis.com/drive/v3/files'),
-        headers: headers,
-        body: metadata,
-      ).timeout(_httpTimeout);
+      final response = await http
+          .post(
+            Uri.parse('https://www.googleapis.com/drive/v3/files'),
+            headers: headers,
+            body: metadata,
+          )
+          .timeout(_httpTimeout);
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -214,30 +105,31 @@ class BackupService {
       final folderId = await _getFolderId();
       if (folderId == null) return false;
 
-      final fileName = 'warraich_backup_${DateTime.now().millisecondsSinceEpoch}.db';
+      final fileName =
+          'warraich_backup_${DateTime.now().millisecondsSinceEpoch}.db';
 
       final request = http.MultipartRequest(
         'POST',
-        Uri.parse('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart'),
+        Uri.parse(
+          'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',
+        ),
       );
 
-      request.headers.addAll({
-        'Authorization': headers['Authorization']!,
-      });
+      request.headers.addAll({'Authorization': headers['Authorization']!});
 
       final metadata = jsonEncode({
         'name': fileName,
         'parents': [folderId],
       });
 
-      request.files.add(http.MultipartFile.fromString(
-        'metadata',
-        metadata,
-        contentType: MediaType('application', 'json'),
-      ));
       request.files.add(
-        await http.MultipartFile.fromPath('file', dbFile.path),
+        http.MultipartFile.fromString(
+          'metadata',
+          metadata,
+          contentType: MediaType('application', 'json'),
+        ),
       );
+      request.files.add(await http.MultipartFile.fromPath('file', dbFile.path));
 
       final streamedResponse = await request.send().timeout(_httpTimeout);
       final response = await http.Response.fromStream(streamedResponse);
@@ -252,22 +144,33 @@ class BackupService {
     }
   }
 
-  Future<void> _enforceMaxBackups(String folderId, Map<String, String> headers) async {
+  Future<void> _enforceMaxBackups(
+    String folderId,
+    Map<String, String> headers,
+  ) async {
     try {
-      final response = await http.get(
-        Uri.parse('https://www.googleapis.com/drive/v3/files?q=%27$folderId%27%20in%20parents%20and%20name%20contains%20%27warraich_backup_%27%20and%20trashed%3Dfalse&orderBy=createdTime%20desc'),
-        headers: headers,
-      ).timeout(_httpTimeout);
+      final response = await http
+          .get(
+            Uri.parse(
+              'https://www.googleapis.com/drive/v3/files?q=%27$folderId%27%20in%20parents%20and%20name%20contains%20%27warraich_backup_%27%20and%20trashed%3Dfalse&orderBy=createdTime%20desc',
+            ),
+            headers: headers,
+          )
+          .timeout(_httpTimeout);
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final files = data['files'] as List? ?? [];
         if (files.length > _maxBackups) {
           for (final file in files.sublist(_maxBackups)) {
-            await http.delete(
-              Uri.parse('https://www.googleapis.com/drive/v3/files/${file['id']}'),
-              headers: headers,
-            ).timeout(_httpTimeout);
+            await http
+                .delete(
+                  Uri.parse(
+                    'https://www.googleapis.com/drive/v3/files/${file['id']}',
+                  ),
+                  headers: headers,
+                )
+                .timeout(_httpTimeout);
           }
         }
       }
@@ -284,10 +187,14 @@ class BackupService {
       final folderId = await _getFolderId();
       if (folderId == null) return null;
 
-      final response = await http.get(
-        Uri.parse('https://www.googleapis.com/drive/v3/files?q=%27$folderId%27%20in%20parents%20and%20name%20contains%20%27warraich_backup_%27%20and%20trashed%3Dfalse&orderBy=createdTime%20desc&pageSize=1'),
-        headers: headers,
-      ).timeout(_httpTimeout);
+      final response = await http
+          .get(
+            Uri.parse(
+              'https://www.googleapis.com/drive/v3/files?q=%27$folderId%27%20in%20parents%20and%20name%20contains%20%27warraich_backup_%27%20and%20trashed%3Dfalse&orderBy=createdTime%20desc&pageSize=1',
+            ),
+            headers: headers,
+          )
+          .timeout(_httpTimeout);
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -295,14 +202,21 @@ class BackupService {
         if (files.isEmpty) return null;
 
         final fileId = files[0]['id'];
-        final downloadResponse = await http.get(
-          Uri.parse('https://www.googleapis.com/drive/v3/files/$fileId?alt=media'),
-          headers: headers,
-        ).timeout(_httpTimeout);
+        final downloadResponse = await http
+            .get(
+              Uri.parse(
+                'https://www.googleapis.com/drive/v3/files/$fileId?alt=media',
+              ),
+              headers: headers,
+            )
+            .timeout(_httpTimeout);
 
         if (downloadResponse.statusCode == 200) {
           final dir = await getApplicationDocumentsDirectory();
-          final tempPath = p.join(dir.path, 'restore_${DateTime.now().millisecondsSinceEpoch}.db');
+          final tempPath = p.join(
+            dir.path,
+            'restore_${DateTime.now().millisecondsSinceEpoch}.db',
+          );
           final file = File(tempPath);
           await file.writeAsBytes(downloadResponse.bodyBytes);
           return file;
@@ -322,19 +236,27 @@ class BackupService {
       final folderId = await _getFolderId();
       if (folderId == null) return [];
 
-      final response = await http.get(
-        Uri.parse('https://www.googleapis.com/drive/v3/files?q=%27$folderId%27%20in%20parents%20and%20name%20contains%20%27warraich_backup_%27%20and%20trashed%3Dfalse&orderBy=createdTime%20desc&fields=files(id,name,createdTime)'),
-        headers: headers,
-      ).timeout(_httpTimeout);
+      final response = await http
+          .get(
+            Uri.parse(
+              'https://www.googleapis.com/drive/v3/files?q=%27$folderId%27%20in%20parents%20and%20name%20contains%20%27warraich_backup_%27%20and%20trashed%3Dfalse&orderBy=createdTime%20desc&fields=files(id,name,createdTime)',
+            ),
+            headers: headers,
+          )
+          .timeout(_httpTimeout);
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final files = data['files'] as List? ?? [];
-        return files.map<Map<String, String>>((f) => {
-          'id': f['id'] as String,
-          'name': f['name'] as String,
-          'createdTime': f['createdTime'] as String,
-        }).toList();
+        return files
+            .map<Map<String, String>>(
+              (f) => {
+                'id': f['id'] as String,
+                'name': f['name'] as String,
+                'createdTime': f['createdTime'] as String,
+              },
+            )
+            .toList();
       }
       return [];
     } catch (e) {
@@ -350,18 +272,27 @@ class BackupService {
         return null;
       }
       log('backup: restoreFromId downloading $fileId...');
-      final downloadResponse = await http.get(
-        Uri.parse('https://www.googleapis.com/drive/v3/files/$fileId?alt=media'),
-        headers: headers,
-      ).timeout(_httpTimeout);
+      final downloadResponse = await http
+          .get(
+            Uri.parse(
+              'https://www.googleapis.com/drive/v3/files/$fileId?alt=media',
+            ),
+            headers: headers,
+          )
+          .timeout(_httpTimeout);
 
       log('backup: restoreFromId status=${downloadResponse.statusCode}');
       if (downloadResponse.statusCode == 200) {
         final dir = await getApplicationDocumentsDirectory();
-        final tempPath = p.join(dir.path, 'restore_${DateTime.now().millisecondsSinceEpoch}.db');
+        final tempPath = p.join(
+          dir.path,
+          'restore_${DateTime.now().millisecondsSinceEpoch}.db',
+        );
         final file = File(tempPath);
         await file.writeAsBytes(downloadResponse.bodyBytes);
-        log('backup: restoreFromId wrote ${downloadResponse.bodyBytes.length} bytes to temp');
+        log(
+          'backup: restoreFromId wrote ${downloadResponse.bodyBytes.length} bytes to temp',
+        );
         return file;
       }
       log('backup: restoreFromId HTTP ${downloadResponse.statusCode}');
@@ -380,17 +311,18 @@ class BackupService {
       final backupsDir = Directory(p.join(dir.path, _localBackupsDir));
       await backupsDir.create(recursive: true);
 
-      final fileName = 'warraich_backup_${DateTime.now().millisecondsSinceEpoch}.db';
+      final fileName =
+          'warraich_backup_${DateTime.now().millisecondsSinceEpoch}.db';
       final destPath = p.join(backupsDir.path, fileName);
       try {
         await dbFile.copy(destPath);
       } catch (_) {
-        // Clean up partial file on failure
-        try { await File(destPath).delete(); } catch (_) {}
+        try {
+          await File(destPath).delete();
+        } catch (_) {}
         return false;
       }
 
-      // Enforce max 5 local backups
       final files = backupsDir.listSync().whereType<File>().toList()
         ..sort((a, b) => b.path.compareTo(a.path));
       for (final f in files.skip(_maxBackups)) {
@@ -413,7 +345,10 @@ class BackupService {
       if (files.isEmpty) return null;
 
       final latest = files.first;
-      final tempPath = p.join(dir.path, 'restore_${DateTime.now().millisecondsSinceEpoch}.db');
+      final tempPath = p.join(
+        dir.path,
+        'restore_${DateTime.now().millisecondsSinceEpoch}.db',
+      );
       await latest.copy(tempPath);
       return File(tempPath);
     } catch (e) {

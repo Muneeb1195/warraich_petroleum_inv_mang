@@ -7,7 +7,9 @@ import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import '../../providers/backup_provider.dart';
+import '../../providers/firebase_auth_provider.dart';
 import '../../config/app_config.dart';
+import '../../utils/constants.dart';
 import '../../utils/error_utils.dart';
 import '../../utils/responsive.dart';
 
@@ -20,9 +22,7 @@ class BackupScreen extends ConsumerStatefulWidget {
 
 class _BackupScreenState extends ConsumerState<BackupScreen> {
   static const _autoBackupKey = 'auto_backup_enabled';
-  static const _signedInKey = 'google_signed_in';
   bool _autoBackup = true;
-  bool _isSignedIn = false;
   String _backupPath = '';
 
   @override
@@ -34,13 +34,11 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
   Future<void> _loadSettings() async {
     const storage = FlutterSecureStorage();
     final autoBackup = await storage.read(key: _autoBackupKey);
-    final signedIn = await storage.read(key: _signedInKey);
     final dir = await getApplicationDocumentsDirectory();
     if (!mounted) return;
     setState(() {
       _autoBackup = autoBackup != 'false';
-      _isSignedIn = signedIn == 'true';
-      _backupPath = p.join(dir.path, 'backups');
+      _backupPath = dir.path;
     });
   }
 
@@ -54,6 +52,9 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
   Widget build(BuildContext context) {
     final backupState = ref.watch(backupNotifierProvider);
     final colorScheme = Theme.of(context).colorScheme;
+    final firebaseUser = ref.watch(firebaseAuthUserProvider);
+    final isSignedIn = firebaseUser.hasValue && firebaseUser.value != null;
+    final user = firebaseUser.hasValue ? firebaseUser.value : null;
 
     final body = ListView(
       padding: const EdgeInsets.all(16),
@@ -67,17 +68,33 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
                 title: const Text('Local Backup'),
                 subtitle: const Text('Save database to device storage'),
                 trailing: backupState.isLoading
-                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
                     : const Icon(Icons.chevron_right),
                 onTap: backupState.isLoading
                     ? null
                     : () async {
                         try {
                           final dir = await getApplicationDocumentsDirectory();
-                          final dbFile = File(p.join(dir.path, 'warraich_petroleum.db'));
-                          final success = await ref.read(backupNotifierProvider.notifier).localBackup(dbFile);
+                          final dbFile = File(
+                            p.join(dir.path, kDbFileName),
+                          );
+                          final success = await ref
+                              .read(backupNotifierProvider.notifier)
+                              .localBackup(dbFile);
                           if (!context.mounted) return;
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(success ? 'Backup saved locally' : 'Backup failed')));
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                success
+                                    ? 'Backup saved locally'
+                                    : 'Backup failed',
+                              ),
+                            ),
+                          );
                         } catch (e) {
                           if (context.mounted) {
                             context.showError(e, source: 'backup');
@@ -88,15 +105,25 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
               if (_backupPath.isNotEmpty) ...[
                 const Divider(height: 1),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                   child: Row(
                     children: [
-                      Icon(Icons.folder_outlined, size: 16, color: colorScheme.onSurfaceVariant),
+                      Icon(
+                        Icons.folder_outlined,
+                        size: 16,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           _backupPath,
-                          style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant),
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -110,25 +137,45 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
                 title: const Text('Local Restore'),
                 subtitle: const Text('Restore from a local backup'),
                 trailing: backupState.isLoading
-                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
                     : const Icon(Icons.chevron_right),
                 onTap: backupState.isLoading
                     ? null
                     : () async {
                         try {
-                          final restored = await ref.read(backupNotifierProvider.notifier).localRestore();
+                          final restored = await ref
+                              .read(backupNotifierProvider.notifier)
+                              .localRestore();
                           if (!context.mounted) return;
                           if (restored) {
                             showDialog(
                               context: context,
                               builder: (ctx) => AlertDialog(
                                 title: const Text('Restore Complete'),
-                                content: const Text('Database restored from local backup. Please restart the app.'),
-                                actions: [FilledButton(onPressed: () { Navigator.pop(ctx); Navigator.pop(context); }, child: const Text('OK'))],
+                                content: const Text(
+                                  'Database restored from local backup. Please restart the app.',
+                                ),
+                                actions: [
+                                  FilledButton(
+                                    onPressed: () {
+                                      Navigator.pop(ctx);
+                                      Navigator.pop(context);
+                                    },
+                                    child: const Text('OK'),
+                                  ),
+                                ],
                               ),
                             );
                           } else {
-                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No local backup found')));
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('No local backup found'),
+                              ),
+                            );
                           }
                         } catch (e) {
                           if (context.mounted) {
@@ -142,83 +189,139 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
         ),
         const SizedBox(height: 16),
         if (AppConfig.isGoogleDriveConfigured)
-        Card(
-          child: Column(
-            children: [
-              ListTile(
-                leading: Icon(Icons.cloud, color: _isSignedIn ? colorScheme.primary : colorScheme.onSurfaceVariant),
-                title: Text(_isSignedIn ? 'Signed in to Google' : 'Google Drive'),
-                subtitle: Text(_isSignedIn ? 'Connected to Google Drive' : 'Sign in to enable cloud backup'),
-                trailing: Switch(value: _isSignedIn, onChanged: null),
-                onTap: () async {
-                  try {
-                    const storage = FlutterSecureStorage();
-                    if (_isSignedIn) {
-                      await ref.read(backupNotifierProvider.notifier).signOut();
-                      await storage.write(key: _signedInKey, value: 'false');
-                      if (mounted) setState(() => _isSignedIn = false);
-                    } else {
-                      final success = await ref.read(backupNotifierProvider.notifier).signIn();
-                      if (success) {
-                        await storage.write(key: _signedInKey, value: 'true');
-                        if (mounted) setState(() => _isSignedIn = true);
+          Card(
+            child: Column(
+              children: [
+                if (isSignedIn && user != null) ...[
+                  ListTile(
+                    leading: CircleAvatar(
+                      backgroundImage: user.photoURL != null
+                          ? NetworkImage(user.photoURL!)
+                          : null,
+                      child: user.photoURL == null
+                          ? Text(
+                              (user.displayName ?? user.email ?? '?')[0]
+                                  .toUpperCase(),
+                            )
+                          : null,
+                    ),
+                    title: Text(user.displayName ?? user.email ?? 'Signed in'),
+                    subtitle: Text(user.email ?? ''),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.logout),
+                      onPressed: () async {
+                        await ref
+                            .read(firebaseSignInProvider.notifier)
+                            .signOut();
+                      },
+                    ),
+                  ),
+                ] else ...[
+                  ListTile(
+                    leading: Icon(
+                      Icons.cloud,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                    title: const Text('Google Drive'),
+                    subtitle: const Text('Sign in to enable cloud backup'),
+                    trailing: const Icon(Icons.login),
+                    onTap: () async {
+                      try {
+                        await ref
+                            .read(firebaseSignInProvider.notifier)
+                            .signInWithGoogle();
+                      } catch (e) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(
+                            context,
+                          ).showSnackBar(SnackBar(content: Text('Failed: $e')));
+                        }
                       }
-                    }
-                  } catch (e) {
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
-                    }
-                  }
-                },
-              ),
-              if (_isSignedIn) ...[
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.cloud_upload),
-                  title: const Text('Cloud Backup'),
-                  subtitle: const Text('Backup to Google Drive'),
-                  trailing: backupState.isLoading ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.chevron_right),
-                  onTap: backupState.isLoading ? null : () async {
-                    try {
-                      final dir = await getApplicationDocumentsDirectory();
-                      final dbFile = File(p.join(dir.path, 'warraich_petroleum.db'));
-                      final success = await ref.read(backupNotifierProvider.notifier).backupDatabase(dbFile);
-                      if (!context.mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(success ? 'Backup completed' : 'Backup failed')));
-                    } catch (e) {
-                      if (context.mounted) {
-                        context.showError(e, source: 'backup');
-                      }
-                    }
-                  },
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.cloud_download),
-                  title: const Text('Cloud Restore'),
-                  subtitle: const Text('Restore from Google Drive'),
-                  trailing: backupState.isLoading ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.chevron_right),
-                  onTap: backupState.isLoading ? null : () => _showCloudRestoreDialog(context),
-                ),
-                const Divider(height: 1),
-                SwitchListTile(
-                  secondary: const Icon(Icons.sync),
-                  title: const Text('Auto Backup'),
-                  subtitle: const Text('Daily automatic backup'),
-                  value: _autoBackup,
-                  onChanged: (value) => _saveAutoBackupSetting(value),
-                ),
+                    },
+                  ),
+                ],
+                if (isSignedIn) ...[
+                  const Divider(height: 1),
+                  ListTile(
+                    leading: const Icon(Icons.cloud_upload),
+                    title: const Text('Cloud Backup'),
+                    subtitle: const Text('Backup to Google Drive'),
+                    trailing: backupState.isLoading
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.chevron_right),
+                    onTap: backupState.isLoading
+                        ? null
+                        : () async {
+                            try {
+                              final dir =
+                                  await getApplicationDocumentsDirectory();
+                              final dbFile = File(
+                                p.join(dir.path, kDbFileName),
+                              );
+                              final success = await ref
+                                  .read(backupNotifierProvider.notifier)
+                                  .backupDatabase(dbFile);
+                              if (!context.mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    success
+                                        ? 'Backup completed'
+                                        : 'Backup failed',
+                                  ),
+                                ),
+                              );
+                            } catch (e) {
+                              if (context.mounted) {
+                                context.showError(e, source: 'backup');
+                              }
+                            }
+                          },
+                  ),
+                  const Divider(height: 1),
+                  ListTile(
+                    leading: const Icon(Icons.cloud_download),
+                    title: const Text('Cloud Restore'),
+                    subtitle: const Text('Restore from Google Drive'),
+                    trailing: backupState.isLoading
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.chevron_right),
+                    onTap: backupState.isLoading
+                        ? null
+                        : () => _showCloudRestoreDialog(context),
+                  ),
+                  const Divider(height: 1),
+                  SwitchListTile(
+                    secondary: const Icon(Icons.sync),
+                    title: const Text('Auto Backup'),
+                    subtitle: const Text('Daily automatic backup'),
+                    value: _autoBackup,
+                    onChanged: (value) => _saveAutoBackupSetting(value),
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
-        ),
       ],
     );
 
     return Scaffold(
       appBar: AppBar(title: const Text('Backup & Restore')),
       body: isWide(context)
-          ? Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 1000), child: body))
+          ? Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: kMaxContentWidth),
+                child: body,
+              ),
+            )
           : body,
     );
   }
@@ -228,7 +331,9 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
     List<Map<String, String>> backups;
     try {
       log('backup_ui: listing cloud backups...');
-      backups = await ref.read(backupNotifierProvider.notifier).listCloudBackups();
+      backups = await ref
+          .read(backupNotifierProvider.notifier)
+          .listCloudBackups();
       log('backup_ui: found ${backups.length} backups');
     } catch (e) {
       if (context.mounted) context.showError(e, source: 'listCloudBackups');
@@ -237,7 +342,9 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
     if (!context.mounted) return;
 
     if (backups.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No backups found on Google Drive')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No backups found on Google Drive')),
+      );
       return;
     }
 
@@ -264,34 +371,66 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
 
               return ListTile(
                 leading: CircleAvatar(
-                  backgroundColor: isLatest ? colorScheme.primaryContainer : colorScheme.surfaceContainerHighest,
-                  child: Icon(Icons.cloud_download, color: isLatest ? colorScheme.primary : colorScheme.onSurfaceVariant, size: 20),
+                  backgroundColor: isLatest
+                      ? colorScheme.primaryContainer
+                      : colorScheme.surfaceContainerHighest,
+                  child: Icon(
+                    Icons.cloud_download,
+                    color: isLatest
+                        ? colorScheme.primary
+                        : colorScheme.onSurfaceVariant,
+                    size: 20,
+                  ),
                 ),
                 title: Row(
                   children: [
                     Expanded(
                       child: Text(
-                        DateFormat('MMM d, yyyy • h:mm a').format(date ?? DateTime.now()),
-                        style: TextStyle(fontWeight: isLatest ? FontWeight.bold : FontWeight.normal),
+                        DateFormat(
+                          'MMM d, yyyy • h:mm a',
+                        ).format(date ?? DateTime.now()),
+                        style: TextStyle(
+                          fontWeight: isLatest
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                        ),
                       ),
                     ),
                     if (isLatest)
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
                           color: colorScheme.primary,
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: Text('Latest', style: TextStyle(fontSize: 11, color: colorScheme.onPrimary, fontWeight: FontWeight.w600)),
+                        child: Text(
+                          'Latest',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: colorScheme.onPrimary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
                   ],
                 ),
-                subtitle: Text(name, style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant)),
+                subtitle: Text(
+                  name,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
                 onTap: () async {
                   Navigator.pop(ctx);
                   log('backup_ui: restoring cloud backup ${backup['id']}...');
                   try {
-                    final restored = await ref.read(backupNotifierProvider.notifier).restoreCloudBackup(backup['id'] ?? '');
+                    final restored = await ref
+                        .read(backupNotifierProvider.notifier)
+                        .restoreCloudBackup(backup['id'] ?? '');
                     log('backup_ui: restore result=$restored');
                     if (!context.mounted) return;
                     if (restored) {
@@ -299,12 +438,28 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
                         context: context,
                         builder: (ctx2) => AlertDialog(
                           title: const Text('Restore Complete'),
-                          content: const Text('Database restored from cloud backup. Please restart the app.'),
-                          actions: [FilledButton(onPressed: () { Navigator.pop(ctx2); Navigator.pop(context); }, child: const Text('OK'))],
+                          content: const Text(
+                            'Database restored from cloud backup. Please restart the app.',
+                          ),
+                          actions: [
+                            FilledButton(
+                              onPressed: () {
+                                Navigator.pop(ctx2);
+                                Navigator.pop(context);
+                              },
+                              child: const Text('OK'),
+                            ),
+                          ],
                         ),
                       );
                     } else {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Restore failed — check error log in Settings')));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'Restore failed — check error log in Settings',
+                          ),
+                        ),
+                      );
                     }
                   } catch (e) {
                     log('backup_ui: restore exception: $e');
@@ -318,7 +473,10 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
         ],
       ),
     );

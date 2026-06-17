@@ -64,17 +64,14 @@ void main() {
       await backup.into(backup.employees).insert(
         EmployeesCompanion.insert(name: 'Ali', role: 'Operator'),
       );
-      final ahmedBackupId = await backup.into(backup.employees).insert(
+      await backup.into(backup.employees).insert(
         EmployeesCompanion.insert(name: 'Ahmed', role: 'Manager'),
       );
 
-      // Backup DB: Shift closedBy=ahmedBackupId
-      final shiftBackupId = await backup.into(backup.shifts).insert(
+      // Backup DB: Shift with a sale
+      await backup.into(backup.shifts).insert(
         ShiftsCompanion.insert(type: 'morning', startDate: DateTime(2024, 1, 1)),
       );
-      await (backup.update(backup.shifts)
-            ..where((s) => s.id.equals(shiftBackupId)))
-          .write(ShiftsCompanion(closedBy: Value(ahmedBackupId)));
 
       await MergeService.mergeDatabases(current, backup);
 
@@ -84,10 +81,9 @@ void main() {
       final ahmed = employees.firstWhere((e) => e.name == 'Ahmed');
       expect(ahmed.role, 'Manager');
 
-      // Shift should reference Ahmed's new id
+      // Shift should be merged
       final shifts = await current.select(current.shifts).get();
       expect(shifts.length, 1);
-      expect(shifts.first.closedBy, ahmed.id);
 
       await current.close();
       await backup.close();
@@ -125,19 +121,19 @@ void main() {
       await current.into(current.expenses).insert(ExpensesCompanion.insert(
         category: 'Electricity',
         amount: 5000,
-        date: date,
+        date: Value(date),
       ));
       await backup.into(backup.expenses).insert(ExpensesCompanion.insert(
         category: 'Electricity',
         amount: 5000,
-        date: date,
+        date: Value(date),
       ));
 
       // Backup has different expense
       await backup.into(backup.expenses).insert(ExpensesCompanion.insert(
         category: 'Maintenance',
         amount: 2000,
-        date: date,
+        date: Value(date),
       ));
 
       await MergeService.mergeDatabases(current, backup);

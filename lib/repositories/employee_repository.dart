@@ -13,13 +13,15 @@ class EmployeeRepository {
     String defaultShift = 'both',
     double salary = 0,
   }) async {
-    return _dao.addEmployee(EmployeesCompanion.insert(
-      name: name,
-      phone: Value(phone),
-      role: role,
-      defaultShift: Value(defaultShift),
-      salary: Value(salary),
-    ));
+    return _dao.addEmployee(
+      EmployeesCompanion.insert(
+        name: name,
+        phone: Value(phone),
+        role: role,
+        defaultShift: Value(defaultShift),
+        salary: Value(salary),
+      ),
+    );
   }
 
   Future<void> updateEmployee(int id, EmployeesCompanion data) async {

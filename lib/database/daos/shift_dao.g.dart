@@ -4,13 +4,13 @@ part of 'shift_dao.dart';
 
 // ignore_for_file: type=lint
 mixin _$ShiftDaoMixin on DatabaseAccessor<AppDatabase> {
-  $EmployeesTable get employees => attachedDatabase.employees;
   $ShiftsTable get shifts => attachedDatabase.shifts;
   $ProductsTable get products => attachedDatabase.products;
   $ShiftSalesTable get shiftSales => attachedDatabase.shiftSales;
   $InventoryTable get inventory => attachedDatabase.inventory;
   $InventoryTransactionsTable get inventoryTransactions =>
       attachedDatabase.inventoryTransactions;
+  $EmployeesTable get employees => attachedDatabase.employees;
   $ExpensesTable get expenses => attachedDatabase.expenses;
   ShiftDaoManager get managers => ShiftDaoManager(this);
 }
@@ -18,8 +18,6 @@ mixin _$ShiftDaoMixin on DatabaseAccessor<AppDatabase> {
 class ShiftDaoManager {
   final _$ShiftDaoMixin _db;
   ShiftDaoManager(this._db);
-  $$EmployeesTableTableManager get employees =>
-      $$EmployeesTableTableManager(_db.attachedDatabase, _db.employees);
   $$ShiftsTableTableManager get shifts =>
       $$ShiftsTableTableManager(_db.attachedDatabase, _db.shifts);
   $$ProductsTableTableManager get products =>
@@ -33,6 +31,8 @@ class ShiftDaoManager {
         _db.attachedDatabase,
         _db.inventoryTransactions,
       );
+  $$EmployeesTableTableManager get employees =>
+      $$EmployeesTableTableManager(_db.attachedDatabase, _db.employees);
   $$ExpensesTableTableManager get expenses =>
       $$ExpensesTableTableManager(_db.attachedDatabase, _db.expenses);
 }

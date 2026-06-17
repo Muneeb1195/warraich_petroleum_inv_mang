@@ -5,10 +5,12 @@ import '../tables/tables.dart';
 part 'employee_dao.g.dart';
 
 @DriftAccessor(tables: [Employees])
-class EmployeeDao extends DatabaseAccessor<AppDatabase> with _$EmployeeDaoMixin {
+class EmployeeDao extends DatabaseAccessor<AppDatabase>
+    with _$EmployeeDaoMixin {
   EmployeeDao(super.db);
 
-  Future<int> addEmployee(EmployeesCompanion employee) => into(employees).insert(employee);
+  Future<int> addEmployee(EmployeesCompanion employee) =>
+      into(employees).insert(employee);
 
   Future<Employee?> getEmployeeById(int id) async {
     return (select(employees)..where((e) => e.id.equals(id))).getSingleOrNull();

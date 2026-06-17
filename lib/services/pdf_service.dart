@@ -36,12 +36,16 @@ class PdfService {
             context: context,
             headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
             headers: ['Product', 'Quantity', 'Rate', 'Amount'],
-            data: salesData.map((row) => [
-              row['product'] ?? '',
-              '${row['quantity'] ?? 0}',
-              '${row['rate'] ?? 0}',
-              '${row['amount'] ?? 0}',
-            ]).toList(),
+            data: salesData
+                .map(
+                  (row) => [
+                    row['product'] ?? '',
+                    '${row['quantity'] ?? 0}',
+                    '${row['rate'] ?? 0}',
+                    '${row['amount'] ?? 0}',
+                  ],
+                )
+                .toList(),
           ),
           pw.SizedBox(height: 20),
           pw.Divider(),
@@ -65,11 +69,17 @@ class PdfService {
             children: [
               pw.Text(
                 'Net Profit:',
-                style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14),
+                style: pw.TextStyle(
+                  fontWeight: pw.FontWeight.bold,
+                  fontSize: 14,
+                ),
               ),
               pw.Text(
                 '$kCurrency ${profit.toStringAsFixed(2)}',
-                style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14),
+                style: pw.TextStyle(
+                  fontWeight: pw.FontWeight.bold,
+                  fontSize: 14,
+                ),
               ),
             ],
           ),
@@ -101,10 +111,7 @@ class PdfService {
               style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold),
             ),
           ),
-          pw.Header(
-            level: 1,
-            child: pw.Text('Monthly Report - $monthName'),
-          ),
+          pw.Header(level: 1, child: pw.Text('Monthly Report - $monthName')),
           pw.SizedBox(height: 20),
           pw.Header(level: 2, child: pw.Text('Sales Summary')),
           pw.Row(
@@ -120,10 +127,14 @@ class PdfService {
             context: context,
             headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
             headers: ['Category', 'Amount'],
-            data: expenseSummary.entries.map((e) => [
-              e.key.toUpperCase(),
-              '$kCurrency ${e.value.toStringAsFixed(2)}',
-            ]).toList(),
+            data: expenseSummary.entries
+                .map(
+                  (e) => [
+                    e.key.toUpperCase(),
+                    '$kCurrency ${e.value.toStringAsFixed(2)}',
+                  ],
+                )
+                .toList(),
           ),
           pw.SizedBox(height: 10),
           pw.Divider(),
@@ -139,11 +150,17 @@ class PdfService {
             children: [
               pw.Text(
                 'Net Profit:',
-                style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14),
+                style: pw.TextStyle(
+                  fontWeight: pw.FontWeight.bold,
+                  fontSize: 14,
+                ),
               ),
               pw.Text(
                 '$kCurrency ${(totalSales - totalExpenses).toStringAsFixed(2)}',
-                style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14),
+                style: pw.TextStyle(
+                  fontWeight: pw.FontWeight.bold,
+                  fontSize: 14,
+                ),
               ),
             ],
           ),

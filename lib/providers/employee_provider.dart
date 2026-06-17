@@ -44,8 +44,7 @@ class EmployeeNotifier extends StateNotifier<AsyncValue<void>> {
   }
 }
 
-final employeeNotifierProvider = StateNotifierProvider<EmployeeNotifier, AsyncValue<void>>((ref) {
-  return EmployeeNotifier(
-    ref.watch(employeeRepositoryProvider),
-  );
-});
+final employeeNotifierProvider =
+    StateNotifierProvider<EmployeeNotifier, AsyncValue<void>>((ref) {
+      return EmployeeNotifier(ref.watch(employeeRepositoryProvider));
+    });

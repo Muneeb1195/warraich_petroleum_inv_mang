@@ -7,38 +7,41 @@ class ExpenseRepository {
   ExpenseRepository(this._dao);
 
   Future<int> addExpense({
+    int? shiftId,
     required String category,
     required double amount,
     String? description,
     required DateTime date,
-    int? shiftId,
-    int? createdBy,
   }) async {
-    return _dao.addExpense(ExpensesCompanion.insert(
-      category: category,
-      amount: amount,
-      description: Value(description),
-      date: date,
-      shiftId: Value(shiftId),
-      createdBy: Value(createdBy),
-    ));
+    return _dao.addExpense(
+      ExpensesCompanion.insert(
+        shiftId: Value(shiftId),
+        category: category,
+        amount: amount,
+        description: Value(description),
+        date: Value(date),
+      ),
+    );
   }
 
   Future<void> updateExpense({
     required int id,
+    int? shiftId,
     required String category,
     required double amount,
     String? description,
     required DateTime date,
-    int? shiftId,
   }) async {
-    await _dao.updateExpense(id, ExpensesCompanion(
-      category: Value(category),
-      amount: Value(amount),
-      description: Value(description),
-      date: Value(date),
-      shiftId: Value(shiftId),
-    ));
+    await _dao.updateExpense(
+      id,
+      ExpensesCompanion(
+        shiftId: Value(shiftId),
+        category: Value(category),
+        amount: Value(amount),
+        description: Value(description),
+        date: Value(date),
+      ),
+    );
   }
 
   Future<void> deleteExpense(int id) async {
@@ -49,6 +52,8 @@ class ExpenseRepository {
 
   Stream<List<Expense>> watchAll() => _dao.watchAllExpenses();
 
-  Future<Map<String, double>> getSummaryByCategory(DateTime start, DateTime end) =>
-      _dao.getExpenseSummaryByCategory(start, end);
+  Future<Map<String, double>> getSummaryByCategory(
+    DateTime start,
+    DateTime end,
+  ) => _dao.getExpenseSummaryByCategory(start, end);
 }

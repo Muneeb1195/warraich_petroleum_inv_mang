@@ -78,7 +78,7 @@ void main() {
         creditCollected: const Value(0),
       ));
 
-      await db.shiftDao.closeShift(shiftId, null, 12500, 0);
+      await db.shiftDao.closeShift(shiftId, 12500, 0);
 
       final closed = await db.shiftDao.getShiftById(shiftId);
       expect(closed, isNotNull);
@@ -107,12 +107,12 @@ void main() {
       await db.into(db.expenses).insert(ExpensesCompanion.insert(
         category: 'Electricity',
         amount: 5000,
-        date: DateTime.now(),
+        date: Value(DateTime.now()),
       ));
       await db.into(db.expenses).insert(ExpensesCompanion.insert(
         category: 'Transport',
         amount: 2000,
-        date: DateTime.now(),
+        date: Value(DateTime.now()),
       ));
 
       final all = await db.select(db.expenses).get();
@@ -180,7 +180,7 @@ void main() {
         cardCollected: const Value(0),
         creditCollected: const Value(0),
       ));
-      await db.shiftDao.closeShift(shiftId, null, 25000, 0);
+      await db.shiftDao.closeShift(shiftId, 25000, 0);
 
       final summary = await db.shiftDao.getTodaySummary();
       expect(summary['sales'], 25000.0);

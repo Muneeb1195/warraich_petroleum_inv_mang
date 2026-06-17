@@ -5,8 +5,10 @@ import 'theme/app_theme.dart';
 import 'utils/constants.dart';
 import 'providers/auth_provider.dart';
 import 'providers/backup_provider.dart';
+import 'providers/firebase_auth_provider.dart';
 import 'providers/onboarding_provider.dart';
 import 'providers/theme_provider.dart';
+import 'screens/auth/sign_in_screen.dart';
 import 'screens/lock_screen.dart';
 import 'screens/home_shell.dart';
 import 'screens/onboarding/onboarding_screen.dart';
@@ -15,10 +17,12 @@ class WarraichPetroleumApp extends ConsumerStatefulWidget {
   const WarraichPetroleumApp({super.key});
 
   @override
-  ConsumerState<WarraichPetroleumApp> createState() => _WarraichPetroleumAppState();
+  ConsumerState<WarraichPetroleumApp> createState() =>
+      _WarraichPetroleumAppState();
 }
 
-class _WarraichPetroleumAppState extends ConsumerState<WarraichPetroleumApp> with WidgetsBindingObserver {
+class _WarraichPetroleumAppState extends ConsumerState<WarraichPetroleumApp>
+    with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
@@ -37,7 +41,8 @@ class _WarraichPetroleumAppState extends ConsumerState<WarraichPetroleumApp> wit
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.inactive || state == AppLifecycleState.paused) {
+    if (state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.paused) {
       ref.read(authStateProvider.notifier).lock();
     }
   }
@@ -47,6 +52,7 @@ class _WarraichPetroleumAppState extends ConsumerState<WarraichPetroleumApp> wit
     final authState = ref.watch(authStateProvider);
     final themeMode = ref.watch(themeModeProvider);
     final onboarding = ref.watch(onboardingProvider);
+    final firebaseUser = ref.watch(firebaseAuthUserProvider);
 
     return DynamicColorBuilder(
       builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) {
@@ -59,12 +65,23 @@ class _WarraichPetroleumAppState extends ConsumerState<WarraichPetroleumApp> wit
           home: onboarding.when(
             data: (completed) {
               if (!completed) return const OnboardingScreen();
-              return authState.isLocked ? const LockScreen() : const HomeShell();
+
+              return firebaseUser.when(
+                data: (user) {
+                  if (user == null) return const SignInScreen();
+                  if (authState.isLocked) return const LockScreen();
+                  return const HomeShell();
+                },
+                loading: () => const Scaffold(
+                  body: Center(child: CircularProgressIndicator()),
+                ),
+                error: (_, _) => const SignInScreen(),
+              );
             },
             loading: () => const Scaffold(
               body: Center(child: CircularProgressIndicator()),
             ),
-            error: (_, _) => authState.isLocked ? const LockScreen() : const HomeShell(),
+            error: (_, _) => const HomeShell(),
           ),
         );
       },

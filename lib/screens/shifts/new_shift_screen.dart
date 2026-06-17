@@ -31,15 +31,29 @@ class _NewShiftScreenState extends ConsumerState<NewShiftScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Shift Type', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                  Text(
+                    'Shift Type',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   const SizedBox(height: 16),
                   SegmentedButton<String>(
                     segments: const [
-                      ButtonSegment(value: 'morning', label: Text('Morning'), icon: Icon(Icons.wb_sunny)),
-                      ButtonSegment(value: 'evening', label: Text('Evening'), icon: Icon(Icons.nightlight_round)),
+                      ButtonSegment(
+                        value: 'morning',
+                        label: Text('Morning'),
+                        icon: Icon(Icons.wb_sunny),
+                      ),
+                      ButtonSegment(
+                        value: 'evening',
+                        label: Text('Evening'),
+                        icon: Icon(Icons.nightlight_round),
+                      ),
                     ],
                     selected: {_selectedType},
-                    onSelectionChanged: (selected) => setState(() => _selectedType = selected.first),
+                    onSelectionChanged: (selected) =>
+                        setState(() => _selectedType = selected.first),
                   ),
                 ],
               ),
@@ -52,16 +66,29 @@ class _NewShiftScreenState extends ConsumerState<NewShiftScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Date & Time', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                  Text(
+                    'Date & Time',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   const SizedBox(height: 12),
                   ListTile(
                     contentPadding: EdgeInsets.zero,
                     leading: const Icon(Icons.calendar_today),
-                    title: Text(DateFormat('EEEE, dd MMMM yyyy').format(_selectedDate)),
+                    title: Text(
+                      DateFormat('EEEE, dd MMMM yyyy').format(_selectedDate),
+                    ),
                     trailing: const Icon(Icons.edit_calendar),
                     onTap: () async {
-                      final date = await showDatePicker(context: context, initialDate: _selectedDate, firstDate: DateTime(2020), lastDate: DateTime.now());
-                      if (date != null && context.mounted) setState(() => _selectedDate = date);
+                      final date = await showDatePicker(
+                        context: context,
+                        initialDate: _selectedDate,
+                        firstDate: DateTime(2020),
+                        lastDate: DateTime.now(),
+                      );
+                      if (date != null && context.mounted)
+                        setState(() => _selectedDate = date);
                     },
                   ),
                   ListTile(
@@ -70,8 +97,12 @@ class _NewShiftScreenState extends ConsumerState<NewShiftScreen> {
                     title: Text(_selectedTime.format(context)),
                     trailing: const Icon(Icons.edit),
                     onTap: () async {
-                      final time = await showTimePicker(context: context, initialTime: _selectedTime);
-                      if (time != null && context.mounted) setState(() => _selectedTime = time);
+                      final time = await showTimePicker(
+                        context: context,
+                        initialTime: _selectedTime,
+                      );
+                      if (time != null && context.mounted)
+                        setState(() => _selectedTime = time);
                     },
                   ),
                 ],
@@ -83,19 +114,41 @@ class _NewShiftScreenState extends ConsumerState<NewShiftScreen> {
             onPressed: shiftState.isLoading
                 ? null
                 : () async {
-                    final dateTime = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day, _selectedTime.hour, _selectedTime.minute);
-                    await ref.read(shiftNotifierProvider.notifier).startShift(_selectedType, dateTime: dateTime);
+                    final dateTime = DateTime(
+                      _selectedDate.year,
+                      _selectedDate.month,
+                      _selectedDate.day,
+                      _selectedTime.hour,
+                      _selectedTime.minute,
+                    );
+                    await ref
+                        .read(shiftNotifierProvider.notifier)
+                        .startShift(_selectedType, dateTime: dateTime);
                     if (context.mounted) {
                       final latestState = ref.read(shiftNotifierProvider);
                       if (latestState.hasError) {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to start shift')));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Failed to start shift'),
+                          ),
+                        );
                       } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('$_selectedType shift started'),
+                          ),
+                        );
                         Navigator.pop(context);
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$_selectedType shift started')));
                       }
                     }
                   },
-            child: shiftState.isLoading ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2)) : const Text('Start Shift'),
+            child: shiftState.isLoading
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Text('Start Shift'),
           ),
         ],
       ),
@@ -104,7 +157,12 @@ class _NewShiftScreenState extends ConsumerState<NewShiftScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Start New Shift')),
       body: isWide(context)
-          ? Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 1000), child: body))
+          ? Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: kMaxContentWidth),
+                child: body,
+              ),
+            )
           : body,
     );
   }

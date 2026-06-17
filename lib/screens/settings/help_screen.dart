@@ -25,7 +25,7 @@ class HelpScreen extends StatelessWidget {
         _HelpSection(
           icon: Icons.schedule,
           title: 'Shifts',
-          color: Colors.orange,
+          color: colorScheme.tertiary,
           items: [
             'Start a new shift (Morning or Evening)',
             'Add fuel sales entries with meter readings',
@@ -37,7 +37,7 @@ class HelpScreen extends StatelessWidget {
         _HelpSection(
           icon: Icons.inventory_2,
           title: 'Inventory',
-          color: Colors.teal,
+          color: colorScheme.primary,
           items: [
             'View current stock levels for all products',
             'Visual indicators show stock health (green/orange/red)',
@@ -60,7 +60,7 @@ class HelpScreen extends StatelessWidget {
         _HelpSection(
           icon: Icons.people,
           title: 'Employees',
-          color: Colors.purple,
+          color: colorScheme.secondary,
           items: [
             'Add and manage staff members',
             'Set roles: Operator, Manager, Supervisor',
@@ -71,7 +71,7 @@ class HelpScreen extends StatelessWidget {
         _HelpSection(
           icon: Icons.payments,
           title: 'Payroll',
-          color: Colors.indigo,
+          color: colorScheme.primary,
           items: [
             'Generate monthly payroll for all employees',
             'Adjust deductions, advances, and bonuses',
@@ -82,7 +82,7 @@ class HelpScreen extends StatelessWidget {
         _HelpSection(
           icon: Icons.history,
           title: 'Sales History',
-          color: Colors.brown,
+          color: colorScheme.tertiary,
           items: [
             'View all past shifts with sales details',
             'Filter by shift type (Morning/Evening)',
@@ -92,7 +92,7 @@ class HelpScreen extends StatelessWidget {
         _HelpSection(
           icon: Icons.picture_as_pdf,
           title: 'Reports',
-          color: Colors.red,
+          color: colorScheme.error,
           items: [
             'Generate PDF reports for individual shifts',
             'Generate monthly sales and expense reports',
@@ -117,9 +117,18 @@ class HelpScreen extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             child: Column(
               children: [
-                Icon(Icons.lightbulb_outline, size: 36, color: colorScheme.primary),
+                Icon(
+                  Icons.lightbulb_outline,
+                  size: 36,
+                  color: colorScheme.primary,
+                ),
                 const SizedBox(height: 8),
-                Text('Tips', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                Text(
+                  'Tips',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 const SizedBox(height: 8),
                 const Text(
                   '• Pull down on Dashboard to refresh data\n'
@@ -138,7 +147,12 @@ class HelpScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Help & Guide')),
       body: isWide(context)
-          ? Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 1000), child: body))
+          ? Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: kMaxContentWidth),
+                child: body,
+              ),
+            )
           : body,
     );
   }
@@ -150,7 +164,12 @@ class _HelpSection extends StatelessWidget {
   final Color color;
   final List<String> items;
 
-  const _HelpSection({required this.icon, required this.title, required this.color, required this.items});
+  const _HelpSection({
+    required this.icon,
+    required this.title,
+    required this.color,
+    required this.items,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -165,20 +184,29 @@ class _HelpSection extends StatelessWidget {
               children: [
                 Icon(icon, color: color, size: 24),
                 const SizedBox(width: 12),
-                Text(title, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                Text(
+                  title,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 8),
-            ...items.map((item) => Padding(
-              padding: const EdgeInsets.only(bottom: 4),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('• ', style: TextStyle(color: color)),
-                  Expanded(child: Text(item, style: const TextStyle(fontSize: 13))),
-                ],
+            ...items.map(
+              (item) => Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('• ', style: TextStyle(color: color)),
+                    Expanded(
+                      child: Text(item, style: const TextStyle(fontSize: 13)),
+                    ),
+                  ],
+                ),
               ),
-            )),
+            ),
           ],
         ),
       ),

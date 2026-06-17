@@ -45,7 +45,7 @@ void main() {
       await notifier.addSaleToShift(shift!.id, product.id, 0, 100, 250, 25000, 0, 0);
       expect(container.read(shiftNotifierProvider).hasError, isFalse);
 
-      await notifier.closeShift(shift.id, null);
+      await notifier.closeShift(shift.id);
       expect(container.read(shiftNotifierProvider).hasError, isFalse);
 
       shift = await db.shiftDao.getShiftById(shift.id);

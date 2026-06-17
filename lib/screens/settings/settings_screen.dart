@@ -27,17 +27,25 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildMobileLayout(BuildContext context, WidgetRef ref, ColorScheme colorScheme) {
+  Widget _buildMobileLayout(
+    BuildContext context,
+    WidgetRef ref,
+    ColorScheme colorScheme,
+  ) {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: _buildMenuSections(context, ref, colorScheme),
     );
   }
 
-  Widget _buildDesktopLayout(BuildContext context, WidgetRef ref, ColorScheme colorScheme) {
+  Widget _buildDesktopLayout(
+    BuildContext context,
+    WidgetRef ref,
+    ColorScheme colorScheme,
+  ) {
     return Center(
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 1000),
+        constraints: const BoxConstraints(maxWidth: kMaxContentWidth),
         child: ListView(
           padding: const EdgeInsets.all(24),
           children: _buildMenuSections(context, ref, colorScheme),
@@ -46,7 +54,11 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  List<Widget> _buildMenuSections(BuildContext context, WidgetRef ref, ColorScheme colorScheme) {
+  List<Widget> _buildMenuSections(
+    BuildContext context,
+    WidgetRef ref,
+    ColorScheme colorScheme,
+  ) {
     return [
       _MenuSection(
         title: 'Settings',
@@ -55,20 +67,29 @@ class SettingsScreen extends ConsumerWidget {
             icon: Icons.cloud_upload,
             title: 'Backup & Restore',
             subtitle: 'Backup management',
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const BackupScreen())),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const BackupScreen()),
+            ),
           ),
           if (Platform.isAndroid || Platform.isIOS)
             _MenuItem(
               icon: Icons.lock,
               title: 'App Lock',
               subtitle: 'Configure biometric lock',
-              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AppLockScreen())),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const AppLockScreen()),
+              ),
             ),
           _MenuItem(
             icon: Icons.help_outline,
             title: 'Help & Guide',
             subtitle: 'Learn how to use the app',
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HelpScreen())),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const HelpScreen()),
+            ),
           ),
           _MenuItem(
             icon: Icons.bug_report,
@@ -85,9 +106,20 @@ class SettingsScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(children: [Icon(Icons.dark_mode, color: colorScheme.primary, size: 20), const SizedBox(width: 8), Text('Theme', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold))]),
+              Row(
+                children: [
+                  Icon(Icons.dark_mode, color: colorScheme.primary, size: 20),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Theme',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
               const SizedBox(height: 12),
-              _ThemeSelector(ref: ref),
+              const _ThemeSelector(),
             ],
           ),
         ),
@@ -99,7 +131,8 @@ class SettingsScreen extends ConsumerWidget {
           title: const Text('Abbreviate Amounts'),
           subtitle: const Text('Show abbreviated amounts (e.g. 1.2L)'),
           value: ref.watch(abbreviateAmountsProvider),
-          onChanged: (value) => ref.read(abbreviateAmountsProvider.notifier).setAbbreviate(value),
+          onChanged: (value) =>
+              ref.read(abbreviateAmountsProvider.notifier).setAbbreviate(value),
         ),
       ),
       const SizedBox(height: 16),
@@ -108,23 +141,49 @@ class SettingsScreen extends ConsumerWidget {
           padding: const EdgeInsets.all(16),
           child: Column(
             children: [
-              Icon(Icons.local_gas_station, size: 48, color: colorScheme.primary),
+              Icon(
+                Icons.local_gas_station,
+                size: 48,
+                color: colorScheme.primary,
+              ),
               const SizedBox(height: 8),
-              Text(kAppName, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+              Text(
+                kAppName,
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 4),
               FutureBuilder<PackageInfo>(
                 future: PackageInfo.fromPlatform(),
                 builder: (context, snapshot) => Text(
                   'Version ${snapshot.data?.version ?? "..."}',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ),
               const SizedBox(height: 12),
-              Text('Built by Software Works', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant)),
+              Text(
+                'Built by Software Works',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
               const SizedBox(height: 2),
-              Text('Developer: Muneeb Saeed', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant)),
+              Text(
+                'Developer: Muneeb Saeed',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
               const SizedBox(height: 2),
-              Text('Contact: 03156525591', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant)),
+              Text(
+                'Contact: 03156525591',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
             ],
           ),
         ),
@@ -165,7 +224,10 @@ class SettingsScreen extends ConsumerWidget {
             },
             child: const Text('Clear Log'),
           ),
-          FilledButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK')),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('OK'),
+          ),
         ],
       ),
     );
@@ -183,18 +245,26 @@ class _MenuSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title, style: Theme.of(context).textTheme.titleSmall?.copyWith(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.bold)),
+        Text(
+          title,
+          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+            color: Theme.of(context).colorScheme.primary,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         const SizedBox(height: 8),
         Card(
-          child: Column(children: items.map((item) {
-            return ListTile(
-              leading: Icon(item.icon),
-              title: Text(item.title),
-              subtitle: Text(item.subtitle),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: item.onTap,
-            );
-          }).toList()),
+          child: Column(
+            children: items.map((item) {
+              return ListTile(
+                leading: Icon(item.icon),
+                title: Text(item.title),
+                subtitle: Text(item.subtitle),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: item.onTap,
+              );
+            }).toList(),
+          ),
         ),
       ],
     );
@@ -207,25 +277,41 @@ class _MenuItem {
   final String subtitle;
   final VoidCallback onTap;
 
-  const _MenuItem({required this.icon, required this.title, required this.subtitle, required this.onTap});
+  const _MenuItem({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
 }
 
 class _ThemeSelector extends ConsumerWidget {
-  final WidgetRef ref;
-
-  const _ThemeSelector({required this.ref});
+  const _ThemeSelector();
 
   @override
-  Widget build(BuildContext context, WidgetRef _) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final mode = ref.watch(themeModeProvider);
     return SegmentedButton<ThemeMode>(
       segments: const [
-        ButtonSegment(value: ThemeMode.system, icon: Icon(Icons.brightness_auto), label: Text('Auto')),
-        ButtonSegment(value: ThemeMode.light, icon: Icon(Icons.light_mode), label: Text('Light')),
-        ButtonSegment(value: ThemeMode.dark, icon: Icon(Icons.dark_mode), label: Text('Dark')),
+        ButtonSegment(
+          value: ThemeMode.system,
+          icon: Icon(Icons.brightness_auto),
+          label: Text('Auto'),
+        ),
+        ButtonSegment(
+          value: ThemeMode.light,
+          icon: Icon(Icons.light_mode),
+          label: Text('Light'),
+        ),
+        ButtonSegment(
+          value: ThemeMode.dark,
+          icon: Icon(Icons.dark_mode),
+          label: Text('Dark'),
+        ),
       ],
       selected: {mode},
-      onSelectionChanged: (value) => ref.read(themeModeProvider.notifier).setThemeMode(value.first),
+      onSelectionChanged: (value) =>
+          ref.read(themeModeProvider.notifier).setThemeMode(value.first),
     );
   }
 }

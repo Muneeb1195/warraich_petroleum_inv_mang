@@ -40,18 +40,26 @@ class _SalesHistoryScreenState extends ConsumerState<SalesHistoryScreen> {
 
     if (_searchQuery.isNotEmpty) {
       final q = _searchQuery.toLowerCase();
-      filtered = filtered.where((s) =>
-          s.type.toLowerCase().contains(q) ||
-          (s.notes?.toLowerCase().contains(q) ?? false) ||
-          s.startDate.formattedDate.toLowerCase().contains(q) ||
-          s.status.toLowerCase().contains(q)).toList();
+      filtered = filtered
+          .where(
+            (s) =>
+                s.type.toLowerCase().contains(q) ||
+                (s.notes?.toLowerCase().contains(q) ?? false) ||
+                s.startDate.formattedDate.toLowerCase().contains(q) ||
+                s.status.toLowerCase().contains(q),
+          )
+          .toList();
     }
 
     if (_startDate != null) {
-      filtered = filtered.where((s) => !s.startDate.isBefore(_startDate!.startOfDay)).toList();
+      filtered = filtered
+          .where((s) => !s.startDate.isBefore(_startDate!.startOfDay))
+          .toList();
     }
     if (_endDate != null) {
-      filtered = filtered.where((s) => !s.startDate.isAfter(_endDate!.endOfDay)).toList();
+      filtered = filtered
+          .where((s) => !s.startDate.isAfter(_endDate!.endOfDay))
+          .toList();
     }
 
     return filtered;
@@ -65,7 +73,10 @@ class _SalesHistoryScreenState extends ConsumerState<SalesHistoryScreen> {
       lastDate: now.add(const Duration(days: 1)),
       initialDateRange: _startDate != null && _endDate != null
           ? DateTimeRange(start: _startDate!, end: _endDate!)
-          : DateTimeRange(start: now.subtract(const Duration(days: 30)), end: now),
+          : DateTimeRange(
+              start: now.subtract(const Duration(days: 30)),
+              end: now,
+            ),
     );
     if (range != null && mounted) {
       setState(() {
@@ -84,11 +95,13 @@ class _SalesHistoryScreenState extends ConsumerState<SalesHistoryScreen> {
       data: (shifts) {
         final filtered = _applyFilters(shifts);
         if (filtered.isEmpty) {
-          return Center(child: Text(
-            _searchQuery.isNotEmpty || _startDate != null
-                ? 'No shifts match your search'
-                : 'No sales history',
-          ));
+          return Center(
+            child: Text(
+              _searchQuery.isNotEmpty || _startDate != null
+                  ? 'No shifts match your search'
+                  : 'No sales history',
+            ),
+          );
         }
         return ListView.builder(
           padding: const EdgeInsets.all(16),
@@ -100,20 +113,49 @@ class _SalesHistoryScreenState extends ConsumerState<SalesHistoryScreen> {
             return Card(
               child: ListTile(
                 leading: CircleAvatar(
-                  backgroundColor: isActive ? colorScheme.surfaceContainerHighest : colorScheme.primaryContainer,
-                  child: Icon(isActive ? Icons.schedule : Icons.check_circle, color: isActive ? colorScheme.onSurfaceVariant : colorScheme.onPrimaryContainer),
+                  backgroundColor: isActive
+                      ? colorScheme.surfaceContainerHighest
+                      : colorScheme.primaryContainer,
+                  child: Icon(
+                    isActive ? Icons.schedule : Icons.check_circle,
+                    color: isActive
+                        ? colorScheme.onSurfaceVariant
+                        : colorScheme.onPrimaryContainer,
+                  ),
                 ),
-                title: Text('${shift.type.toUpperCase()} - ${shift.startDate.formattedDate}'),
-                subtitle: Text('Sales: $kCurrency ${shift.totalSales.toStringAsFixed(0)} | Exp: $kCurrency ${shift.totalExpenses.toStringAsFixed(0)}'),
+                title: Text(
+                  '${shift.type.toUpperCase()} - ${shift.startDate.formattedDate}',
+                ),
+                subtitle: Text(
+                  'Sales: $kCurrency ${shift.totalSales.toStringAsFixed(0)} | Exp: $kCurrency ${shift.totalExpenses.toStringAsFixed(0)}',
+                ),
                 trailing: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text('$kCurrency ${profit.toStringAsFixed(0)}', style: TextStyle(fontWeight: FontWeight.bold, color: profit >= 0 ? Colors.green : colorScheme.error)),
-                    if (isActive) Text('Active', style: TextStyle(fontSize: 10, color: colorScheme.onSurfaceVariant)),
+                    Text(
+                      '$kCurrency ${profit.toStringAsFixed(0)}',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: profit >= 0 ? colorScheme.tertiary : colorScheme.error,
+                      ),
+                    ),
+                    if (isActive)
+                      Text(
+                        'Active',
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
                   ],
                 ),
-                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ShiftDetailScreen(shiftId: shift.id))),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => ShiftDetailScreen(shiftId: shift.id),
+                  ),
+                ),
               ),
             );
           },
@@ -131,7 +173,10 @@ class _SalesHistoryScreenState extends ConsumerState<SalesHistoryScreen> {
             IconButton(
               icon: const Icon(Icons.clear),
               tooltip: 'Clear date filter',
-              onPressed: () => setState(() { _startDate = null; _endDate = null; }),
+              onPressed: () => setState(() {
+                _startDate = null;
+                _endDate = null;
+              }),
             ),
           IconButton(
             icon: const Icon(Icons.date_range),
@@ -143,8 +188,14 @@ class _SalesHistoryScreenState extends ConsumerState<SalesHistoryScreen> {
             onSelected: (value) => setState(() => _filterType = value),
             itemBuilder: (context) => [
               const PopupMenuItem(value: 'all', child: Text('All Shifts')),
-              const PopupMenuItem(value: 'morning', child: Text('Morning Only')),
-              const PopupMenuItem(value: 'evening', child: Text('Evening Only')),
+              const PopupMenuItem(
+                value: 'morning',
+                child: Text('Morning Only'),
+              ),
+              const PopupMenuItem(
+                value: 'evening',
+                child: Text('Evening Only'),
+              ),
               const PopupMenuItem(value: 'closed', child: Text('Closed Only')),
             ],
           ),
@@ -168,9 +219,13 @@ class _SalesHistoryScreenState extends ConsumerState<SalesHistoryScreen> {
                         },
                       )
                     : null,
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 filled: true,
-                fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                fillColor: colorScheme.surfaceContainerHighest.withValues(
+                  alpha: 0.3,
+                ),
               ),
               onChanged: (v) => setState(() => _searchQuery = v),
             ),
@@ -180,15 +235,27 @@ class _SalesHistoryScreenState extends ConsumerState<SalesHistoryScreen> {
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
               child: Chip(
                 avatar: const Icon(Icons.date_range, size: 18),
-                label: Text('${_startDate!.formattedDate} - ${_endDate!.formattedDate}'),
-                onDeleted: () => setState(() { _startDate = null; _endDate = null; }),
+                label: Text(
+                  '${_startDate!.formattedDate} - ${_endDate!.formattedDate}',
+                ),
+                onDeleted: () => setState(() {
+                  _startDate = null;
+                  _endDate = null;
+                }),
               ),
             ),
           Expanded(
             child: RefreshIndicator(
-              onRefresh: () async { ref.invalidate(allShiftsProvider); },
+              onRefresh: () async {
+                ref.invalidate(allShiftsProvider);
+              },
               child: isWide(context)
-                  ? Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 1000), child: body))
+                  ? Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: kMaxContentWidth),
+                        child: body,
+                      ),
+                    )
                   : body,
             ),
           ),

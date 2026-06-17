@@ -43,19 +43,21 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     const SettingsScreen(),
   ];
 
-  bool get _isDesktop => Platform.isWindows || Platform.isLinux || Platform.isMacOS;
+  bool get _isDesktop =>
+      Platform.isWindows || Platform.isLinux || Platform.isMacOS;
 
   @override
   Widget build(BuildContext context) {
     final activeShift = ref.watch(activeShiftProvider);
 
     if (_isDesktop) {
-    return Scaffold(
+      return Scaffold(
         body: Row(
           children: [
             NavigationRail(
               selectedIndex: _currentIndex,
-              onDestinationSelected: (index) => setState(() => _currentIndex = index),
+              onDestinationSelected: (index) =>
+                  setState(() => _currentIndex = index),
               labelType: NavigationRailLabelType.all,
               leading: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 16),
@@ -64,7 +66,10 @@ class _HomeShellState extends ConsumerState<HomeShell> {
                     CircleAvatar(
                       radius: 20,
                       backgroundColor: colorScheme.primaryContainer,
-                      child: Icon(Icons.local_gas_station, color: colorScheme.onPrimaryContainer),
+                      child: Icon(
+                        Icons.local_gas_station,
+                        color: colorScheme.onPrimaryContainer,
+                      ),
                     ),
                     const SizedBox(height: 4),
                     Text(
@@ -81,22 +86,26 @@ class _HomeShellState extends ConsumerState<HomeShell> {
               destinations: [
                 NavigationRailDestination(
                   icon: Badge(
-                    isLabelVisible: activeShift.hasValue && activeShift.value != null,
+                    isLabelVisible:
+                        activeShift.hasValue && activeShift.value != null,
                     child: const Icon(Icons.dashboard_outlined),
                   ),
                   selectedIcon: Badge(
-                    isLabelVisible: activeShift.hasValue && activeShift.value != null,
+                    isLabelVisible:
+                        activeShift.hasValue && activeShift.value != null,
                     child: const Icon(Icons.dashboard),
                   ),
                   label: const Text('Dashboard'),
                 ),
                 NavigationRailDestination(
                   icon: Badge(
-                    isLabelVisible: activeShift.hasValue && activeShift.value != null,
+                    isLabelVisible:
+                        activeShift.hasValue && activeShift.value != null,
                     child: const Icon(Icons.schedule_outlined),
                   ),
                   selectedIcon: Badge(
-                    isLabelVisible: activeShift.hasValue && activeShift.value != null,
+                    isLabelVisible:
+                        activeShift.hasValue && activeShift.value != null,
                     child: const Icon(Icons.schedule),
                   ),
                   label: const Text('Shifts'),
@@ -151,10 +160,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     }
 
     return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _mobileScreens,
-      ),
+      body: IndexedStack(index: _currentIndex, children: _mobileScreens),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
         onDestinationSelected: (index) => setState(() => _currentIndex = index),

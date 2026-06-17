@@ -4,14 +4,26 @@ import '../tables/tables.dart';
 
 part 'shift_dao.g.dart';
 
-@DriftAccessor(tables: [Shifts, ShiftSales, Products, Inventory, InventoryTransactions, Employees, Expenses])
+@DriftAccessor(
+  tables: [
+    Shifts,
+    ShiftSales,
+    Products,
+    Inventory,
+    InventoryTransactions,
+    Employees,
+    Expenses,
+  ],
+)
 class ShiftDao extends DatabaseAccessor<AppDatabase> with _$ShiftDaoMixin {
   ShiftDao(super.db);
 
   Future<int> createShift(ShiftsCompanion shift) => into(shifts).insert(shift);
 
   Future<Shift?> getActiveShift() async {
-    return (select(shifts)..where((s) => s.status.equals('active'))).getSingleOrNull();
+    return (select(
+      shifts,
+    )..where((s) => s.status.equals('active'))).getSingleOrNull();
   }
 
   Future<Shift?> getShiftById(int id) async {
@@ -19,7 +31,8 @@ class ShiftDao extends DatabaseAccessor<AppDatabase> with _$ShiftDaoMixin {
   }
 
   Future<List<Shift>> getAllShifts() async {
-    final query = select(shifts)..orderBy([(s) => OrderingTerm.desc(s.startDate)]);
+    final query = select(shifts)
+      ..orderBy([(s) => OrderingTerm.desc(s.startDate)]);
     return query.get();
   }
 
@@ -33,8 +46,7 @@ class ShiftDao extends DatabaseAccessor<AppDatabase> with _$ShiftDaoMixin {
   Future<List<ShiftSalesRow>> getShiftSales(int shiftId) async {
     final query = select(shiftSales).join([
       innerJoin(products, products.id.equalsExp(shiftSales.productId)),
-    ])
-      ..where(shiftSales.shiftId.equals(shiftId));
+    ])..where(shiftSales.shiftId.equals(shiftId));
     final results = await query.get();
     return results.map((row) {
       return ShiftSalesRow(
@@ -44,34 +56,41 @@ class ShiftDao extends DatabaseAccessor<AppDatabase> with _$ShiftDaoMixin {
     }).toList();
   }
 
-  Future<int> addSaleToShift(ShiftSalesCompanion sale) => into(shiftSales).insert(sale);
+  Future<int> addSaleToShift(ShiftSalesCompanion sale) =>
+      into(shiftSales).insert(sale);
 
   Future<void> updateSaleInShift(int saleId, ShiftSalesCompanion sale) async {
     await (update(shiftSales)..where((s) => s.id.equals(saleId))).write(sale);
   }
 
   Future<ShiftSale?> getSaleById(int saleId) async {
-    return (select(shiftSales)..where((s) => s.id.equals(saleId))).getSingleOrNull();
+    return (select(
+      shiftSales,
+    )..where((s) => s.id.equals(saleId))).getSingleOrNull();
   }
 
   Future<void> deleteSaleFromShift(int saleId) async {
     await (delete(shiftSales)..where((s) => s.id.equals(saleId))).go();
   }
 
-  Future<void> closeShift(int shiftId, int? closedBy, double totalSales, double totalExpenses) async {
-    await (update(shifts)..where((s) => s.id.equals(shiftId))).write(ShiftsCompanion(
-      status: const Value('closed'),
-      endDate: Value(DateTime.now()),
-      closedBy: Value(closedBy),
-      totalSales: Value(totalSales),
-      totalExpenses: Value(totalExpenses),
-      updatedAt: Value(DateTime.now()),
-    ));
+  Future<void> closeShift(
+    int shiftId,
+    double totalSales,
+    double totalExpenses,
+  ) async {
+    await (update(shifts)..where((s) => s.id.equals(shiftId))).write(
+      ShiftsCompanion(
+        status: const Value('closed'),
+        endDate: Value(DateTime.now()),
+        totalSales: Value(totalSales),
+        totalExpenses: Value(totalExpenses),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
   }
 
   Future<double> getShiftExpenses(int shiftId) async {
-    final query = select(db.expenses)
-      ..where((e) => e.shiftId.equals(shiftId));
+    final query = select(db.expenses)..where((e) => e.shiftId.equals(shiftId));
     final expenses = await query.get();
     return expenses.fold<double>(0.0, (sum, e) => sum + e.amount);
   }
@@ -82,7 +101,8 @@ class ShiftDao extends DatabaseAccessor<AppDatabase> with _$ShiftDaoMixin {
   }
 
   Stream<List<Shift>> watchAllShifts() {
-    final query = select(shifts)..orderBy([(s) => OrderingTerm.desc(s.startDate)]);
+    final query = select(shifts)
+      ..orderBy([(s) => OrderingTerm.desc(s.startDate)]);
     return query.watch();
   }
 
@@ -91,18 +111,30 @@ class ShiftDao extends DatabaseAccessor<AppDatabase> with _$ShiftDaoMixin {
     final startOfDay = DateTime(now.year, now.month, now.day);
     final endOfDay = startOfDay.add(const Duration(days: 1));
 
-    final todayShifts = await (select(shifts)
-          ..where((s) =>
-              s.startDate.isBetweenValues(startOfDay, endOfDay) &
-              s.status.equals('closed')))
-        .get();
+    final todayShifts =
+        await (select(shifts)..where(
+              (s) =>
+                  s.startDate.isBetweenValues(startOfDay, endOfDay) &
+                  s.status.equals('closed'),
+            ))
+            .get();
 
-    final todayExpenses = await (select(db.expenses)
-          ..where((e) => e.date.isBetweenValues(startOfDay, endOfDay) & e.category.equals('Supplier').not()))
-        .get();
+    final todayExpenses =
+        await (select(db.expenses)..where(
+              (e) =>
+                  e.date.isBetweenValues(startOfDay, endOfDay) &
+                  e.category.equals('Supplier').not(),
+            ))
+            .get();
 
-    final totalSales = todayShifts.fold<double>(0.0, (sum, s) => sum + s.totalSales);
-    final totalExpenses = todayExpenses.fold<double>(0.0, (sum, e) => sum + e.amount);
+    final totalSales = todayShifts.fold<double>(
+      0.0,
+      (sum, s) => sum + s.totalSales,
+    );
+    final totalExpenses = todayExpenses.fold<double>(
+      0.0,
+      (sum, e) => sum + e.amount,
+    );
 
     return {
       'sales': totalSales,
@@ -117,11 +149,13 @@ class ShiftDao extends DatabaseAccessor<AppDatabase> with _$ShiftDaoMixin {
     final endOfToday = DateTime(now.year, now.month, now.day + 1);
 
     // Fetch all closed shifts in the entire week in a single query
-    final allShifts = await (select(shifts)
-          ..where((s) =>
-              s.startDate.isBetweenValues(sevenDaysAgo, endOfToday) &
-              s.status.equals('closed')))
-        .get();
+    final allShifts =
+        await (select(shifts)..where(
+              (s) =>
+                  s.startDate.isBetweenValues(sevenDaysAgo, endOfToday) &
+                  s.status.equals('closed'),
+            ))
+            .get();
 
     final results = <MapEntry<DateTime, double>>[];
 
@@ -130,11 +164,18 @@ class ShiftDao extends DatabaseAccessor<AppDatabase> with _$ShiftDaoMixin {
       final nextDay = day.add(const Duration(days: 1));
 
       // Filter shifts for this day in-memory
-      final dayShifts = allShifts.where((s) =>
-          s.startDate.isAfter(day.subtract(const Duration(microseconds: 1))) &&
-          s.startDate.isBefore(nextDay));
+      final dayShifts = allShifts.where(
+        (s) =>
+            s.startDate.isAfter(
+              day.subtract(const Duration(microseconds: 1)),
+            ) &&
+            s.startDate.isBefore(nextDay),
+      );
 
-      final totalSales = dayShifts.fold<double>(0.0, (sum, s) => sum + s.totalSales);
+      final totalSales = dayShifts.fold<double>(
+        0.0,
+        (sum, s) => sum + s.totalSales,
+      );
       results.add(MapEntry(day, totalSales));
     }
 
@@ -146,9 +187,13 @@ class ShiftDao extends DatabaseAccessor<AppDatabase> with _$ShiftDaoMixin {
     final sevenDaysAgo = DateTime(now.year, now.month, now.day - 6);
     final endOfToday = DateTime(now.year, now.month, now.day + 1);
 
-    final allExpenses = await (select(db.expenses)
-          ..where((e) => e.date.isBetweenValues(sevenDaysAgo, endOfToday) & e.category.equals('Supplier').not()))
-        .get();
+    final allExpenses =
+        await (select(db.expenses)..where(
+              (e) =>
+                  e.date.isBetweenValues(sevenDaysAgo, endOfToday) &
+                  e.category.equals('Supplier').not(),
+            ))
+            .get();
 
     final results = <MapEntry<DateTime, double>>[];
 
@@ -156,11 +201,16 @@ class ShiftDao extends DatabaseAccessor<AppDatabase> with _$ShiftDaoMixin {
       final day = DateTime(now.year, now.month, now.day - i);
       final nextDay = day.add(const Duration(days: 1));
 
-      final dayExpenses = allExpenses.where((e) =>
-          e.date.isAfter(day.subtract(const Duration(microseconds: 1))) &&
-          e.date.isBefore(nextDay));
+      final dayExpenses = allExpenses.where(
+        (e) =>
+            e.date.isAfter(day.subtract(const Duration(microseconds: 1))) &&
+            e.date.isBefore(nextDay),
+      );
 
-      final totalExpenses = dayExpenses.fold<double>(0.0, (sum, e) => sum + e.amount);
+      final totalExpenses = dayExpenses.fold<double>(
+        0.0,
+        (sum, e) => sum + e.amount,
+      );
       results.add(MapEntry(day, totalExpenses));
     }
 
@@ -180,16 +230,30 @@ class ShiftDao extends DatabaseAccessor<AppDatabase> with _$ShiftDaoMixin {
     final start = DateTime(year, month);
     final end = DateTime(year, month + 1);
 
-    final monthShifts = await (select(shifts)
-          ..where((s) => s.startDate.isBetweenValues(start, end) & s.status.equals('closed')))
-        .get();
+    final monthShifts =
+        await (select(shifts)..where(
+              (s) =>
+                  s.startDate.isBetweenValues(start, end) &
+                  s.status.equals('closed'),
+            ))
+            .get();
 
-    final monthExpenses = await (select(db.expenses)
-          ..where((e) => e.date.isBetweenValues(start, end) & e.category.equals('Supplier').not()))
-        .get();
+    final monthExpenses =
+        await (select(db.expenses)..where(
+              (e) =>
+                  e.date.isBetweenValues(start, end) &
+                  e.category.equals('Supplier').not(),
+            ))
+            .get();
 
-    final totalSales = monthShifts.fold<double>(0.0, (sum, s) => sum + s.totalSales);
-    final totalExpenses = monthExpenses.fold<double>(0.0, (sum, e) => sum + e.amount);
+    final totalSales = monthShifts.fold<double>(
+      0.0,
+      (sum, s) => sum + s.totalSales,
+    );
+    final totalExpenses = monthExpenses.fold<double>(
+      0.0,
+      (sum, e) => sum + e.amount,
+    );
 
     return {
       'sales': totalSales,
@@ -199,7 +263,9 @@ class ShiftDao extends DatabaseAccessor<AppDatabase> with _$ShiftDaoMixin {
   }
 
   Future<int> getActiveEmployeeCount() async {
-    final result = await (select(db.employees)..where((e) => e.isActive.equals(true))).get();
+    final result = await (select(
+      db.employees,
+    )..where((e) => e.isActive.equals(true))).get();
     return result.length;
   }
 
